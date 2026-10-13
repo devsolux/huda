@@ -1,0 +1,114 @@
+{
+  "status": "PASS",
+  "decoded_images": [
+    {
+      "file": "assets/icons/huda-1024.png",
+      "format": "PNG",
+      "size": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/huda-128.png",
+      "format": "PNG",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/huda-16.png",
+      "format": "PNG",
+      "size": [
+        16,
+        16
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/huda-24.png",
+      "format": "PNG",
+      "size": [
+        24,
+        24
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/huda-256.png",
+      "format": "PNG",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/huda-32.png",
+      "format": "PNG",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/huda-48.png",
+      "format": "PNG",
+      "size": [
+        48,
+        48
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/huda-512.png",
+      "format": "PNG",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/huda-64.png",
+      "format": "PNG",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/huda.icns",
+      "format": "ICNS",
+      "size": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/huda.ico",
+      "format": "ICO",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "file": "assets/icons/source.png",
+      "format": "PNG",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB"
+    }
+  ],
+  "approved_master_byte_identical": true
+}

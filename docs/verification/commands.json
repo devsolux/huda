@@ -1,0 +1,197 @@
+{
+  "date": "2026-10-09",
+  "environment": {
+    "host": "aarch64-apple-darwin (Apple Silicon)",
+    "os": "macOS 27.0.1 / 27.0.0",
+    "rustc": "1.99.0 (b940084d7 2026-09-28), rustup 1.29.1 toolchain 1.99.0-aarch64-apple-darwin, minimal profile + rustfmt + clippy",
+    "cargo": "1.99.0 (5f94df478 2026-08-27)",
+    "python": "3.14.8",
+    "xcode": "27.0 (27A266a), MacOSX27.0 SDK, MACOSX_DEPLOYMENT_TARGET=13.0",
+    "cargo_audit": "0.22.1",
+    "shellcheck": "0.11.0",
+    "git": null,
+    "note": "No Git metadata in the handoff; a SHA-256 baseline of the 169 delivered files was recorded before editing."
+  },
+  "inputs": {
+    "Cargo.lock_sha256": "f48a675f69d823422476478a348dd8a1fc1e6ad8526885f8214499635042e353",
+    "Cargo.toml_sha256": "fd4c97c77151a3e85769db31a80100de1c8afa27c684bee07bc68f05d1146a91",
+    "migration_sha256": "09cc0b8497373b423a22b76c49423d8e0dae6a0bbf92ef4fc562ef4e9d31b32c",
+    "icon_source_sha256": "139e1605d2e2c38d950373e025786e10258ada121ec5703d931acf603627c803"
+  },
+  "artifacts": {
+    "huda_release_sha256": "a3c423a3f4ec2d4f40764c23572697cba953ce6989af6d0a951261aa91785708",
+    "huda_desktop_release_sha256": "7665d7067cb22dc372245e653be4c1329a1ab4a85bb74619581abd5f9e3a46f2",
+    "dmg_sha256": "d9e4ac1d936641c36674988610d9dc8edec14a5c2f6c43257a1fd6edd8dc64a9",
+    "note": "Build outputs and packages are not part of the source tree; unsigned/ad-hoc test candidates only."
+  },
+  "commands": [
+    {
+      "command": "cargo metadata --locked --format-version 1",
+      "exit_code": 0,
+      "output": "cargo-metadata.txt",
+      "scope": "Lock accepted without resolution changes; 287 host-platform packages in the metadata graph (542 lock entries across all targets)",
+      "status": "pass"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 0,
+      "output": "cargo-fmt.txt",
+      "scope": "Formatting with the pinned rustfmt 1.10.0-stable",
+      "status": "pass"
+    },
+    {
+      "command": "cargo clippy --locked --all-targets --all-features -- -D warnings",
+      "exit_code": 0,
+      "output": "cargo-clippy.txt",
+      "scope": "Strict lint, all targets and features",
+      "status": "pass"
+    },
+    {
+      "command": "cargo clippy --locked --all-targets <7 other feature combinations> -- -D warnings",
+      "exit_code": 0,
+      "output": "cargo-clippy-feature-matrix.txt",
+      "scope": "default, no-default, rest, desktop, desktop+rest, code-adapter only, rest without os-secrets, all",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test --locked",
+      "exit_code": 0,
+      "output": "cargo-test.txt",
+      "scope": "36 library + 4 integration tests, default features",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test --locked --no-default-features",
+      "exit_code": 0,
+      "output": "cargo-test-headless.txt",
+      "scope": "36 library + 4 integration tests, headless",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test --locked --all-features",
+      "exit_code": 0,
+      "output": "cargo-test-all.txt",
+      "scope": "384 library + 1 desktop-binary + 4 integration tests",
+      "status": "pass"
+    },
+    {
+      "command": "cargo build --locked --release --target aarch64-apple-darwin --features desktop,rest --bins",
+      "exit_code": 0,
+      "output": "cargo-build-release.txt",
+      "scope": "Both native executables; rust-objcopy strip warning (toolchain packaging), build succeeds",
+      "status": "pass"
+    },
+    {
+      "command": "python3 scripts/check_native_host.py aarch64-apple-darwin",
+      "exit_code": 0,
+      "output": "check-native-host.txt",
+      "scope": "Native runner/compiler match",
+      "status": "pass"
+    },
+    {
+      "command": "python3 scripts/smoke_binary.py aarch64-apple-darwin",
+      "exit_code": 0,
+      "output": "smoke-binary.txt",
+      "scope": "Helper --version/--help only",
+      "status": "pass"
+    },
+    {
+      "command": "python3 scripts/package_desktop.py --target aarch64-apple-darwin --format all",
+      "exit_code": 0,
+      "output": "package-desktop.txt",
+      "scope": "Ad-hoc signed .app and hdiutil-verified .dmg under dist/ (not included in the source tree)",
+      "status": "pass"
+    },
+    {
+      "command": "cargo audit",
+      "exit_code": 0,
+      "output": "cargo-audit.txt",
+      "scope": "RustSec advisory database 2026-10-09; 0 vulnerabilities (tool finding, not certification)",
+      "status": "pass"
+    },
+    {
+      "command": "python3 scripts/check_sqlite.py",
+      "exit_code": 0,
+      "output": "check-sqlite.txt",
+      "scope": "19 SQLite-engine tests; does not execute Rust",
+      "status": "pass"
+    },
+    {
+      "command": "python3 scripts/test_desktop_assets.py",
+      "exit_code": 0,
+      "output": "test-desktop-assets.txt",
+      "scope": "15 offline icon/script/package fixture tests (1 skipped on macOS by design)",
+      "status": "pass"
+    },
+    {
+      "command": "python3 scripts/static_review.py",
+      "exit_code": 1,
+      "output": "static-review.txt",
+      "scope": "BLOCKED: Pygments is not installed in the audit environment",
+      "status": "blocked"
+    },
+    {
+      "command": "bash -n dev.sh",
+      "exit_code": 0,
+      "output": "dev-syntax.txt",
+      "scope": "Bash syntax",
+      "status": "pass"
+    },
+    {
+      "command": "sh -n scripts/qualify.sh",
+      "exit_code": 0,
+      "output": "qualify-syntax.txt",
+      "scope": "POSIX shell syntax",
+      "status": "pass"
+    },
+    {
+      "command": "shellcheck -S style dev.sh scripts/qualify.sh",
+      "exit_code": 0,
+      "output": "shellcheck.txt",
+      "scope": "ShellCheck 0.11.0",
+      "status": "pass"
+    },
+    {
+      "command": "./dev.sh doctor",
+      "exit_code": 0,
+      "output": "dev-doctor.txt",
+      "scope": "Native arm64, pinned toolchain, Python, lockfile present",
+      "status": "pass"
+    },
+    {
+      "command": "./dev.sh --help",
+      "exit_code": 0,
+      "output": "dev-help.txt",
+      "scope": "Read-only help",
+      "status": "pass"
+    },
+    {
+      "command": "ruby -ryaml YAML.load_file(desktop.yml, dependabot.yml)",
+      "exit_code": 0,
+      "output": "workflow-yaml.txt",
+      "scope": "YAML parse and job/matrix/permission shape via system Ruby; actionlint unavailable (BLOCKED)",
+      "status": "blocked"
+    },
+    {
+      "command": "HOME=<isolated> huda-desktop (launch, relaunch, --background relaunch, SIGTERM)",
+      "exit_code": 0,
+      "output": "desktop-launch-smoke.txt",
+      "scope": "Native desktop lease/activation smoke with an isolated HOME; real profile, keychain and LaunchAgents untouched; run on the pre-F14 binary, which differs only in the helper's error path",
+      "status": "pass"
+    },
+    {
+      "command": "huda contracts --output docs/verification/openapi-snapshot.json",
+      "exit_code": 0,
+      "output": "openapi-snapshot.json",
+      "scope": "Generated OpenAPI 3.1.2 document (28 paths, 95 schemas) from the final helper binary",
+      "status": "pass"
+    }
+  ],
+  "not_executed": [
+    "Intel macOS, Windows and Linux builds, tests, installers and native IPC/DACL qualification",
+    "Real login registration, tray interaction with a user, OS secret-store initialization (huda init writes to the real login keychain) and any real-profile mutation",
+    "Live provider, local-model and Bridge calls; semantic/entailment gold evaluations; performance measurements",
+    "actionlint and Pygments static review (tools unavailable)",
+    "Signing, notarization, release publication"
+  ]
+}

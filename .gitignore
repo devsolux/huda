@@ -1,0 +1,17 @@
+/target/
+/dist/
+*.db
+*.db-wal
+*.db-shm
+*.lockfile
+.DS_Store
+__pycache__/
+# Credentials live in the OS secret store; never commit local env or token files.
+.env
+.env.*
+!.env.example
+# Cargo.lock is intentionally NOT ignored. Resolve, review and commit it before release.
+
+/.ci-lock/
+/Cargo.lock.sha256
+/dependency-resolution.json

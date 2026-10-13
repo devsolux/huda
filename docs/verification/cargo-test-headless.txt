@@ -1,0 +1,66 @@
+   Compiling huda v1.0.0 (/Users/devsolux/Projects/DevSolux/beypilot/huda)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.06s
+     Running unittests src/lib.rs (target/debug/deps/huda-2edaaf83b5a28ffa)
+
+running 36 tests
+test acquisition::providers::wikimedia::tests::identifiers_are_not_urls ... ok
+test acquisition::providers::wikimedia::tests::rejects_private_addresses ... ok
+test mcp::tests::stateless_metadata_is_required ... ok
+test answer::llm::tests::actual_and_malformed_tool_requests_are_rejected ... ok
+test answer::llm::tests::optional_null_tool_fields_are_not_tool_requests ... ok
+test mcp::tests::no_silent_protocol_fallback ... ok
+test api::contracts::tests::mcp_has_no_privileged_registry_or_erasure_tool ... ok
+test relation::tests::conditions_are_three_valued_and_do_not_invent_absence ... ok
+test api::contracts::tests::schemas_do_not_require_evidence_or_accept_caller_authority ... ok
+test api::contracts::tests::rest_uses_selected_compatibility_pin ... ok
+test mcp::tests::discover_and_catalog_results_carry_schema_required_fields ... ok
+test relation::tests::cancelled_operation_cannot_publish ... ok
+test relation::tests::disabling_auto_admission_does_not_downgrade_accepted_head ... ok
+test relation::tests::idempotency_does_not_create_history_versions ... ok
+test relation::tests::answer_contract_allows_evidence_free_context_but_does_not_fake_a_model ... ok
+test relation::tests::empty_graph_produces_valid_unresolved_goal_without_model_or_network ... ok
+test relation::tests::auto_expansion_without_independent_consent_creates_no_job_and_no_egress ... ok
+test relation::tests::one_profile_cannot_have_two_core_writers ... ok
+test relation::tests::nary_literal_roles_are_published_and_read_back_as_typed_bindings ... ok
+test runtime::framing::tests::bounded_frames_and_eof ... ok
+test runtime::helper::tests::missing_helper_does_not_respawn_the_gui ... ok
+test runtime::helper::tests::renamed_desktop_still_resolves_fixed_sibling ... ok
+test relation::tests::persistent_inference_is_rejected_before_write ... ok
+test runtime::ipc::tests::precancelled_request_never_connects_or_reads_secrets ... ok
+test runtime::transport::tests::desktop_lease_is_exclusive_but_independent_of_the_core_lease ... ok
+test runtime::transport::tests::operating_system_lease_prevents_a_second_writer_and_can_be_reacquired ... ok
+test runtime::transport::tests::private_native_transport_roundtrip_and_peer_identity ... ok
+test relation::tests::no_evidence_manual_json_withdrawal_gold ... ok
+test relation::tests::stale_policy_and_source_generation_are_rejected ... ok
+test relation::tests::partial_refresh_does_not_withdraw_but_complete_scope_can ... ok
+test relation::tests::opposite_polarity_is_disclosed_as_a_conflict_and_blocks_goal_coverage ... ok
+test relation::tests::private_assertion_set_is_not_in_public_relation_version_or_history ... ok
+test relation::tests::read_connection_is_not_a_mutation_seam ... ok
+test relation::tests::unknown_condition_cannot_meet_goal ... ok
+test relation::tests::valid_time_outside_the_requested_instant_is_not_coverage ... ok
+test runtime::ipc::serve_tests::core_serves_authenticated_clients_and_rejects_bad_tokens_and_frames ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+     Running unittests src/bin/huda.rs (target/debug/deps/huda-8ddbf2602232e410)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/interface_contracts.rs (target/debug/deps/interface_contracts-605a30e6b28bd4dd)
+
+running 4 tests
+test relation_tools_and_routes_share_an_operation ... ok
+test tool_catalog_exposes_no_registry_or_policy_mutation ... ok
+test input_cannot_forge_origin_or_permissions ... ok
+test protocol_and_product_versions_are_distinct ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Doc-tests huda
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

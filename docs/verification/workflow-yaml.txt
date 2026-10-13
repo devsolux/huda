@@ -1,0 +1,1 @@
+PASS: YAML parse via system ruby; jobs=dependencies,formatting,native; matrix=aarch64-apple-darwin@macos-26 x86_64-apple-darwin@macos-26-intel x86_64-pc-windows-msvc@windows-2025 x86_64-unknown-linux-gnu@ubuntu-24.04; permissions={"contents" => "read"}

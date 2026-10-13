@@ -1,0 +1,4662 @@
+{
+  "components": {
+    "schemas": {
+      "AnswerStatus": {
+        "enum": [
+          "answered",
+          "partial",
+          "no_relation_context",
+          "model_unavailable",
+          "failed"
+        ],
+        "type": "string"
+      },
+      "ApprovedRead": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "arguments": true,
+              "method": {
+                "const": "tool",
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "method",
+              "name",
+              "arguments"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "method": {
+                "const": "resource",
+                "type": "string"
+              },
+              "uri": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "method",
+              "uri"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "AssertionView": {
+        "additionalProperties": false,
+        "properties": {
+          "assertion_id": {
+            "type": "string"
+          },
+          "assertion_version_id": {
+            "type": "string"
+          },
+          "epistemic_kind": {
+            "$ref": "#/components/schemas/EpistemicKind"
+          },
+          "evidence_refs": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "type": "array"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "publication_status": {
+            "$ref": "#/components/schemas/PublicationStatus"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "tx_tick": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assertion_id",
+          "assertion_version_id",
+          "version",
+          "publication_status",
+          "epistemic_kind",
+          "origin",
+          "scope",
+          "tx_tick",
+          "stale",
+          "evidence_refs"
+        ],
+        "type": "object"
+      },
+      "BridgeConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "bridge_id": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "executable": {
+            "type": "string"
+          },
+          "executable_sha256": {
+            "type": "string"
+          },
+          "input_file": {
+            "description": "Optional exact regular input file, mounted read-only as /input/source. No directory grants.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "license": {
+            "type": "string"
+          },
+          "read": {
+            "$ref": "#/components/schemas/ApprovedRead"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "semantic_text": {
+            "type": "boolean"
+          },
+          "source_key": {
+            "type": "string"
+          },
+          "ttl_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bridge_id",
+          "source_key",
+          "scope",
+          "enabled",
+          "executable",
+          "executable_sha256",
+          "arguments",
+          "read",
+          "semantic_text",
+          "ttl_seconds",
+          "license"
+        ],
+        "type": "object"
+      },
+      "Condition": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "op": {
+                "const": "true",
+                "type": "string"
+              }
+            },
+            "required": [
+              "op"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "op": {
+                "const": "false",
+                "type": "string"
+              }
+            },
+            "required": [
+              "op"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "args": {
+                "items": {
+                  "$ref": "#/components/schemas/Condition"
+                },
+                "type": "array"
+              },
+              "op": {
+                "const": "all",
+                "type": "string"
+              }
+            },
+            "required": [
+              "op",
+              "args"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "args": {
+                "items": {
+                  "$ref": "#/components/schemas/Condition"
+                },
+                "type": "array"
+              },
+              "op": {
+                "const": "any",
+                "type": "string"
+              }
+            },
+            "required": [
+              "op",
+              "args"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "arg": {
+                "$ref": "#/components/schemas/Condition"
+              },
+              "op": {
+                "const": "not",
+                "type": "string"
+              }
+            },
+            "required": [
+              "op",
+              "arg"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "op": {
+                "const": "eq",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/components/schemas/Literal"
+              }
+            },
+            "required": [
+              "op",
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "op": {
+                "const": "neq",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/components/schemas/Literal"
+              }
+            },
+            "required": [
+              "op",
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "op": {
+                "const": "in",
+                "type": "string"
+              },
+              "values": {
+                "items": {
+                  "$ref": "#/components/schemas/Literal"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "op",
+              "key",
+              "values"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "op": {
+                "const": "gt",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/components/schemas/Literal"
+              }
+            },
+            "required": [
+              "op",
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "op": {
+                "const": "gte",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/components/schemas/Literal"
+              }
+            },
+            "required": [
+              "op",
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "op": {
+                "const": "lt",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/components/schemas/Literal"
+              }
+            },
+            "required": [
+              "op",
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "op": {
+                "const": "lte",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/components/schemas/Literal"
+              }
+            },
+            "required": [
+              "op",
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "op": {
+                "const": "exists",
+                "type": "string"
+              }
+            },
+            "required": [
+              "op",
+              "key"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Conflict": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "relation_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "relation_ids",
+          "state",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "CoverageSlot": {
+        "additionalProperties": false,
+        "properties": {
+          "coverage_basis": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "remaining_need_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "slot_id": {
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/CoverageState"
+          }
+        },
+        "required": [
+          "slot_id",
+          "state",
+          "coverage_basis",
+          "reason",
+          "remaining_need_ids"
+        ],
+        "type": "object"
+      },
+      "CoverageState": {
+        "enum": [
+          "covered",
+          "partial",
+          "unresolved",
+          "ambiguous"
+        ],
+        "type": "string"
+      },
+      "DerivedPath": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "path_id": {
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/PathStep"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "path_id",
+          "kind",
+          "steps"
+        ],
+        "type": "object"
+      },
+      "EntityInput": {
+        "additionalProperties": false,
+        "properties": {
+          "aliases": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "canonical_key": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "namespace",
+          "kind",
+          "canonical_key",
+          "name"
+        ],
+        "type": "object"
+      },
+      "EntityView": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_key": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "namespace": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "entity_id",
+          "namespace",
+          "kind",
+          "canonical_key",
+          "labels"
+        ],
+        "type": "object"
+      },
+      "EpistemicKind": {
+        "enum": [
+          "asserted",
+          "extracted",
+          "hypothetical",
+          "inferred"
+        ],
+        "type": "string"
+      },
+      "Evidence": {
+        "additionalProperties": false,
+        "properties": {
+          "approximate": {
+            "default": false,
+            "type": "boolean"
+          },
+          "locator": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "source_revision": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_revision",
+          "locator",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "ExpansionMode": {
+        "enum": [
+          "off",
+          "suggest",
+          "auto"
+        ],
+        "type": "string"
+      },
+      "ExtractedData": {
+        "additionalProperties": false,
+        "properties": {
+          "assertions": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/StructuredAssertion"
+            },
+            "type": "array"
+          },
+          "entities": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/EntityInput"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Fact": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "state": {
+                "const": "present",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/components/schemas/Literal"
+              }
+            },
+            "required": [
+              "state",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "state": {
+                "const": "authoritatively_absent",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "state": {
+                "const": "unknown",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "GoalCoverageReport": {
+        "additionalProperties": false,
+        "properties": {
+          "goal_met": {
+            "type": "boolean"
+          },
+          "remaining_need_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "slots": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageSlot"
+            },
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/CoverageState"
+          }
+        },
+        "required": [
+          "state",
+          "goal_met",
+          "slots",
+          "remaining_need_ids"
+        ],
+        "type": "object"
+      },
+      "JobView": {
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "goal": true,
+          "job_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "report": true,
+          "state": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "kind",
+          "state",
+          "goal",
+          "report",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "KnowledgeNeed": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "need_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "seed_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "slot_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "need_id",
+          "slot_id",
+          "kind",
+          "seed_ids",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "Literal": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "string",
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "integer",
+                "type": "string"
+              },
+              "value": {
+                "format": "int64",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "boolean",
+                "type": "string"
+              },
+              "value": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Decimal strings avoid platform-dependent floating-point canonicalization.",
+            "properties": {
+              "type": {
+                "const": "decimal",
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "timestamp",
+                "type": "string"
+              },
+              "value": {
+                "format": "int64",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "quantity",
+                "type": "string"
+              },
+              "value": {
+                "additionalProperties": false,
+                "properties": {
+                  "amount": {
+                    "type": "string"
+                  },
+                  "unit": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "amount",
+                  "unit"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Modality": {
+        "enum": [
+          "asserted",
+          "planned",
+          "possible",
+          "counterfactual",
+          "quoted"
+        ],
+        "type": "string"
+      },
+      "Origin": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "type": "string"
+          },
+          "extraction_scope_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "extractor_digest": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "type": "string"
+          },
+          "operation_id": {
+            "type": "string"
+          },
+          "source_generation": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_revision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "actor",
+          "operation_id"
+        ],
+        "type": "object"
+      },
+      "PathStep": {
+        "additionalProperties": false,
+        "properties": {
+          "from_entity": {
+            "type": "string"
+          },
+          "from_role": {
+            "type": "string"
+          },
+          "relation_id": {
+            "type": "string"
+          },
+          "reverse_navigation": {
+            "description": "Navigation against an arrow is disclosed; it never asserts an inverse relation.",
+            "type": "boolean"
+          },
+          "to_entity": {
+            "type": "string"
+          },
+          "to_role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "relation_id",
+          "from_entity",
+          "to_entity",
+          "from_role",
+          "to_role",
+          "reverse_navigation"
+        ],
+        "type": "object"
+      },
+      "Polarity": {
+        "enum": [
+          "positive",
+          "negative"
+        ],
+        "type": "string"
+      },
+      "ProviderPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_actors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "approved_public_terms": {
+            "description": "Explicitly approved public phrases, never inferred from the question or graph ACL.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "auto_admit_semantic": {
+            "default": false,
+            "type": "boolean"
+          },
+          "auto_admit_structured": {
+            "default": false,
+            "type": "boolean"
+          },
+          "auto_register_provider_types": {
+            "default": false,
+            "type": "boolean"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "may_fetch": {
+            "default": false,
+            "type": "boolean"
+          },
+          "provider_id": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "semantic_types": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "ttl_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "user_agent": {
+            "description": "Real operator contact is required before requests, not a fictitious contact address.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider_id",
+          "scope",
+          "allowed_actors",
+          "languages",
+          "approved_public_terms",
+          "user_agent",
+          "ttl_seconds"
+        ],
+        "type": "object"
+      },
+      "PublicationStatus": {
+        "enum": [
+          "active",
+          "proposed",
+          "withdrawn",
+          "rejected",
+          "superseded"
+        ],
+        "type": "string"
+      },
+      "RelationInput": {
+        "additionalProperties": false,
+        "properties": {
+          "condition": {
+            "$ref": "#/components/schemas/Condition",
+            "default": {
+              "op": "true"
+            }
+          },
+          "modality": {
+            "$ref": "#/components/schemas/Modality",
+            "default": "asserted"
+          },
+          "polarity": {
+            "$ref": "#/components/schemas/Polarity",
+            "default": "positive"
+          },
+          "qualifiers": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Literal"
+            },
+            "default": {},
+            "type": "object"
+          },
+          "relation_type": {
+            "type": "string"
+          },
+          "roles": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/RoleValue"
+              },
+              "type": "array"
+            },
+            "type": "object"
+          },
+          "valid_time": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValidTime"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "relation_type",
+          "roles"
+        ],
+        "type": "object"
+      },
+      "RelationReference": {
+        "additionalProperties": false,
+        "properties": {
+          "assertion_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "marker": {
+            "type": "string"
+          },
+          "relation_id": {
+            "type": "string"
+          },
+          "relation_version_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "marker",
+          "relation_id",
+          "relation_version_id",
+          "assertion_ids"
+        ],
+        "type": "object"
+      },
+      "RelationType": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_conditions": {
+            "default": false,
+            "type": "boolean"
+          },
+          "allow_negation": {
+            "default": false,
+            "type": "boolean"
+          },
+          "allow_valid_time": {
+            "default": false,
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "qualifiers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "description": "All allowed qualifiers are identity-significant in canonicalizer v1.",
+            "type": "object"
+          },
+          "roles": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RoleSpec"
+            },
+            "type": "object"
+          },
+          "traversals": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Traversal"
+            },
+            "type": "array"
+          },
+          "version": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "description",
+          "roles"
+        ],
+        "type": "object"
+      },
+      "RelationView": {
+        "additionalProperties": false,
+        "properties": {
+          "assertions": {
+            "items": {
+              "$ref": "#/components/schemas/AssertionView"
+            },
+            "type": "array"
+          },
+          "relation": {
+            "$ref": "#/components/schemas/RelationInput"
+          },
+          "relation_id": {
+            "type": "string"
+          },
+          "relation_version_id": {
+            "description": "Caller-visible version fingerprint, not the global private assertion-set version.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "relation_id",
+          "relation_version_id",
+          "relation",
+          "assertions"
+        ],
+        "type": "object"
+      },
+      "RoleSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "entity_kinds": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "literal_types": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "max": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "min": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "ordered": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "min",
+          "max"
+        ],
+        "type": "object"
+      },
+      "RoleValue": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "entity_id": {
+                "type": "string"
+              },
+              "kind": {
+                "const": "entity",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "entity_id"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "literal",
+                "type": "string"
+              },
+              "literal": {
+                "$ref": "#/components/schemas/Literal"
+              }
+            },
+            "required": [
+              "kind",
+              "literal"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "SourcePayload": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/ExtractedData"
+              },
+              "format": {
+                "const": "relations",
+                "type": "string"
+              }
+            },
+            "required": [
+              "format",
+              "data"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "const": "text",
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "format",
+              "text"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "const": "markdown",
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "format",
+              "text"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "format": {
+                "const": "code",
+                "type": "string"
+              },
+              "language": {
+                "type": "string"
+              },
+              "relative_path": {
+                "type": "string"
+              },
+              "root_namespace": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "format",
+              "text",
+              "language",
+              "relative_path",
+              "root_namespace"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "SourcePolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_actors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "allowed_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "auto_admit_semantic": {
+            "default": false,
+            "type": "boolean"
+          },
+          "auto_admit_structured": {
+            "default": false,
+            "type": "boolean"
+          },
+          "entity_namespaces": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "scope": {
+            "type": "string"
+          },
+          "source_key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_key",
+          "scope",
+          "allowed_actors",
+          "allowed_types",
+          "entity_namespaces"
+        ],
+        "type": "object"
+      },
+      "StructuredAssertion": {
+        "additionalProperties": false,
+        "properties": {
+          "anchor": {
+            "type": "string"
+          },
+          "epistemic_kind": {
+            "$ref": "#/components/schemas/EpistemicKind",
+            "default": "asserted"
+          },
+          "evidence": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "type": "array"
+          },
+          "relation": {
+            "$ref": "#/components/schemas/RelationInput"
+          }
+        },
+        "required": [
+          "anchor",
+          "relation"
+        ],
+        "type": "object"
+      },
+      "Traversal": {
+        "additionalProperties": false,
+        "properties": {
+          "bidirectional": {
+            "default": false,
+            "type": "boolean"
+          },
+          "from_role": {
+            "type": "string"
+          },
+          "to_role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_role",
+          "to_role"
+        ],
+        "type": "object"
+      },
+      "ValidTime": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "start": {
+            "description": "Half-open UTC interval in milliseconds. None is an unknown bound, not \"now\".",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "add_principalInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "type": "string"
+          },
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "read_scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "write_scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "actor",
+          "read_scopes",
+          "write_scopes",
+          "permissions",
+          "expected_policy_epoch"
+        ],
+        "title": "PrincipalRequest",
+        "type": "object"
+      },
+      "add_principalOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "admit_sourceInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/SourcePolicy"
+          }
+        },
+        "required": [
+          "policy",
+          "expected_policy_epoch"
+        ],
+        "title": "AdmitSourceRequest",
+        "type": "object"
+      },
+      "admit_sourceOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "allowed_actors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "allowed_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "auto_admit_semantic": {
+            "default": false,
+            "type": "boolean"
+          },
+          "auto_admit_structured": {
+            "default": false,
+            "type": "boolean"
+          },
+          "entity_namespaces": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "scope": {
+            "type": "string"
+          },
+          "source_key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_key",
+          "scope",
+          "allowed_actors",
+          "allowed_types",
+          "entity_namespaces"
+        ],
+        "title": "SourcePolicy",
+        "type": "object"
+      },
+      "ask_hudaInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expansion_mode": {
+            "$ref": "#/components/schemas/ExpansionMode",
+            "default": "off"
+          },
+          "facts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "default": {},
+            "type": "object"
+          },
+          "language": {
+            "default": "en",
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "valid_at": {
+            "default": null,
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "AskRequest",
+        "type": "object"
+      },
+      "ask_hudaOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "answer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "conflicts": {
+            "items": {
+              "$ref": "#/components/schemas/Conflict"
+            },
+            "type": "array"
+          },
+          "degraded_components": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "derived_paths": {
+            "items": {
+              "$ref": "#/components/schemas/DerivedPath"
+            },
+            "type": "array"
+          },
+          "expansion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "goal_coverage": {
+            "$ref": "#/components/schemas/GoalCoverageReport"
+          },
+          "inferences": {
+            "items": true,
+            "type": "array"
+          },
+          "knowledge_needs": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeNeed"
+            },
+            "type": "array"
+          },
+          "relation_context_hash": {
+            "type": "string"
+          },
+          "relation_refs": {
+            "items": {
+              "$ref": "#/components/schemas/RelationReference"
+            },
+            "type": "array"
+          },
+          "snapshot_tick": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AnswerStatus"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "unknowns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "relation_refs",
+          "derived_paths",
+          "inferences",
+          "goal_coverage",
+          "unknowns",
+          "conflicts",
+          "truncated",
+          "degraded_components",
+          "snapshot_tick",
+          "relation_context_hash",
+          "knowledge_needs"
+        ],
+        "title": "AskResponse",
+        "type": "object"
+      },
+      "assert_relationInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "epistemic_kind": {
+            "$ref": "#/components/schemas/EpistemicKind",
+            "default": "asserted"
+          },
+          "evidence": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "type": "array"
+          },
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "relation": {
+            "$ref": "#/components/schemas/RelationInput"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "relation",
+          "scope",
+          "idempotency_key",
+          "expected_policy_epoch"
+        ],
+        "title": "AssertRequest",
+        "type": "object"
+      },
+      "assert_relationOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "assertion_id": {
+            "type": "string"
+          },
+          "assertion_version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "changed": {
+            "type": "boolean"
+          },
+          "publication_status": {
+            "$ref": "#/components/schemas/PublicationStatus"
+          },
+          "relation_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "relation_id",
+          "assertion_id",
+          "assertion_version",
+          "publication_status",
+          "changed"
+        ],
+        "title": "Published",
+        "type": "object"
+      },
+      "backupInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "BackupRequest",
+        "type": "object"
+      },
+      "backupOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "bridge_statusInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "title": "Empty",
+        "type": "object"
+      },
+      "bridge_statusOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "cancel_jobInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "job_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "expected_version"
+        ],
+        "title": "CancelJobRequest",
+        "type": "object"
+      },
+      "cancel_jobOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "goal": true,
+          "job_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "report": true,
+          "state": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "kind",
+          "state",
+          "goal",
+          "report",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "JobView",
+        "type": "object"
+      },
+      "capture_bridgeInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "bridge_id": {
+            "type": "string"
+          },
+          "expected_generation": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bridge_id",
+          "expected_generation",
+          "expected_policy_epoch",
+          "idempotency_key"
+        ],
+        "title": "CaptureBridgeRequest",
+        "type": "object"
+      },
+      "capture_bridgeOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "goal": true,
+          "job_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "report": true,
+          "state": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "kind",
+          "state",
+          "goal",
+          "report",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "JobView",
+        "type": "object"
+      },
+      "configure_bridgeInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/BridgeConfig"
+          },
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expected_version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "config",
+          "expected_version",
+          "expected_policy_epoch"
+        ],
+        "title": "ConfigureBridgeRequest",
+        "type": "object"
+      },
+      "configure_bridgeOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "expand_knowledgeInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expansion_mode": {
+            "$ref": "#/components/schemas/ExpansionMode",
+            "default": "off"
+          },
+          "facts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "default": {},
+            "type": "object"
+          },
+          "language": {
+            "default": "en",
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "valid_at": {
+            "default": null,
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "AskRequest",
+        "type": "object"
+      },
+      "expand_knowledgeOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "goal": true,
+          "job_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "report": true,
+          "state": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "kind",
+          "state",
+          "goal",
+          "report",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "JobView",
+        "type": "object"
+      },
+      "explore_relationsInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "entity_id": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "include_proposed": {
+            "default": false,
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 50,
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "query": {
+            "default": "",
+            "type": "string"
+          },
+          "relation_type": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tx_as_of": {
+            "default": null,
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "title": "ExploreRequest",
+        "type": "object"
+      },
+      "explore_relationsOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/EntityView"
+            },
+            "type": "array"
+          },
+          "relations": {
+            "items": {
+              "$ref": "#/components/schemas/RelationView"
+            },
+            "type": "array"
+          },
+          "snapshot_tick": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "entities",
+          "relations",
+          "truncated",
+          "snapshot_tick"
+        ],
+        "title": "ExploreResponse",
+        "type": "object"
+      },
+      "get_jobInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "job_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "title": "JobRequest",
+        "type": "object"
+      },
+      "get_jobOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "goal": true,
+          "job_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "report": true,
+          "state": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "kind",
+          "state",
+          "goal",
+          "report",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "JobView",
+        "type": "object"
+      },
+      "get_knowledge_providersInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "title": "Empty",
+        "type": "object"
+      },
+      "get_knowledge_providersOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "get_relationInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "relation_id": {
+            "type": "string"
+          },
+          "tx_as_of": {
+            "default": null,
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "relation_id"
+        ],
+        "title": "RelationRequest",
+        "type": "object"
+      },
+      "get_relationOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "assertions": {
+            "items": {
+              "$ref": "#/components/schemas/AssertionView"
+            },
+            "type": "array"
+          },
+          "relation": {
+            "$ref": "#/components/schemas/RelationInput"
+          },
+          "relation_id": {
+            "type": "string"
+          },
+          "relation_version_id": {
+            "description": "Caller-visible version fingerprint, not the global private assertion-set version.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "relation_id",
+          "relation_version_id",
+          "relation",
+          "assertions"
+        ],
+        "title": "RelationView",
+        "type": "object"
+      },
+      "get_relation_historyInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "relation_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "relation_id"
+        ],
+        "title": "HistoryRequest",
+        "type": "object"
+      },
+      "get_relation_historyOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "items": {
+          "$ref": "#/components/schemas/RelationView"
+        },
+        "title": "Array_of_RelationView",
+        "type": "array"
+      },
+      "get_sourceInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "source_key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_key"
+        ],
+        "title": "SourceRequest",
+        "type": "object"
+      },
+      "get_sourceOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "ingest_sourceInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "coverage_complete_for_scope": {
+            "default": false,
+            "type": "boolean"
+          },
+          "expected_generation": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "extraction_scope_key": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/SourcePayload"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "source_key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_key",
+          "revision",
+          "expected_generation",
+          "extraction_scope_key",
+          "idempotency_key",
+          "expected_policy_epoch",
+          "payload"
+        ],
+        "title": "IngestRequest",
+        "type": "object"
+      },
+      "ingest_sourceOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "goal": true,
+          "job_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "report": true,
+          "state": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "job_id",
+          "kind",
+          "state",
+          "goal",
+          "report",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "JobView",
+        "type": "object"
+      },
+      "list_proposalsInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "title": "Empty",
+        "type": "object"
+      },
+      "list_proposalsOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "list_relation_typesInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "title": "Empty",
+        "type": "object"
+      },
+      "list_relation_typesOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "items": {
+          "$ref": "#/components/schemas/RelationType"
+        },
+        "title": "Array_of_RelationType",
+        "type": "array"
+      },
+      "register_relation_typeInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expected_registry_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "relation_type": {
+            "$ref": "#/components/schemas/RelationType"
+          }
+        },
+        "required": [
+          "relation_type",
+          "expected_registry_epoch",
+          "expected_policy_epoch"
+        ],
+        "title": "RegisterTypeRequest",
+        "type": "object"
+      },
+      "register_relation_typeOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "allow_conditions": {
+            "default": false,
+            "type": "boolean"
+          },
+          "allow_negation": {
+            "default": false,
+            "type": "boolean"
+          },
+          "allow_valid_time": {
+            "default": false,
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "qualifiers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": {},
+            "description": "All allowed qualifiers are identity-significant in canonicalizer v1.",
+            "type": "object"
+          },
+          "roles": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RoleSpec"
+            },
+            "type": "object"
+          },
+          "traversals": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Traversal"
+            },
+            "type": "array"
+          },
+          "version": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "description",
+          "roles"
+        ],
+        "title": "RelationType",
+        "type": "object"
+      },
+      "review_assertionInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "approve": {
+            "type": "boolean"
+          },
+          "assertion_id": {
+            "type": "string"
+          },
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expected_version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assertion_id",
+          "expected_version",
+          "expected_policy_epoch",
+          "approve"
+        ],
+        "title": "ReviewAssertionRequest",
+        "type": "object"
+      },
+      "review_assertionOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "assertion_id": {
+            "type": "string"
+          },
+          "assertion_version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "changed": {
+            "type": "boolean"
+          },
+          "publication_status": {
+            "$ref": "#/components/schemas/PublicationStatus"
+          },
+          "relation_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "relation_id",
+          "assertion_id",
+          "assertion_version",
+          "publication_status",
+          "changed"
+        ],
+        "title": "Published",
+        "type": "object"
+      },
+      "revoke_principalInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "type": "string"
+          },
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expected_version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "actor",
+          "expected_version",
+          "expected_policy_epoch"
+        ],
+        "title": "RevokeRequest",
+        "type": "object"
+      },
+      "revoke_principalOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "search_knowledgeInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "entity_id": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "include_proposed": {
+            "default": false,
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 50,
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "query": {
+            "default": "",
+            "type": "string"
+          },
+          "relation_type": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tx_as_of": {
+            "default": null,
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "title": "ExploreRequest",
+        "type": "object"
+      },
+      "search_knowledgeOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/EntityView"
+            },
+            "type": "array"
+          },
+          "relations": {
+            "items": {
+              "$ref": "#/components/schemas/RelationView"
+            },
+            "type": "array"
+          },
+          "snapshot_tick": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "entities",
+          "relations",
+          "truncated",
+          "snapshot_tick"
+        ],
+        "title": "ExploreResponse",
+        "type": "object"
+      },
+      "set_offlineInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "offline": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "offline",
+          "expected_policy_epoch"
+        ],
+        "title": "OfflineRequest",
+        "type": "object"
+      },
+      "set_offlineOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "set_provider_policyInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/ProviderPolicy"
+          }
+        },
+        "required": [
+          "policy",
+          "expected_policy_epoch"
+        ],
+        "title": "ProviderPolicyRequest",
+        "type": "object"
+      },
+      "set_provider_policyOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "statusInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "title": "Empty",
+        "type": "object"
+      },
+      "statusOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "upsert_entityInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "entity": {
+            "$ref": "#/components/schemas/EntityInput"
+          },
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "entity",
+          "scope",
+          "expected_policy_epoch"
+        ],
+        "title": "EntityRequest",
+        "type": "object"
+      },
+      "upsert_entityOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      },
+      "withdraw_relation_assertionInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "assertion_id": {
+            "type": "string"
+          },
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expected_version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assertion_id",
+          "expected_version",
+          "expected_policy_epoch"
+        ],
+        "title": "WithdrawRequest",
+        "type": "object"
+      },
+      "withdraw_relation_assertionOutput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "assertion_id": {
+            "type": "string"
+          },
+          "assertion_version": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "changed": {
+            "type": "boolean"
+          },
+          "publication_status": {
+            "$ref": "#/components/schemas/PublicationStatus"
+          },
+          "relation_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "relation_id",
+          "assertion_id",
+          "assertion_version",
+          "publication_status",
+          "changed"
+        ],
+        "title": "Published",
+        "type": "object"
+      },
+      "withdraw_sourceInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expected_generation": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expected_policy_epoch": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "source_key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_key",
+          "expected_generation",
+          "expected_policy_epoch"
+        ],
+        "title": "WithdrawSourceRequest",
+        "type": "object"
+      },
+      "withdraw_sourceOutput": {
+        "description": "Operational result; fields are produced by the common handler."
+      }
+    },
+    "securitySchemes": {
+      "localCapability": {
+        "description": "Per-client scoped capability from the OS secret store.",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Unqualified source candidate. Core permission checks are mandatory; localhost is not trusted.",
+    "title": "Huda local application API",
+    "version": "1.0.0"
+  },
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "openapi": "3.1.2",
+  "paths": {
+    "/api/v1/answers": {
+      "post": {
+        "description": "Answer from authorized Relation Context. Auto expansion never grants consent.",
+        "operationId": "ask_huda",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ask_hudaInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ask_hudaOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/assertions/review": {
+      "post": {
+        "description": "Explicit privileged review of an owned proposed assertion.",
+        "operationId": "review_assertion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/review_assertionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/review_assertionOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/assertions/{assertion_id}": {
+      "delete": {
+        "description": "Withdraw one owned direct assertion with version and policy CAS.",
+        "operationId": "withdraw_relation_assertion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assertion_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expected_policy_epoch",
+            "required": true,
+            "schema": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expected_version",
+            "required": true,
+            "schema": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/withdraw_relation_assertionOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/backups": {
+      "post": {
+        "description": "Privileged non-overwriting SQLite snapshot backup.",
+        "operationId": "backup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/backupInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/backupOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/bridge/captures": {
+      "post": {
+        "description": "Start an approved bounded MCP read capture through normal admission.",
+        "operationId": "capture_bridge",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/capture_bridgeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capture_bridgeOutput"
+                }
+              }
+            },
+            "description": "A real bounded job was accepted."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/bridge/sources": {
+      "post": {
+        "description": "Approve an exact sandboxed read-only MCP Bridge configuration.",
+        "operationId": "configure_bridge",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/configure_bridgeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/configure_bridgeOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/bridge/status": {
+      "get": {
+        "description": "Read authorized Bridge health without credentials or raw arguments.",
+        "operationId": "bridge_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bridge_statusOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/entities": {
+      "post": {
+        "description": "Create a scoped canonical entity or add its scoped labels.",
+        "operationId": "upsert_entity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/upsert_entityInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/upsert_entityOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs/cancel": {
+      "post": {
+        "description": "Cancel an owned job with version CAS; already committed transactions are retained.",
+        "operationId": "cancel_job",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/cancel_jobInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/cancel_jobOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs/{job_id}": {
+      "get": {
+        "description": "Read actual authorized job state and committed source deltas.",
+        "operationId": "get_job",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/get_jobOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/knowledge/expand": {
+      "post": {
+        "description": "Start one bounded acquisition job for internally derived goal-specific needs.",
+        "operationId": "expand_knowledge",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/expand_knowledgeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/expand_knowledgeOutput"
+                }
+              }
+            },
+            "description": "A real bounded job was accepted."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/knowledge/provider-policy": {
+      "post": {
+        "description": "Privileged provider consent update with policy CAS.",
+        "operationId": "set_provider_policy",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/set_provider_policyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/set_provider_policyOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/knowledge/providers": {
+      "get": {
+        "description": "Read approved capabilities and separate fetch/admission/registration status.",
+        "operationId": "get_knowledge_providers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/get_knowledge_providersOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/principals": {
+      "post": {
+        "description": "Privileged scoped capability creation in the OS secret store.",
+        "operationId": "add_principal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/add_principalInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/add_principalOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/principals/revoke": {
+      "post": {
+        "description": "Privileged capability revocation and policy epoch update.",
+        "operationId": "revoke_principal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/revoke_principalInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/revoke_principalOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/proposals": {
+      "get": {
+        "description": "Read bounded caller-visible relation/type proposals without publishing them.",
+        "operationId": "list_proposals",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/list_proposalsOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/relation-types": {
+      "get": {
+        "description": "Read registered type versions, roles and qualifier signatures.",
+        "operationId": "list_relation_types",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/list_relation_typesOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      },
+      "post": {
+        "description": "Privileged deterministic registry append; never an open MCP tool.",
+        "operationId": "register_relation_type",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/register_relation_typeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/register_relation_typeOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/relations": {
+      "post": {
+        "description": "Assert a typed relation. Evidence is optional; origin and policy checks are mandatory.",
+        "operationId": "assert_relation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/assert_relationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/assert_relationOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/relations/explore": {
+      "post": {
+        "description": "Explore typed role bindings, origin, history and optional evidence.",
+        "operationId": "explore_relations",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/explore_relationsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/explore_relationsOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/relations/{relation_id}": {
+      "get": {
+        "description": "Read a relation only through visible assertions.",
+        "operationId": "get_relation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "relation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tx_as_of",
+            "required": false,
+            "schema": {
+              "default": null,
+              "format": "uint64",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/get_relationOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/relations/{relation_id}/history": {
+      "get": {
+        "description": "Read immutable caller-visible assertion history.",
+        "operationId": "get_relation_history",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "relation_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/get_relation_historyOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "post": {
+        "description": "Bounded, assertion-ACL-filtered entity and relation search.",
+        "operationId": "search_knowledge",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/search_knowledgeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/search_knowledgeOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/settings/offline": {
+      "post": {
+        "description": "Privileged offline-policy change, invalidating stale jobs.",
+        "operationId": "set_offline",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/set_offlineInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/set_offlineOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/source-admissions": {
+      "post": {
+        "description": "Admit or update an owned source policy and namespace allowlist.",
+        "operationId": "admit_source",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/admit_sourceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admit_sourceOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/sources": {
+      "post": {
+        "description": "Start real, bounded source ingestion through the sole publication boundary.",
+        "operationId": "ingest_source",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ingest_sourceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ingest_sourceOutput"
+                }
+              }
+            },
+            "description": "A real bounded job was accepted."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/sources/{source_key}": {
+      "delete": {
+        "description": "Withdraw only this owned source's assertions; retain other origins and history.",
+        "operationId": "withdraw_source",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "expected_generation",
+            "required": true,
+            "schema": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expected_policy_epoch",
+            "required": true,
+            "schema": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "source_key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/withdraw_sourceOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      },
+      "get": {
+        "description": "Read source generation and admission state.",
+        "operationId": "get_source",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/get_sourceOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/api/v1/status": {
+      "get": {
+        "description": "Read caller-visible Huda health and version information.",
+        "operationId": "status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/statusOutput"
+                }
+              }
+            },
+            "description": "Successful authorized operation."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "correlation_id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "correlation_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Explicit redacted error, never a fabricated successful job."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "openapi",
+        "responses": {
+          "200": {
+            "description": "This generated OpenAPI 3.1.2 contract."
+          }
+        },
+        "security": [
+          {
+            "localCapability": []
+          }
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:{port}",
+      "variables": {
+        "port": {
+          "default": "7377"
+        }
+      }
+    }
+  ]
+}

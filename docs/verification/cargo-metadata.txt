@@ -1,0 +1,24 @@
+cargo metadata --locked --format-version 1: OK (exit 0). 287 packages resolved from the committed Cargo.lock without changes; workspace member path+file:///Users/devsolux/Projects/DevSolux/beypilot/huda#1.0.0.
+Leading non-JSON output from Cargo:
+Downloading crates ...
+  Downloaded toml v1.1.8+spec-1.1.0
+  Downloaded async-recursion v1.2.0
+  Downloaded serde_spanned v1.1.2
+  Downloaded wasm-bindgen-shared v0.2.129
+  Downloaded hmac v0.13.0
+  Downloaded toml_writer v1.1.3+spec-1.1.0
+  Downloaded wasm-bindgen-macro v0.2.129
+  Downloaded toml_datetime v1.1.2+spec-1.1.0
+  Downloaded wasm-bindgen-futures v0.4.79
+  Downloaded rustls-platform-verifier-android v0.2.0
+  Downloaded toml_parser v1.1.5+spec-1.1.0
+  Downloaded zbus-secret-service-keyring-store v1.0.1
+  Downloaded windows-native-keyring-store v1.1.0
+  Downloaded wasm-bindgen v0.2.129
+  Downloaded winresource v0.1.31
+  Downloaded secret-service v5.2.0
+  Downloaded toml_edit v0.25.17+spec-1.1.0
+  Downloaded js-sys v0.3.106
+  Downloaded wasm-bindgen-macro-support v0.2.129
+  Downloaded hkdf v0.13.0
+  Downloaded web-sys v0.3.106

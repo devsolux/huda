@@ -1,0 +1,7 @@
+{
+  "namespace": "demo",
+  "kind": "concept",
+  "canonical_key": "project-a",
+  "name": "Project A",
+  "aliases": []
+}

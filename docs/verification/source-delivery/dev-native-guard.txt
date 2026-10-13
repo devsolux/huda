@@ -1,0 +1,1 @@
+ERROR: This script targets native macOS arm64, not Linux/Windows.

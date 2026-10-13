@@ -1,0 +1,16 @@
+{
+  "check": "source_package_only",
+  "status": "PASS",
+  "version": "1.0.0",
+  "rust_files": 67,
+  "json_files_parsed": 15,
+  "python_files_syntax_checked": 10,
+  "local_document_links_checked": 13,
+  "plan_sha256": "9c25e97f3a88d5fb38bb2eaabfdc56a3ec4608753b7e5d9c3d8e1e61da6eeed1",
+  "findings": [],
+  "qualification_blockers": [
+    "Rust compile/test/format not executed",
+    "Native/model/provider qualification incomplete",
+    "Cargo.lock absent; authentic baseline lock unavailable"
+  ]
+}

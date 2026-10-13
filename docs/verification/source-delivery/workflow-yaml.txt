@@ -1,0 +1,1 @@
+PASS: YAML parse, trigger/job/matrix/permission shape and Dependabot version. Not actionlint or an executed workflow.

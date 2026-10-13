@@ -1,0 +1,20 @@
+test_all_png_sizes_and_source_hash (__main__.DesktopSourceTests.test_all_png_sizes_and_source_hash) ... ok
+test_dev_help_has_no_native_prerequisite_side_effect (__main__.DesktopSourceTests.test_dev_help_has_no_native_prerequisite_side_effect) ... ok
+test_dev_rejects_wrong_os_before_build (__main__.DesktopSourceTests.test_dev_rejects_wrong_os_before_build) ... ok
+test_headless_feature_does_not_require_desktop (__main__.DesktopSourceTests.test_headless_feature_does_not_require_desktop) ... ok
+test_macos_icns_container_is_complete (__main__.DesktopSourceTests.test_macos_icns_container_is_complete) ... ok
+test_product_identity (__main__.DesktopSourceTests.test_product_identity) ... ok
+test_windows_ico_directory_contains_all_sizes (__main__.DesktopSourceTests.test_windows_ico_directory_contains_all_sizes) ... ok
+test_workflow_has_four_explicit_native_targets_and_sha_actions (__main__.DesktopSourceTests.test_workflow_has_four_explicit_native_targets_and_sha_actions) ... ok
+test_intel_bundle_uses_intel_inputs (__main__.PackageLayoutTests.test_intel_bundle_uses_intel_inputs) ... ok
+test_linux_layout_has_no_profile_or_autostart_hooks (__main__.PackageLayoutTests.test_linux_layout_has_no_profile_or_autostart_hooks) ... ok
+test_mac_bundle_identity_and_sibling_helper (__main__.PackageLayoutTests.test_mac_bundle_identity_and_sibling_helper) ... ok
+test_missing_helper_is_rejected (__main__.PackageLayoutTests.test_missing_helper_is_rejected) ... ok
+test_missing_real_lock_cannot_be_ignored_by_packager (__main__.PackageLayoutTests.test_missing_real_lock_cannot_be_ignored_by_packager) ... ok
+test_windows_portable_layout (__main__.PackageLayoutTests.test_windows_portable_layout) ... ok
+test_wrong_architecture_is_rejected (__main__.PackageLayoutTests.test_wrong_architecture_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.053s
+
+OK

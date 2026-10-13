@@ -1,0 +1,59 @@
+name: Bug report
+description: Report incorrect behavior in Huda (not security vulnerabilities)
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Security vulnerabilities must be reported privately; see SECURITY.md.
+        Never attach real profile databases, tokens or captured user data.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: "1.0.0 or a commit SHA"
+    validations:
+      required: true
+  - type: dropdown
+    id: target
+    attributes:
+      label: Target
+      options:
+        - aarch64-apple-darwin
+        - x86_64-apple-darwin
+        - x86_64-pc-windows-msvc
+        - x86_64-unknown-linux-gnu
+        - other
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - Desktop app
+        - CLI (huda)
+        - MCP stdio
+        - REST (opt-in)
+        - Packaging / installer
+        - Build / CI
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Use a disposable profile (`--profile`) where possible.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or command output
+      render: text

@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/devsolux/Projects/DevSolux/beypilot/huda/scripts/static_review.py", line 4, in <module>
+    from pygments import lex
+ModuleNotFoundError: No module named 'pygments'

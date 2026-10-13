@@ -1,0 +1,15 @@
+=== fake-HOME desktop launch smoke
+first instance alive: yes
+total 0
+drwx------@ 3 devsolux  wheel  96 Oct  9 15:54 .
+drwx------@ 3 devsolux  wheel  96 Oct  9 15:54 ..
+-rw-------@ 1 devsolux  wheel   0 Oct  9 15:54 desktop.lock
+second instance exit=0
+Huda: Another Huda desktop already serves this profile; activating it instead
+marker right after second launch: desktop.activate desktop.lock 
+marker after 3s: desktop.lock 
+background relaunch exit=0 marker: desktop.lock 
+first instance alive after TERM: no
+--- gui1.log
+--- real profile untouched: ls: /Users/devsolux/Library/Application Support/Huda: No such file or directory
+no real LaunchAgent entry

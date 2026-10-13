@@ -1,0 +1,25 @@
+huda 1.0.0
+
+Local, relation-first knowledge space
+
+Usage: huda [OPTIONS] <COMMAND>
+
+Commands:
+  init       Explicitly create an empty offline profile and credentials in the OS secret store
+  core       Run the single Core owner. Does not install a service or open a network port by default
+  mcp        
+  status     
+  ask        
+  call       Invoke a documented common application handler. JSON comes from a file or bounded stdin
+  contracts  Export OpenAPI 3.1.2 directly from handler DTOs. Never overwrites an existing file
+  entity-id  Compute a canonical entity ID without opening a database or publishing anything
+  help       Print this message or the help of the given subcommand(s)
+
+Options:
+      --profile <PROFILE>  
+      --actor <ACTOR>      [default: owner]
+      --no-start           
+  -h, --help               Print help
+  -V, --version            Print version
+
+Helper CLI startup passed; this is not GUI, keyring, IPC or installation qualification

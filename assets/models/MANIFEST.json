@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "product_version": "1.0.0",
+  "download_policy": "disabled",
+  "remote_fallback": false,
+  "models": [],
+  "qualification": "No model is bundled, downloaded, executed, benchmarked or endorsed by this release. An explicitly configured local model requires independently verified weights, tokenizer, digest and license. The configured running process is not cryptographically attested."
+}

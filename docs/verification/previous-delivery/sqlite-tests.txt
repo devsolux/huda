@@ -1,0 +1,25 @@
+Python SQL-engine checks only | SQLite 3.46.1 | 110 static SQL statements
+test_actual_reconciliation_selector_is_exact_scope (__main__.AuthoritySQL.test_actual_reconciliation_selector_is_exact_scope) ... ok
+test_all_static_rust_sql_statements_compile_against_migration (__main__.AuthoritySQL.test_all_static_rust_sql_statements_compile_against_migration) ... ok
+test_current_head_cannot_point_to_a_missing_version (__main__.AuthoritySQL.test_current_head_cannot_point_to_a_missing_version) ... ok
+test_evidence_free_direct_assertion (__main__.AuthoritySQL.test_evidence_free_direct_assertion) ... ok
+test_evidence_is_optional_but_must_be_an_array (__main__.AuthoritySQL.test_evidence_is_optional_but_must_be_an_array) ... ok
+test_history_cannot_bind_another_relations_assertion (__main__.AuthoritySQL.test_history_cannot_bind_another_relations_assertion) ... ok
+test_immutable_assertion_history_and_identity (__main__.AuthoritySQL.test_immutable_assertion_history_and_identity) ... ok
+test_independent_assertions_survive_scoped_sql_withdrawal (__main__.AuthoritySQL.test_independent_assertions_survive_scoped_sql_withdrawal) ... ok
+test_nary_and_literal_roles_are_not_binary_edges (__main__.AuthoritySQL.test_nary_and_literal_roles_are_not_binary_edges) ... ok
+test_no_code_index_authority_tables (__main__.AuthoritySQL.test_no_code_index_authority_tables) ... ok
+test_origin_object_and_required_technical_fields (__main__.AuthoritySQL.test_origin_object_and_required_technical_fields) ... ok
+test_persistent_inference_is_rejected_by_sql (__main__.AuthoritySQL.test_persistent_inference_is_rejected_by_sql) ... ok
+test_private_assertions_do_not_change_scoped_query_rows (__main__.AuthoritySQL.test_private_assertions_do_not_change_scoped_query_rows) ... ok
+test_registry_versions_are_immutable (__main__.AuthoritySQL.test_registry_versions_are_immutable) ... ok
+test_restart_job_recovery_preserves_commit_evidence (__main__.AuthoritySQL.test_restart_job_recovery_preserves_commit_evidence) ... ok
+test_schema_integrity_and_foreign_keys (__main__.AuthoritySQL.test_schema_integrity_and_foreign_keys) ... ok
+test_sqlite_backup_and_strict_read_only_open (__main__.AuthoritySQL.test_sqlite_backup_and_strict_read_only_open) ... ok
+test_sqlite_wal_rollback_after_uncommitted_process_exit (__main__.AuthoritySQL.test_sqlite_wal_rollback_after_uncommitted_process_exit) ... ok
+test_unresolved_entity_role_is_rejected (__main__.AuthoritySQL.test_unresolved_entity_role_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.895s
+
+OK

@@ -1,0 +1,14 @@
+Huda 1.0.0 — native macOS Apple Silicon (M1/M2/M3/M4 and later)
+Usage: ./dev.sh {doctor|lock|fmt|check|test|build|run|bundle|dmg|all|help}
+  doctor   Check native arm64 host, Xcode CLI tools, Python and pinned Rust.
+  lock     Explicitly resolve and validate a real Cargo.lock (network required).
+  fmt      Format Rust sources using the pinned toolchain (edits source).
+  check    Check formatting and compile/lint all features, with --locked.
+  test     Run default, headless and desktop/REST/optional-adapter Rust tests.
+  build    Build release huda + huda-desktop for aarch64-apple-darwin.
+  run      Run the desktop in debug mode; no provider or login opt-in implied.
+  bundle   Build and package an ad-hoc-signed Huda.app for local testing.
+  dmg      Build Huda.app + DMG for local testing, not notarized distribution.
+  all      Check + test + build + app/DMG packaging.
+Existing package output is not overwritten; move prior dist artifacts explicitly.
+No sudo, global installs, profile reset, autostart registration or model download.

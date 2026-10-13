@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-09",
+  "environment": {
+    "python": "3.13.5",
+    "sqlite": "3.46.1",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "cargo": null,
+    "rustc": null,
+    "rustfmt": null,
+    "powershell": null
+  },
+  "commands": [
+    {
+      "command": "python3 scripts/check_sqlite.py",
+      "exit_code": 0,
+      "output": "sqlite-tests.txt",
+      "scope": "19 SQLite-engine tests; does not execute Rust"
+    },
+    {
+      "command": "python3 scripts/test_desktop_assets.py",
+      "exit_code": 0,
+      "output": "desktop-tests.txt",
+      "scope": "15 offline icon/script/package fixture tests, not native installers"
+    },
+    {
+      "command": "python3 scripts/static_review.py",
+      "exit_code": 0,
+      "output": "static-review.json",
+      "scope": "Pygments lexical review and SQLite EXPLAIN; not Rust compilation"
+    },
+    {
+      "command": "bash -n dev.sh",
+      "exit_code": 0,
+      "output": "dev-syntax.txt",
+      "scope": "Bash syntax only"
+    },
+    {
+      "command": "sh -n scripts/qualify.sh",
+      "exit_code": 0,
+      "output": "qualify-syntax.txt",
+      "scope": "POSIX shell syntax only"
+    },
+    {
+      "command": "bash dev.sh --help",
+      "exit_code": 0,
+      "output": "dev-help.txt",
+      "scope": "Read-only help on Linux"
+    },
+    {
+      "command": "bash dev.sh build",
+      "exit_code": 2,
+      "output": "dev-native-guard.txt",
+      "scope": "Expected exit 2: non-macOS host rejected before tool/data changes"
+    },
+    {
+      "command": "sh scripts/qualify.sh",
+      "exit_code": 2,
+      "output": "qualify.txt",
+      "scope": "Expected exit 2: real Cargo.lock is absent"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 127,
+      "output": "cargo-fmt.txt",
+      "scope": "BLOCKED: no Cargo/rustfmt installed"
+    },
+    {
+      "command": "cargo clippy --locked --all-targets --all-features -- -D warnings",
+      "exit_code": 127,
+      "output": "cargo-clippy.txt",
+      "scope": "BLOCKED: no Cargo/rustc installed"
+    },
+    {
+      "command": "cargo test --locked --all-features",
+      "exit_code": 127,
+      "output": "cargo-test.txt",
+      "scope": "BLOCKED: no Cargo/rustc installed"
+    },
+    {
+      "command": "PyYAML parse and workflow structural assertions (delivery harness)",
+      "exit_code": 0,
+      "output": "workflow-yaml.txt",
+      "scope": "YAML/static structure only; no actionlint or GitHub execution"
+    }
+  ],
+  "not_executed": [
+    "Rust formatter/compiler/Clippy/unit/integration/native tests",
+    "Actual GUI/tray/login registration or secret-store operations",
+    "Native .app/.dmg/.exe/.deb creation/install/signing/notarization",
+    "PowerShell/ISCC execution or GitHub Actions/actionlint",
+    "Real provider/model/Bridge/protocol or migration/gold tests"
+  ]
+}

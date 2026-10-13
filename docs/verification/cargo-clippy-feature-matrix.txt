@@ -1,0 +1,8 @@
+clippy [default] exit=0
+clippy [--no-default-features] exit=0
+clippy [--features rest] exit=0
+clippy [--features desktop] exit=0
+clippy [--features desktop,rest] exit=0
+clippy [--no-default-features --features code-adapter] exit=0
+clippy [--no-default-features --features rest] exit=0
+clippy [--all-features] exit=0

@@ -1,0 +1,216 @@
+name: Huda native desktop
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: huda-desktop-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: '1'
+  RUSTUP_TOOLCHAIN: '1.99.0'
+  PYTHONDONTWRITEBYTECODE: '1'
+  MACOSX_DEPLOYMENT_TARGET: '13.0'
+
+jobs:
+  dependencies:
+    name: Resolve one dependency lock
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14.8'
+      - name: Match the release tag to the package version
+        id: version
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          version="$(python -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')"
+          if [ "$EVENT_NAME" = release ] && [ "$RELEASE_TAG" != "v$version" ]; then
+            echo "::error::Release tag $RELEASE_TAG does not match Cargo.toml version $version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Install pinned stable toolchain
+        run: rustup toolchain install 1.99.0 --profile minimal
+      - name: Verify source and offline invariants
+        run: |
+          python scripts/check_sqlite.py
+          python scripts/test_desktop_assets.py
+      - name: Resolve once, without replacing an existing lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f Cargo.lock ]; then
+            echo 'Using the committed dependency lock.'
+          else
+            echo '::warning::No committed Cargo.lock. Resolving a candidate lock once; retain and review the lock artifact before release.'
+            cargo generate-lockfile
+          fi
+          cargo metadata --locked --format-version 1 > dependency-resolution.json
+          python scripts/lock_digest.py write
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: huda-dependency-lock
+          path: |
+            Cargo.lock
+            Cargo.lock.sha256
+            dependency-resolution.json
+          if-no-files-found: error
+          retention-days: 30
+
+  formatting:
+    name: Rust formatting (independent release gate)
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install 1.99.0 --profile minimal --component rustfmt
+      - run: cargo fmt --all -- --check
+
+  native:
+    name: Native ${{ matrix.target }}
+    needs: dependencies
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            runner: macos-26
+          - target: x86_64-apple-darwin
+            runner: macos-26-intel
+          - target: x86_64-pc-windows-msvc
+            runner: windows-2025
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14.8'
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: huda-dependency-lock
+          path: .ci-lock
+          digest-mismatch: error
+      - name: Reuse the exact shared lock
+        run: |
+          python scripts/lock_digest.py accept .ci-lock
+          python scripts/lock_digest.py verify
+      - name: Native prerequisites (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y build-essential pkg-config libx11-dev libx11-xcb-dev libxcb1-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libegl1-mesa-dev libgl1-mesa-dev libssl-dev dpkg-dev desktop-file-utils
+      - name: Native installer compiler (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./scripts/install_inno.ps1
+      - name: Install pinned native Rust
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal --component clippy --component rustfmt
+          rustc -vV
+          cargo --version
+          python scripts/check_native_host.py '${{ matrix.target }}'
+      - name: Lint every target and feature
+        run: cargo clippy --locked --target '${{ matrix.target }}' --all-targets --all-features -- -D warnings
+      - name: Default-feature Rust tests
+        run: cargo test --locked --target '${{ matrix.target }}'
+      - name: Headless Rust tests
+        run: cargo test --locked --target '${{ matrix.target }}' --no-default-features
+      - name: Desktop, REST, adapter and native IPC tests
+        run: cargo test --locked --target '${{ matrix.target }}' --all-features
+      - name: Build both desktop and helper
+        run: cargo build --locked --release --target '${{ matrix.target }}' --features desktop,rest --bins
+      - name: Displayless helper smoke (no profile or secret-store access)
+        run: |
+          python scripts/smoke_binary.py '${{ matrix.target }}'
+          python scripts/lock_digest.py verify
+      - name: Native packages (unsigned or ad-hoc test candidates)
+        run: python scripts/package_desktop.py --target '${{ matrix.target }}'
+      - name: Validate installed Linux desktop entry syntax
+        if: runner.os == 'Linux'
+        run: desktop-file-validate packaging/linux/com.devsolux.huda.desktop
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Huda-${{ needs.dependencies.outputs.version }}-${{ matrix.target }}-unqualified
+          path: |
+            dist/${{ matrix.target }}/*.dmg
+            dist/${{ matrix.target }}/*.deb
+            dist/${{ matrix.target }}/*.zip
+            dist/${{ matrix.target }}/*.exe
+            dist/${{ matrix.target }}/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
+
+  release-assets:
+    name: Attach packages to the published release
+    # Only after every gate and all native jobs pass. It never creates, edits or publishes a
+    # release and never replaces an existing asset.
+    if: github.event_name == 'release'
+    needs: [dependencies, formatting, native]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      # No checkout: repository code never runs while this job holds the write token.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: Huda-${{ needs.dependencies.outputs.version }}-*-unqualified
+          path: release
+          digest-mismatch: error
+      - name: Verify package checksums and attach them to the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          cd release
+          sums=(*/SHA256SUMS)
+          packages=(*/*.dmg */*.deb */*.zip */*.exe)
+          if [ "${#sums[@]}" -eq 0 ] || [ "${#packages[@]}" -eq 0 ]; then
+            echo '::error::No native packages were downloaded'
+            exit 1
+          fi
+          for file in "${sums[@]}"; do
+            (cd "$(dirname "$file")" && sha256sum --check --strict SHA256SUMS)
+          done
+          cat "${sums[@]}" > SHA256SUMS
+          # Fails if an asset already exists; delete stale assets explicitly before a re-run.
+          gh release upload "$RELEASE_TAG" "${packages[@]}" SHA256SUMS
+  # No release creation, signing secrets, login registration or provider calls. Packages are
+  # unsigned/ad-hoc test candidates. All jobs, including formatting, must pass before release
+  # qualification; dispatch this workflow on a branch to check it before merging. Real
+  # install/UI tests remain separate.

@@ -1,0 +1,2797 @@
+{
+  "input_regular_files": 464,
+  "decisions": {
+    "retired_from_distribution": 431,
+    "replaced_at_same_path": 7,
+    "preserved_exactly": 1,
+    "selected_constants_adapted": 1,
+    "adapted_optional_parser": 24
+  },
+  "note": "Retired paths may have concepts adapted at documented new owners; this is not a claim of line-for-line migration or recovered baseline tests. Original input remains unchanged.",
+  "files": [
+    {
+      "input_path": ".claude-plugin/marketplace.json",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a0b2db0481ec0228a8a0ec56c8d37c9bca8399319512747840293eb4af800e7f"
+    },
+    {
+      "input_path": ".gitattributes",
+      "decision": "replaced_at_same_path",
+      "output_path": ".gitattributes",
+      "input_sha256": "f106900565025a3a0403024fbff9ddf30163d89f93ce129762a9d4c8823e0bfe"
+    },
+    {
+      "input_path": ".github/ISSUE_TEMPLATE/non-cc-agent-support.yml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "41396dde40e1fdd28bb3b5956964cef865e39586d43b4ee4b91cd78380a7aced"
+    },
+    {
+      "input_path": ".github/dependabot.yml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5636b31dd137f911bfd3e076d3dc69dec36386624df10eef31d8e63aa6015271"
+    },
+    {
+      "input_path": ".github/workflows/cache-warm.yml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ea599d185dd1c0e363b607acf37575b65dd083641e0d0fd687e289bc8ab7b17a"
+    },
+    {
+      "input_path": ".github/workflows/ci.yml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0d28dcdc2e0e4507252ddc53f4822fcc1e5b9b62614fa01582bcc686ad8391ea"
+    },
+    {
+      "input_path": ".github/workflows/pr-impact-review.yml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "bdcf1504813c915b8a3997a179855a8962f0bb94efc58977cf6adc64612f17cf"
+    },
+    {
+      "input_path": ".github/workflows/release.yml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "94c1e0967d3ebfe96be8355432bac4baf367ae7382fd3af9f04a18bd61e1cbcb"
+    },
+    {
+      "input_path": ".github/workflows/routing-bench.yml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4c3a78a84fca2aa20bf78a4942622600b0ffa388b9432e78188fca39e35063d3"
+    },
+    {
+      "input_path": ".gitignore",
+      "decision": "replaced_at_same_path",
+      "output_path": ".gitignore",
+      "input_sha256": "45c7b69c8340f29fd203f8a9cccdb76432de0ee41356a5c089e545e476dfba1d"
+    },
+    {
+      "input_path": "Cargo.toml",
+      "decision": "replaced_at_same_path",
+      "output_path": "Cargo.toml",
+      "input_sha256": "f2b8e951459adfbd920c423c13b9097cf67b2a4baae0d0fa96be64c68673804c"
+    },
+    {
+      "input_path": "LICENSE",
+      "decision": "preserved_exactly",
+      "output_path": "LICENSE",
+      "input_sha256": "c5db523c6a593205de08c9a0f1e1d242036cb07040d8d19f75952e02898fcc2b"
+    },
+    {
+      "input_path": "Makefile",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "1aa9edf5511c2539a73bc1ed717ec4239ab0e934422924f079aaee0d2f8952bc"
+    },
+    {
+      "input_path": "README.md",
+      "decision": "replaced_at_same_path",
+      "output_path": "README.md",
+      "input_sha256": "6d38591f942c16ed6fed15e61ea7ee04dac0220443774e987507219582216811"
+    },
+    {
+      "input_path": "benches/indexing.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9bbb168a3bbe0663ebe16c5c19016007f4d0efd8b1ca870a2653e55b02a9381d"
+    },
+    {
+      "input_path": "bin/cli.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7fdb7cbffede36c6abd5d6dca2b39d56035fc58b9667f47cd3eff55f09e1aa56"
+    },
+    {
+      "input_path": "build.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "52c212623725c669258fb303248b1f87c5ac95691c439afd017100b700fc603d"
+    },
+    {
+      "input_path": "claude-plugin/.claude-plugin/plugin.json",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7cbd89e239a70301481687c1a3ca625a31ac442e4a367de17962dba332571116"
+    },
+    {
+      "input_path": "claude-plugin/.mcp.json",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "05f7ead2cdc7ff2b21c2e906714b630f6261cf7be9252ff91b53369032921d71"
+    },
+    {
+      "input_path": "claude-plugin/agents/code-explorer.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c3944038e48b5aca0bbf701b896b6716ef8c2021e7040e8251a898b2a4c5687e"
+    },
+    {
+      "input_path": "claude-plugin/bin/code-graph-mcp",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5149b8e91c3d23a985c26793bad4bd91ce292e0f1bab6d606d763af5e17aae3b"
+    },
+    {
+      "input_path": "claude-plugin/bin/code-graph-mcp.cmd",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2bc56b44606e77fd37feb257544c035db66885c4d8cfe11ac0c62b1706817d5c"
+    },
+    {
+      "input_path": "claude-plugin/hooks/hooks.json",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ea9ddc0a838551fe96efebfcd4bca115392ac06df6a0573e96f1493806a8c74f"
+    },
+    {
+      "input_path": "claude-plugin/scripts/adopt.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ca52549faf901fd28a74a4470f882918c53d92fe0644b07b23e3726a7d84b321"
+    },
+    {
+      "input_path": "claude-plugin/scripts/adopt.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7838e022496f20486633ba95a0b13cc22709fa3908a9a0d9f6a35f152cbf725a"
+    },
+    {
+      "input_path": "claude-plugin/scripts/auto-update.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2e90e11f661045133e6ec1efeb81bc588c066ece40775e6a8465e6a8a6c61ed8"
+    },
+    {
+      "input_path": "claude-plugin/scripts/auto-update.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "cd904aba149707e5a7c3af668b89b474030818cd6c5ec7ec16ebae8607f78d08"
+    },
+    {
+      "input_path": "claude-plugin/scripts/cache-paths.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0e36f21effbe16b3a5d2a58c70949c7d2de393967bfc53333af86fab4aaf0ca8"
+    },
+    {
+      "input_path": "claude-plugin/scripts/cg-answer.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "dd6f287029479ddf3cb313f2ff70c951b186d8800f487f4ad784196fa672f55c"
+    },
+    {
+      "input_path": "claude-plugin/scripts/cg-answer.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "027208aa78d645500a238099e834565551d753327e279cc3d8d3931f5a80adf2"
+    },
+    {
+      "input_path": "claude-plugin/scripts/claude-config.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "aa6616252ba5a140709433a30ee9498f38c7ce2915d9654722444e7a5cd069a7"
+    },
+    {
+      "input_path": "claude-plugin/scripts/claude-config.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "73b0be7f94dfced1764692a60e5471afe7b2235377e8223cd48c2d8ced5d6e94"
+    },
+    {
+      "input_path": "claude-plugin/scripts/cli-entry.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b467020097105cd84c5950e57732b0b727fbb6376eac5d993c5e23e01e101f58"
+    },
+    {
+      "input_path": "claude-plugin/scripts/cli-entry.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f48fb1b42c94658da0d3ddf56d167ffb2632d3c3614a735245081925f46d41ae"
+    },
+    {
+      "input_path": "claude-plugin/scripts/covering-tests.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3ac7e8f8bc3bd2dbe8ab43699a20f053b41ba3e22e75bb895287131dfcdcd044"
+    },
+    {
+      "input_path": "claude-plugin/scripts/covering-tests.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "125bfccc59d971d8a1b88b191e1e22ffa8e5054a419cd878e4b4b8c38ad52bd9"
+    },
+    {
+      "input_path": "claude-plugin/scripts/doctor.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "cd6149af9da35a783e6fb244fa3c45a0f426a558b2793b7085a27eaa8497c370"
+    },
+    {
+      "input_path": "claude-plugin/scripts/doctor.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5a3446c2dba26911b36998908d9736d4f39cf0f56b2ff6f1d39e6c7a41534f54"
+    },
+    {
+      "input_path": "claude-plugin/scripts/find-binary.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3193039723930fa0ee5c1938e1d8f8f77a7250de2a7b5fa2d7f0cab64451303e"
+    },
+    {
+      "input_path": "claude-plugin/scripts/find-binary.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a663289b72c55e97c719841f4c6b88792ba7c64449f148b6f3595b36ed9b67cb"
+    },
+    {
+      "input_path": "claude-plugin/scripts/hook-emit.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9a6801016134dda2e15e7349ad23f3917b7b9acfd5d96bef056179cd7a5b0278"
+    },
+    {
+      "input_path": "claude-plugin/scripts/hook-emit.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0fccbf48233e06731bc5a5801ea40ff1e589ec8d5ca8f1658c9b841add29545a"
+    },
+    {
+      "input_path": "claude-plugin/scripts/hook-fail-open.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "99c5240d2d966c128449d01555d0e5fd7b797be8fa63a1f781b38d4f16fd072e"
+    },
+    {
+      "input_path": "claude-plugin/scripts/hook-fail-open.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b22cbc2943b35598cb71da93e81563bacd48eb7dd83e760a6d403c2c80c28554"
+    },
+    {
+      "input_path": "claude-plugin/scripts/hook-fire.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7f778b8e968cd2ab00351d2f06fa28f91cfed70ac4132e4b18fd8a18a320221d"
+    },
+    {
+      "input_path": "claude-plugin/scripts/hook-orphan-dedup.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ac6a1756dfcbf840d254bf144cdd498ee1313d82d9af072a8453df11d2e42ae5"
+    },
+    {
+      "input_path": "claude-plugin/scripts/hooks.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "70a3ad500f97b5c4d74fbedf455ee7d339132545cd922bee3e24515106c52388"
+    },
+    {
+      "input_path": "claude-plugin/scripts/incremental-index.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "145404ce0769398389d25df279357d3900d0765c16edf366bc0ec7e2a3796a6c"
+    },
+    {
+      "input_path": "claude-plugin/scripts/incremental-index.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e03a9de73d713ba6345c708af1926e270e0229cb21b81006744ee5ce7c2836dd"
+    },
+    {
+      "input_path": "claude-plugin/scripts/install-lock.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "aad35944aeae761a0d5e2e7b25ea67fbb88907d0c11c9d1de2551c6ddb71ecdc"
+    },
+    {
+      "input_path": "claude-plugin/scripts/install-lock.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4f6607d290896e3128d44f0b8f81d6e1a69cdea3e79d6f1b8576bee80633f3b2"
+    },
+    {
+      "input_path": "claude-plugin/scripts/launcher-install.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "16b172614a8effc1685f6c002a92b6b85f04fb7f4b0ef7ffb82d63cbac80a247"
+    },
+    {
+      "input_path": "claude-plugin/scripts/launcher-install.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "58d23a6a86624722b2cc1cc480171782aea87c7d994bd22bf88fac43a0e44c85"
+    },
+    {
+      "input_path": "claude-plugin/scripts/lifecycle.e2e.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "30042918c557f485b1b210159bfaee06f2ae3ed28a605d68078d1cddcfd6adcb"
+    },
+    {
+      "input_path": "claude-plugin/scripts/lifecycle.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "deaeb545076c1a98709533e09eb689843ba9774df0037f811cbc36d3ce6d82e1"
+    },
+    {
+      "input_path": "claude-plugin/scripts/lifecycle.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b7bceeca9214d69ec33515154655e93bdfa72acb80206bbad5c99536bd13f656"
+    },
+    {
+      "input_path": "claude-plugin/scripts/mcp-launcher.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "8a3fa4642c548023ad966b4cd04249aa9d14798884bd38581d52a137395568a2"
+    },
+    {
+      "input_path": "claude-plugin/scripts/mcp-launcher.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a1a828de69146cef844993c2a09876a49426942387b233e633379ec65c72edd6"
+    },
+    {
+      "input_path": "claude-plugin/scripts/mcp-stub.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2144d694339d8dad4efa3785daf7a9cad381d9d1ab087ac3e0d67df4e5cb72e6"
+    },
+    {
+      "input_path": "claude-plugin/scripts/mcp-stub.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f48ae9a06c79f943dd70e0bd09807c5f5cea79127683be93b06839ee13576b1c"
+    },
+    {
+      "input_path": "claude-plugin/scripts/npm-exec.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3be9e7712d16bf7660ccdf9fa6dcf08483698030a39c36a568875c5889acb170"
+    },
+    {
+      "input_path": "claude-plugin/scripts/npm-exec.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b412cee3ea7176a75d096df09155f4ce674f8787ea46991165aee38f115eb56e"
+    },
+    {
+      "input_path": "claude-plugin/scripts/post-grep-inject.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "cd3a9278c72e01ff5faa977f57383dd3fe4e4ca1e8cc17c8554d1399a2d0b5bd"
+    },
+    {
+      "input_path": "claude-plugin/scripts/post-grep-inject.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d6ddb659b3d44ea35f50f20257306c98f0c26a5e29499eb109ee9463d776ed09"
+    },
+    {
+      "input_path": "claude-plugin/scripts/pr-impact-comment.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b16214be8de450ff334b37482c2da6518321e46eceff18d8d7513f8b17ed9f52"
+    },
+    {
+      "input_path": "claude-plugin/scripts/pr-impact-comment.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9c4941988a1192be4ae4dfd0f457476379f0970c1a21c9913b079aa39a5eecf9"
+    },
+    {
+      "input_path": "claude-plugin/scripts/pre-edit-guide.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2556ceb935e7af24de7815b5433487f5c331394ef1fd2daae0fc69f83f34c34d"
+    },
+    {
+      "input_path": "claude-plugin/scripts/pre-edit-guide.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "35ec4a4159bec661b164d2f81506c37635322c510f49919db1b0f6d27131ab52"
+    },
+    {
+      "input_path": "claude-plugin/scripts/pre-grep-guide.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2c92ff72a7d14b247fc54a2faaff72b554a30d20435fcac51cb853c46caa0e98"
+    },
+    {
+      "input_path": "claude-plugin/scripts/pre-grep-guide.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7e508ab30170b35883042859f9c290139e8c7b61e098df6a3b5adb021c9f135b"
+    },
+    {
+      "input_path": "claude-plugin/scripts/pre-read-guide.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7c23fe16ee2866c51f3b79b507c6aead151f68573bb7eb89ca43875ec2414dfb"
+    },
+    {
+      "input_path": "claude-plugin/scripts/pre-read-guide.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e80db062c963d075866394e86fe6f80d29f734832a02e2830084b078bbee1a83"
+    },
+    {
+      "input_path": "claude-plugin/scripts/proc-opts.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6d0e7e80b1e4818493062a2fbeb3ca40caf5b691606c29cb45a3685de5f3db4a"
+    },
+    {
+      "input_path": "claude-plugin/scripts/project-detect.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b714c3874bc68ae2cc8e8a916a674034950c6df87ddd23e59b4743a3b93cea1a"
+    },
+    {
+      "input_path": "claude-plugin/scripts/project-detect.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d1c1823424b66581c44971a7b2729450a7ca91741760e8e7733724cf1c51dcbf"
+    },
+    {
+      "input_path": "claude-plugin/scripts/project-root.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "98abc715183f23e1b41191224c268becca11ae52b5c7f27ca7fa6917a8b28177"
+    },
+    {
+      "input_path": "claude-plugin/scripts/project-root.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "bca599c1b37a478d61ad4fcf9b7a5c7ff9ccec53dd4baa13e75d0bf03347a8a6"
+    },
+    {
+      "input_path": "claude-plugin/scripts/recommendation-log.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4fa312e53a0d5f011d74dd2e3483dbf07a2033bb36b12fa9ffd7c5134cbd6353"
+    },
+    {
+      "input_path": "claude-plugin/scripts/recommendation-log.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b121b8d04bd9d25a51ba1a0284c2fc24596ba4667d313d7acb0079c8861d7639"
+    },
+    {
+      "input_path": "claude-plugin/scripts/session-edits.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6d584f9dd1b5574f97d181e266c7401bb7c71cacc44fa90d0156d9b1be7d32e"
+    },
+    {
+      "input_path": "claude-plugin/scripts/session-edits.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5484599430eb606c67c462ccc1a4f392824ed7df46dd744c6aa99c6d259b2804"
+    },
+    {
+      "input_path": "claude-plugin/scripts/session-init.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "73ea02aa790de2ac949cacda7ee3cbe6d7d557a3d24fd5c332bc69513832ca76"
+    },
+    {
+      "input_path": "claude-plugin/scripts/session-init.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9699b9b5cf853379a5ec748a1a629de1730075dbcde93462c6646fb4591f0422"
+    },
+    {
+      "input_path": "claude-plugin/scripts/statusline-chain.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b4b030f517dc79fda0b09dec35ba32121d6f23f3aea5f36403d60c0f2b3e92d6"
+    },
+    {
+      "input_path": "claude-plugin/scripts/statusline-chain.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f18d67525d2cb323aba1da120aa3d57199f4d5d60efde08a443dc687576af102"
+    },
+    {
+      "input_path": "claude-plugin/scripts/statusline-composite.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "bed95b3941bb1a0279250f96890cb19c64ba6d3b5d440c65aa87186508f79a0e"
+    },
+    {
+      "input_path": "claude-plugin/scripts/statusline-composite.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "50527097e1f7ec74f68e7826f9e48327dcb0cc8af46108e56b9774de1f13a875"
+    },
+    {
+      "input_path": "claude-plugin/scripts/statusline.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d9cde25f761cf2f6d9c3cd0387839f7a823f6914de5e0fcd9230676bb66dbe8b"
+    },
+    {
+      "input_path": "claude-plugin/scripts/statusline.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f3b07dcce1fcd415bee03feb35ded0db7082912796fc6480cdaf5f871a60a062"
+    },
+    {
+      "input_path": "claude-plugin/scripts/stop-impact.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c0aaa3c74d00280312dd40466f13259906d9171cdcad042d09beeb7db8fc9a22"
+    },
+    {
+      "input_path": "claude-plugin/scripts/stop-impact.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "fc25382e3507e231d61eaf7a3b52107dbceba8ff1b3f4df834e5112db3789583"
+    },
+    {
+      "input_path": "claude-plugin/scripts/subagent-start.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "628a15a71cafa5f9aa9b09f252c2324fdc15f51242c30320178bac2cb5d8c215"
+    },
+    {
+      "input_path": "claude-plugin/scripts/subagent-start.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d14e1439b7a5ccefcace461f1816aa95e1e6746825fcf16de5c6a6b936a602b3"
+    },
+    {
+      "input_path": "claude-plugin/scripts/tmp-dir.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c86d23e7408d9944e9d342c345676cad2abc2202a0e5dfaf7d07609071a6ec57"
+    },
+    {
+      "input_path": "claude-plugin/scripts/tmp-dir.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "12c061f6fdbbc71a100b99e32f52e78b5c733b01dc2160e4e360c3aecb423dd2"
+    },
+    {
+      "input_path": "claude-plugin/scripts/tmpdir-drift-guard.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ca8c404048c3d0171a682b176905b15c243a85ac45c58f1188ebbb85b80d977c"
+    },
+    {
+      "input_path": "claude-plugin/scripts/user-prompt-context.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4eb61355a1bf88d7a82d1f32a3780c7d80e8c465a732c52552fbf5c9eb24c753"
+    },
+    {
+      "input_path": "claude-plugin/scripts/user-prompt-context.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c0d20738af38607cb1e7c579d9d3753d7efcef0b990151b336a949f77d2e11fc"
+    },
+    {
+      "input_path": "claude-plugin/scripts/version-utils.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "09873484827acbb2bf0966dd9037faade44d9339f2ec47619800cddd5c799c08"
+    },
+    {
+      "input_path": "claude-plugin/scripts/version-utils.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e234fabd043e6123d26eb8d9f26ad222f31e3720f9ad624f7caa4cb442d0896d"
+    },
+    {
+      "input_path": "claude-plugin/scripts/windows-hide.test.js",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "941007546d8c922ea98dd75bc2697582f5a8fc7332dcda21b523a967b2b11d74"
+    },
+    {
+      "input_path": "claude-plugin/skills/explore/SKILL.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "cbd41de0b570a7132cd3e516960b6cc588270968a7a4941631ed0b50ad69b37e"
+    },
+    {
+      "input_path": "claude-plugin/skills/index/SKILL.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b18ffe9c399849662549f141f607012a8dda7dc3f455d5d29be808ac5d71265c"
+    },
+    {
+      "input_path": "claude-plugin/templates/code-graph-snapshot.yml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0c4769703a4b3ddb1063a735ce003f62554d6a30e3296e141c613fb9892075e9"
+    },
+    {
+      "input_path": "claude-plugin/templates/plugin_code_graph_mcp.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e8c0fbc917df36a35807f4d18d314fcba5bfd8f3b883f2a9af674d71fdfb9213"
+    },
+    {
+      "input_path": "evals/README.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "af113eff23283c911bf178d94a29df4ee7bd3c22ae4ec263f95a1f56345a3116"
+    },
+    {
+      "input_path": "evals/_coding/build.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "bbb6fcd8745f3283e1218e0efc151b9ed8408df932e01d52e699636a96ed2822"
+    },
+    {
+      "input_path": "evals/_coding/grade.py",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4a93a01b7deca4263b1d30eb43479af15ce1c2d9ae54a4ff0ab148f978a085a8"
+    },
+    {
+      "input_path": "evals/_coding/hidden/code-betweenness-k/test_hidden_betweenness_k.py",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "659f1c1e1f759df192267fb2e4806df2e8b236f2f1c74c237c041cead9b9bca2"
+    },
+    {
+      "input_path": "evals/_coding/hidden/code-dead-helpers/dead_helpers.py",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "60b25dc1dbb2eb1e2b36af2abfd81514edfbc65ea85f59a50e646ea236d9a924"
+    },
+    {
+      "input_path": "evals/_coding/hidden/code-flow-capacity/test_hidden_flow_capacity.py",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6b0cf311a1b37d01441dec2bafadcc0cf90c3dbc90714def5747008036701856"
+    },
+    {
+      "input_path": "evals/_coding/hidden/code-ismags-empty/test_hidden_ismags_empty.py",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "8ba4f2245306e876cc0166eb55b1f6f5f6753e2eaa27b7a9a60aa965e619c1d1"
+    },
+    {
+      "input_path": "evals/_coding/hidden/code-subclass-args/test_hidden_subclass_args.py",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f8182df676868455a6bb79dc36d66e3b6b84a8eb4dcebd354da8dfbdb179180c"
+    },
+    {
+      "input_path": "evals/_coding/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d559356f52280776f070ac619454f0ceafc223e67a82f1e33c786b59ca6b527c"
+    },
+    {
+      "input_path": "evals/_fixture/derive_gold.py",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e182c06268d7fb6bf12a12ccc5f3de6e04248581213fb1752a4cb1abc13749a0"
+    },
+    {
+      "input_path": "evals/_fixture/reap.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "15d14f65f6fbe7ca3dde18d5c8bb33f7dcde04b5ab8d1e02213495b24defcc78"
+    },
+    {
+      "input_path": "evals/_fixture/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "dc2e43d48878c60676b7a5d4047f4c1478b0c64c4377a317f754c624437da977"
+    },
+    {
+      "input_path": "evals/callers-direct/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2a13b1d74f851e0de7a8abfa3598d7004fd7d81ddaf3cf4bc416d96d4422f840"
+    },
+    {
+      "input_path": "evals/callers-direct/graders/answer.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4267ced239ceb9694bafe1f42d8487377b7fee3b2ef3f018a5d3dbd133a6721a"
+    },
+    {
+      "input_path": "evals/callers-direct/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/callers-direct/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "76acdfc679fc6f451f9ce21eb53375bc3b20ac35f340d67487045a44497da2bc"
+    },
+    {
+      "input_path": "evals/callers-direct/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6b34cceb0798a2b846926ee39a501289759092304b9f39acf2d397559b06f5f"
+    },
+    {
+      "input_path": "evals/callers-transitive/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c0ba21295ecb149ff3d9530b7a270731d8b6ca45a190393958577875ae2aa949"
+    },
+    {
+      "input_path": "evals/callers-transitive/graders/answer.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "541ab8a677d1cfe08a74ae30fc3486a4dafcd3b923c9d7c7f8039294de172349"
+    },
+    {
+      "input_path": "evals/callers-transitive/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/callers-transitive/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "300e8e3c1292c0de6d8d44648531ba4e78376c329d2e6e7e7fd27dfa67659d0b"
+    },
+    {
+      "input_path": "evals/callers-transitive/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6b34cceb0798a2b846926ee39a501289759092304b9f39acf2d397559b06f5f"
+    },
+    {
+      "input_path": "evals/code-betweenness-k/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "fc38b330ea9660f3ff75f45a4494647511c04880fe7b5dcea96a84ef01e0a97a"
+    },
+    {
+      "input_path": "evals/code-betweenness-k/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/code-betweenness-k/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e7da0140f64e858b6387029668ed49b2bc3b64122cd8d98343897ccdb936b80a"
+    },
+    {
+      "input_path": "evals/code-betweenness-k/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ec2edf9b828d0eb35fff519ff68fe948db2cc81ab4bc566191257b052d6d71ad"
+    },
+    {
+      "input_path": "evals/code-dead-helpers/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e5f55c49530a15bc9082da6c25406587a009bd1d8d35c052a7c6835da8293116"
+    },
+    {
+      "input_path": "evals/code-dead-helpers/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/code-dead-helpers/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d5050c63710d6c68e14588ab662b65649428b83b88fd3b40b5bccc15fd4656ad"
+    },
+    {
+      "input_path": "evals/code-dead-helpers/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3fe6e9b5615c36a324f8454255ecaf37e0c038d418f513c8be9d19c7b410326d"
+    },
+    {
+      "input_path": "evals/code-flow-capacity/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f92cb713c63608a152be5c832aedb551bdd193551f8bd251f444f73e79b53091"
+    },
+    {
+      "input_path": "evals/code-flow-capacity/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/code-flow-capacity/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7d23332f66e839e1fe50dd59f6b57a861aa1f09c0ec1a37325ca1b6ef192bcce"
+    },
+    {
+      "input_path": "evals/code-flow-capacity/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5c4be4dce7abd17591790a8455c3f2b0314d37e35f52ebd713150f89fefa1c5f"
+    },
+    {
+      "input_path": "evals/code-ismags-empty/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "41ae32fae16630dce69fc01dced9a1148d019becebe9cf95fa39b163202e71fc"
+    },
+    {
+      "input_path": "evals/code-ismags-empty/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/code-ismags-empty/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "852d0f4f631370ca9e89e2f3c6ab22dbce72aa1932850a8dc32821f9ce68123e"
+    },
+    {
+      "input_path": "evals/code-ismags-empty/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ad8c91b1c709f46a9cf146770e53e6ea39f2b03a741234beb9b12e1091402583"
+    },
+    {
+      "input_path": "evals/code-subclass-args/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9429a954ffec34a4121655857395246abbb5b64741c9956d9870976fa8af6735"
+    },
+    {
+      "input_path": "evals/code-subclass-args/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/code-subclass-args/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "59288c1ea34c8c7885cd470984be2b59f2481c2c404b7d666f204597a6abc6b1"
+    },
+    {
+      "input_path": "evals/code-subclass-args/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9848f3e731ab00c9f195342098d32749738bc557aa97d5aecf420cfddaadc966"
+    },
+    {
+      "input_path": "evals/concept-locate/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "eabbf9454127a789ddb6259d8fc33b7a305946d19afd16a5f31ee812ac4cd114"
+    },
+    {
+      "input_path": "evals/concept-locate/graders/answer.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d1833b616bd8fd48a505895c5315c22e63ced0fe3899e042e6ea189397e4d868"
+    },
+    {
+      "input_path": "evals/concept-locate/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/concept-locate/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6afba320caa3fbfd240519352c7cad5178eb71cb99433882de6858c85a49bc56"
+    },
+    {
+      "input_path": "evals/concept-locate/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6b34cceb0798a2b846926ee39a501289759092304b9f39acf2d397559b06f5f"
+    },
+    {
+      "input_path": "evals/control-constant/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "98ec802fdea94232941e4c09783af806e8d521d7bd2811176a241e58d5cf714f"
+    },
+    {
+      "input_path": "evals/control-constant/graders/answer.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "50115c1725b1e3756a4d9199a21a45f16f050486150e8bee41c7f1b87fba93dd"
+    },
+    {
+      "input_path": "evals/control-constant/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/control-constant/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2abf859f2e9c7e997b945b36e67a62da683e9741e021db473ebb7d8ddb51f922"
+    },
+    {
+      "input_path": "evals/control-constant/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6b34cceb0798a2b846926ee39a501289759092304b9f39acf2d397559b06f5f"
+    },
+    {
+      "input_path": "evals/impact-signature/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "674c2d3da808ae11b7ab44527f1ae1a7a90ee060e8046209dbb83da99c49c536"
+    },
+    {
+      "input_path": "evals/impact-signature/graders/answer.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "245c8e458e63f647bf8b47a9d3405e1faaf837dc9e8a1ea68e8272605c07b446"
+    },
+    {
+      "input_path": "evals/impact-signature/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/impact-signature/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a2b3dd88791ea776eeddc426b46a0f38e0e7afdf23a253d76136cc77c62fd53e"
+    },
+    {
+      "input_path": "evals/impact-signature/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6b34cceb0798a2b846926ee39a501289759092304b9f39acf2d397559b06f5f"
+    },
+    {
+      "input_path": "evals/never-called/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6d5160b5a88285cbf49a2de4c4e2de3669af4c962a7877dc4fd2a4a47c40ed20"
+    },
+    {
+      "input_path": "evals/never-called/graders/item-get_edge_source_names.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "67e6ef02434f4b5069e00cdca4ea7367fe67ccabc22db8cf85479eac4a6c28f8"
+    },
+    {
+      "input_path": "evals/never-called/graders/item-get_edge_target_names.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9c277a2754d2c7134c47b4d7b5e1721771d5104ae77262305c6b09f1429f4e07"
+    },
+    {
+      "input_path": "evals/never-called/graders/item-get_edges_from.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "346f6f5a187e28d53a139ed4f8a43c7a9069dd94db7bef7d721ac279cbb9ab3f"
+    },
+    {
+      "input_path": "evals/never-called/graders/item-get_file_language.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e69b80c56feaf0a34efaba7e46fb37f5a504b4a6ab00995a5685860c7ac3283f"
+    },
+    {
+      "input_path": "evals/never-called/graders/item-get_node_names_with_paths_excluding_files.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c0dc7c6292da0ceb2a68dbfaf6a6255315cb8c05522a2ca71af5f993b0ab116b"
+    },
+    {
+      "input_path": "evals/never-called/graders/item-get_unembedded_nodes_excluding.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ce635a8a94e1746b20e00367a7886840eff2d53140aba4a6f9c1c18957802193"
+    },
+    {
+      "input_path": "evals/never-called/graders/item-insert_edge.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "120561369cefff71d3ab68dd5aa0fbdc78a7845689f795d55cd43bf51484bb4e"
+    },
+    {
+      "input_path": "evals/never-called/graders/item-insert_node.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9321e4c32bb221d22f2d6f5403cc8b90dd2c62aa11878e73ff72e6469df2d3f0"
+    },
+    {
+      "input_path": "evals/never-called/graders/item-insert_node_vector.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "01fefe2013287a94778f35a8ce40711d714bf2c1f4cc32d443cb8a5bda7c942c"
+    },
+    {
+      "input_path": "evals/never-called/graders/not-map-incoming-ref.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "914e4202d3f3c5242880e9ced9c2dcab031e2a2137d25087f13af578e5f8e30c"
+    },
+    {
+      "input_path": "evals/never-called/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/never-called/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "235421d84ba0c333916ed509c04baf6bfab87b877ba3cc16460bfabe2208a6b8"
+    },
+    {
+      "input_path": "evals/never-called/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6b34cceb0798a2b846926ee39a501289759092304b9f39acf2d397559b06f5f"
+    },
+    {
+      "input_path": "evals/prod-or-test/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "bcbcfcc5ab64d2760792d455d34dd1f33db2a11a4fda639fa6ff01340ac47bf4"
+    },
+    {
+      "input_path": "evals/prod-or-test/graders/answer.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ebc3963e7aeecf115d8856470183f1897ba71b8f341c8574eaf084a181716316"
+    },
+    {
+      "input_path": "evals/prod-or-test/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/prod-or-test/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "8e8d886dcb09de92f9a74c1f283aa87a1f79d28968fdc04168d348f4f7e05dba"
+    },
+    {
+      "input_path": "evals/prod-or-test/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6b34cceb0798a2b846926ee39a501289759092304b9f39acf2d397559b06f5f"
+    },
+    {
+      "input_path": "evals/rename-audit/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7d6ceb9e17ac7b6e0649705850fc310a905e05551ef3298d1f69e659317d95e0"
+    },
+    {
+      "input_path": "evals/rename-audit/graders/answer.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0320a7cfd89afc0bfd99e14b077da1806d0e58d94eb33266669a63affb346319"
+    },
+    {
+      "input_path": "evals/rename-audit/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/rename-audit/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "38e076034620206fa26f5da1e0d08300e3767810be6b8b6ea2ebfa3b9452cf2c"
+    },
+    {
+      "input_path": "evals/rename-audit/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6b34cceb0798a2b846926ee39a501289759092304b9f39acf2d397559b06f5f"
+    },
+    {
+      "input_path": "evals/run.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5b1c204436f22f6425fc9e2b87bc12ffb4a3f88084299450e6a1da3c4a2ef45b"
+    },
+    {
+      "input_path": "evals/steering/ab.py",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f52b47ff3dd7e9a594b3ce88e5060825bf7ce72f9d6b679ebe48fd00d4eeeb7a"
+    },
+    {
+      "input_path": "evals/steering/tokio/README.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "fdcfd070550599a9967058e951492932b07cfb82d0adf3a0501fa3aa4cc6d85f"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/control-child-try-wait/graders/item-00-none.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "100e8a150154a5f472b3f28e17d886f01f9d98d31ab3d9bb966359e4fb98afc2"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/control-child-try-wait/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3be67897492a858470f4605201cd2cac8380aa30546c084819a627fba431826d"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/control-tcp-stream-set-ttl/graders/item-00-none.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "100e8a150154a5f472b3f28e17d886f01f9d98d31ab3d9bb966359e4fb98afc2"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/control-tcp-stream-set-ttl/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "8eba2aa15fd5ff33654a49c80823823266fa5189aed833a4c2f07c91a92815c6"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-00-RegistrationSet-remove.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "fb01893337c41329405abc81c641b704f02253b31dc59c912eafffbaddee1732"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-01-Readiness-drop.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "babdd82ce4e38548fd843f825a8f33ed1f2778604eb28592b83a2a57cb547606"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-02-LocalOwnedTasks-remove.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f3b3d9a7c6d4b1b0c415ed3a7e96c0dde2e7db1121406c500d3f0891ba63c049"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-03-Level-remove_entry.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7b77c8e07bf18ddce6ffd628105856f25742e07210a41641a5aea450ae90cd45"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-04-Wheel-remove.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2fcb2f4ddeeaf64bc4abb2bc1752e0fd258aa0bb6d541f25ef208d62880a8d4e"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-05-Acquire-drop.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "dfdfce67ddb131d73836c27f7e27486f81af4dd98c85c0e354c87fb9402a66c0"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-06-Recv-drop.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "1a67c3dcdf1d14a66d8478c33394d001e79d719d31ddacc84a2cfa8f02d6a2bc"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-07-Notified-poll_notified.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ee781326de1d21b33196ba0230b210c3edde566dd5cd21e5426117aeea615090"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-08-Notified-drop.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5bb0ac759700d5cd6df975695cae6637403511f8f81c752337d953f0d236d5e5"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-09-EntryInOneOfTheLists-remove.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2a9dafd3a1d740bc18ad7feff068d0b18f9ed87cecc1002d8d35ac2e94cd32d7"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-10-ListEntry-wake_by_ref.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d3396780143a4acc8be041eeff43b47c718f21c34eb9dd64fdfae05ed019cf1c"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/graders/item-11-ShardedList-remove.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4822519f7442280ae6d537e4f7f0c2a4417cc4ed90345a38b5e6f6898eb4f89d"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/linked-list-remove/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "fe9ac1a9ed5bc9117305de27ea3488098bc18063766b99c55f4a62c1e32dd54b"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/pointers-new/graders/item-00-ScheduledIo-default.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "96e54dede7be166a456850ad39dabaf915b8df82d30c9793e1459b4b46dc0531"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/pointers-new/graders/item-01-ScheduledIo-readiness_fut.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "74e43a728fa55e60a80b223e1c66cc2434ab72d4140a8d95744b524657f72300"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/pointers-new/graders/item-02-Trailer-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5c07221ff235829ecbd9af1ca83d03afbcb30af3b568b85ad6408b1ea86d9c7b"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/pointers-new/graders/item-03-TimerShared-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f6a24339ddcf04bccc2aadf3f1e7639c89a7082d2c0a9762e8c42c3d2a6d2b4c"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/pointers-new/graders/item-04-Waiter-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "52dcb763f6398fa46b3db101a2af6cfe7ea031b8b48802866225c8d765e5d913"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/pointers-new/graders/item-05-Waiter-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c3c975e78c387a54bd789ba2f123d3e46984344c830db3a04a5ffc3b2079510b"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/pointers-new/graders/item-06-Recv-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "cc4e19d64413800253958fcc2baf45647a27bd4000b59ff903d414613f5dc1d3"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/pointers-new/graders/item-07-Waiter-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ccf574150de2163d2d6fd1c30c639c873d3ba9721f4c75b552bdebc0a2298961"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/pointers-new/graders/item-08-IdleNotifiedSet-insert_idle.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3a0e4505530fd867fbb834ce4be3b0b35bc836f603d12c21c2f01a8eaa3857b6"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/pointers-new/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "72d6f6ea86304a3bbd5aea0b90faf8414a5ba8f65244e5fa064e247eb6da4e36"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-into-inner/graders/item-00-TcpListener-into_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "305b90d91fe03b3a1e40cc3656d46bbf9657fac7e4f87e073405a5978821088e"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-into-inner/graders/item-01-TcpStream-into_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d87c7963fba6070366d9dbe034cc9f7a1614c904e797d767842e6c20625fe67f"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-into-inner/graders/item-02-UdpSocket-into_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3e34098335dee49e2974ad1b624041ec861ee1c9a4a4f8a8e79f6d631294858b"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-into-inner/graders/item-03-UnixDatagram-into_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "cb10a6935b29135012aa241f847594d31e4ec3ed67821e53cdd8d6914f0b3199"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-into-inner/graders/item-04-UnixListener-into_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9327c3bd2f7bfe556ae1c4c5b61bf7e745a195edabaca04b4b9c5eb727e037c0"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-into-inner/graders/item-05-Sender-into_nonblocking_fd.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0b6e4c722ff6d53b5817d041b3db7f2fdfd62a616203e7047f230bbb08d4b73d"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-into-inner/graders/item-06-Receiver-into_nonblocking_fd.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d68eb6300aa6c66b0130963324bb4b15a899dcede731c72f112d3519aacbfb18"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-into-inner/graders/item-07-UnixStream-into_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5f2b0703995b9873b7c402dccf23a82a493154ea5aee59a41120c115bf211217"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-into-inner/graders/item-08-convert_to_blocking_file.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d4d9d76a6e754dac46137d6fd2133ad5904ee0117942107a5173ad149b5da146"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-into-inner/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a4b0061a3b92e0dc2b14fa6c4e5373d9c4b8c78ed93c4bf0527a58d77467f0ce"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-00-TcpListener-from_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0d53fd2cc6274c2f221508423dbce22ff7e44293076027b4a2fc8980571b9354"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-01-TcpStream-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4d22e5af65775317365cbdece070fbcc2f050c9c3568a1c3f3846b28857d424d"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-02-TcpStream-from_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e655166c3509ec563b83016febf8686d1ae0f80723ff1d5ef25bf2dc2639c9d8"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-03-UdpSocket-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ff0ab597e2d7a469c85a37771e5ddb4960f0ffa03465bc77b48fae711e1eaef1"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-04-UnixDatagram-from_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ab399d57686e0308a22383d69bd869c246ca77d292ace907bb1f418c1cfcc6bc"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-05-UnixDatagram-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5bd590d33293e12d4358831219fb7bab2013c7d4419e7b1048f71a1658c0113c"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-06-UnixListener-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7557b9e2639b61eb27653c9b6924df3327c21cef66103cba54a599515380a1c1"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-07-UnixListener-bind.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3b798dca3a7242a35eec14586c41859b562833f7dbbd4aa583c1c2e4ec65e784"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-08-UnixListener-from_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "1e49686f04b7e92d1f614642389c89d3993760828cd92d03666bc5ceaddfaf44"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-09-UnixStream-from_std.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5ab04d9b5fcd5322728ae54a053105c8cf932fb47c10da7b71deaa2f008806c7"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-10-UnixStream-new.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b7c2785b06728b2ed254355b5f5a9a5a4a98c551c73518f6f9009323b0100f46"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/graders/item-11-stdio.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "aa72a9f5cb6962552078d61c62b1dbc0c335e1c86eb280b2cf12a8ad6e92bfe8"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/poll-evented-new/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "df12e8acf2b6065b60ce8d5efa96c28d06e9bac77262c66e090f1850abd696cf"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/graders/item-00-AsyncFd-poll_read_ready.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9382abbe73f9c9d4928ab5ee381fce051dec53664de09e4b06d3a35fecfaa029"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/graders/item-01-AsyncFd-poll_read_ready_mut.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b2c54ca1a197b5d58b1acf0ff7b609ac6e2af70465deae02cc04b71d53e0d50d"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/graders/item-02-PollEvented-poll_read_ready.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6b34285fa9dddc0cf7522d5738d1b308e81bd7c55e5da27dd5bc125d437022c1"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/graders/item-03-TcpListener-poll_accept.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d1680448d88de89acbcf6dfc8005f2d4b06df26bc2904a01f6d4b411caedcded"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/graders/item-04-TcpStream-poll_peek.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b030fd474fd22a4ec52a25017a56d21d124655a9dbb3c6e60b2fe5bd9a3fc78b"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/graders/item-05-TcpStream-poll_read_ready.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a7bfb7732a25261723a416728fe7291cecb82fdd436ccbc81fc15ee64e3c2df3"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/graders/item-06-UdpSocket-poll_recv_ready.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "50af9981e4df3f15e576afd2df42b88e4b1c4f4421734667536b8d74e52a0268"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/graders/item-07-UnixDatagram-poll_recv_ready.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "99e29ad4011a2a0675e5b52ebf1bc37de3e17786444197148cc43a2c2a85217c"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/graders/item-08-Receiver-poll_read_ready.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "8def0b9da1a8b027e90205e09d7c51ba8d7636358a2c0338369cedd7b5a49da2"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/graders/item-09-UnixStream-poll_read_ready.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f0ad7300d23e8a4a6ab5901a626c0ca411eb7bd965338d47d9d1355ae47c81c3"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/registration-poll-read-ready/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e88a3fd3b4d698739db0a9510512ea9f1a42cea0ee07ea2f5268dcab25f72328"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/spawn-blocking/graders/item-00-Blocking-poll_read.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "fbfd9c51b6adbb0a2b3a598f4100f96cc797d4ffd2686eb08252cdb107dc8d16"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/spawn-blocking/graders/item-01-Blocking-poll_write.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c184432bc4ad65a469f342be5220917688e0842bfbb9456c24e0d7df0ee56644"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/spawn-blocking/graders/item-02-Blocking-poll_flush.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ae2e87a68177aa000ac91b37c9ae561543b6b4422573c510e995e7bf63aadcda"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/spawn-blocking/graders/item-03-block_in_place.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4d4beb8e8b55004140fa53b010639868e7fe01e8da27244276ab682ceb711f1a"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/spawn-blocking/graders/item-04-Launch-launch.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "958e351883186d32085b1abe6f23758c27887cf4f74cffc5bd93c0885ab303eb"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/spawn-blocking/graders/item-05-JoinSet-spawn_blocking.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "085f565c02148711afab51fe9c51a1b345869b3298091e8fc66b91fde947bc3d"
+    },
+    {
+      "input_path": "evals/steering/tokio/cases/spawn-blocking/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6af980c11bff403b88b94e7b32af30c7e5fe34557b6a05dd2cd548a4b3a903c6"
+    },
+    {
+      "input_path": "evals/steering/tokio/gen_cases.py",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4d461aa157700fd816b87abb51582b2ecf9c260fe6f3b87487aa2c62bd26f105"
+    },
+    {
+      "input_path": "evals/steering/tokio/template.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2825b728131f3e8d65f9e20c0982e0b93d0403adb9c091724abf0523367aaefd"
+    },
+    {
+      "input_path": "evals/subagent-callers/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4e2f51145709dec1eb3e78c693c3181bb691b8a9ddec162a7efaba2b6429ed03"
+    },
+    {
+      "input_path": "evals/subagent-callers/graders/answer.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7fc2b1fdb5a0fb51d90e07e92543dfba4b98ff1619573018e84cb5562dd2bbaa"
+    },
+    {
+      "input_path": "evals/subagent-callers/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/subagent-callers/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "bd6b3a00ddcbe501d3265274ed7ea938fc0a668774775b1eb8e554c910175ce5"
+    },
+    {
+      "input_path": "evals/subagent-callers/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6b34cceb0798a2b846926ee39a501289759092304b9f39acf2d397559b06f5f"
+    },
+    {
+      "input_path": "evals/transitive-wide/case.yaml",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "fd386104d459b0c2796a80dd1b4ad83466971fabcf19033e89ee233a26d9470b"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-append_impact_summary.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9d1f2c2753768ea9b872236899d11e0187fc28e081c4e1b64ab6e2f03663c4d2"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-ast_node_by_id.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "69fc76a0941362659fb8c8376e4d28fe196445091f42d103188bf1241b5773e9"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-cmd_callgraph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "8fb79f83a215ce1ea8b150b550844b4541b2932b2e7c0c7e48e77aee5ac8e95d"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-cmd_impact.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b105db28f64465827842176d7322cb2053e73006aec36d08ca157318f4a0a0bc"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-cmd_show.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7596f8828b8e8e6e6aad9d0ad0649565482bbf1005d5f0bc496dbd57d787581c"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-cmd_trace.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "162f4818d4aadd66c43bdf3a33264c243bf9c70fe74931555b9d8ab535595d1f"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-dispatch_tool.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "93cf54793e28cd9bca0fa0e5293652630b51ed9551200c5daf416b21bb191a6c"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-get_call_graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "beb42fa871be24e0da5820d210b4482cbe2260ef2d4253b9ca14c39ff943483a"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-get_call_graph_filtered.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b83970eb1ba16ae2a44ca99bb7720e4b8c4a022ce7a24f6d84fd3ba715bd1b87"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-get_callers_with_route_info.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "26c89278caabb1fb4a939c328170946d838daa214b4e02c1f48c78b5ba47f610"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-handle_message.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "00ccec860ec7bc778d56a5703e69be8cd1fb02d4ce006241db64b61033072072"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-handle_tool.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "bc5124465ef5ae84d5968baefc92c103759bb31b48751084d7fd90afbbe40b8b"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-handle_tools_call.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6228b628eae7e55964a27f1696c2f5387d3d30ead21e7de32f5508cc11797bd8"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-refresh_result_set.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6f85a86207eba20f4dd7079938d572ad4f0f1ebc43940394880ef92acececa6f"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-run_serve.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b1c9208cb5945b2ff1da414f182fe5be6392e01214a146d2ee32447719fd3fb2"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-tool_get_ast_node.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e6aba549d750580f637b5989d41f475bc18f8aa23837dc948841f67a75541bb7"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-tool_get_call_graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0f6333e6ce8134191eb6e1e197337127781fecb43a19d21222dcda92b050e15e"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/item-tool_trace_http_chain.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f98ba78cee4adda16211c4578984c7cc67c58c5aed9d9a0a805591c615edf259"
+    },
+    {
+      "input_path": "evals/transitive-wide/graders/used-code-graph.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2d2062751c292642013da79061e8c3a62568d28f2c53f4aa863beaafb6e1096"
+    },
+    {
+      "input_path": "evals/transitive-wide/prompt.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "96ef0b59f113ff25c907eaed88903b78fc15b281aad98b7d1ed627a9674600cb"
+    },
+    {
+      "input_path": "evals/transitive-wide/scaffold.sh",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6b34cceb0798a2b846926ee39a501289759092304b9f39acf2d397559b06f5f"
+    },
+    {
+      "input_path": "npm/darwin-arm64/package.json",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f21daf441143d250a8b2e7cb792f56bfa312a0ec5deb00aa3b98e3c08706087c"
+    },
+    {
+      "input_path": "npm/darwin-x64/package.json",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "98bd9fe7d21b1e6c87ad9c8eabe8dcc41fb5941cbd0fa730a1d65761ac00ebcb"
+    },
+    {
+      "input_path": "npm/linux-arm64/package.json",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7bddca43425e92fb7617b6a76f18340a3aea695250406e715bf01954a7bdfd7f"
+    },
+    {
+      "input_path": "npm/linux-x64/package.json",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "86b1d7e2c92eaebf6b6629971505dfa1862b089a2290dd80602cf6f4720469ae"
+    },
+    {
+      "input_path": "npm/win32-x64/package.json",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "90b4c2e9fbec48bdad3d2becb85e3f7cb8717d00693b49da2c39eefe89665f7f"
+    },
+    {
+      "input_path": "package.json",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f54b907a13c006ea0b9ba29334f865643b1543e645d9c076676e8c8db937ea3c"
+    },
+    {
+      "input_path": "src/budget.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b174a493a85fd757343dc53313aefd7a495e9ed6a2a9a92329ac9ad767542f8a"
+    },
+    {
+      "input_path": "src/cli/commands/affected.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "05921d7a06a69ba44952eaffdda2802855f2986d0fbbf70c8076d1b8df32aa6f"
+    },
+    {
+      "input_path": "src/cli/commands/ast_search.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "80232fbb4a9b49952dcc02424c4138c5205d0cd473a228916a50b0817559f07f"
+    },
+    {
+      "input_path": "src/cli/commands/benchmark.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ece0a190140e840d3faac9db8d8f868394a7384f3c9e6b4be89edce60288e0d6"
+    },
+    {
+      "input_path": "src/cli/commands/callgraph.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9077fa50dd83d60bdcf0b6ffb46e6a21e0aac73fe9c36296d293de4881bc2e9a"
+    },
+    {
+      "input_path": "src/cli/commands/centrality.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "76630a218afe68e86a1a1223f20aff0cda0c7d92e107aab43f4105e0ff8ee253"
+    },
+    {
+      "input_path": "src/cli/commands/cycles.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "df13f5b1bd4f33b4dd57302ed235668317be34274c9babfd2267a5e0e633f753"
+    },
+    {
+      "input_path": "src/cli/commands/dead_code.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b3bc0568e36de6939f076c30abfabd10fd1a39b9977c1d2852c5940e3865fc94"
+    },
+    {
+      "input_path": "src/cli/commands/deps.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4f4070a12850e2a0533a75fbcf6d41ad7e3db32ce9401f139500ffa21826e865"
+    },
+    {
+      "input_path": "src/cli/commands/impact.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ead7d0e02a9c55efa1d085bbed4e41a7b9f5c5d950dd0b3d75f8bb9d3d8bc778"
+    },
+    {
+      "input_path": "src/cli/commands/map.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3263aaaa42ec35276d45595bba656d615aa20362b94f9a4eb998a802a2bbbb55"
+    },
+    {
+      "input_path": "src/cli/commands/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f4597a1ba2644544216ca7afcb5da9f431c5553939c461b6a611a1623a8cc21a"
+    },
+    {
+      "input_path": "src/cli/commands/overview.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c408cf26aa0f350d37ac62ae06efef31bd9122b7eaf1dfc650a51832f443ab37"
+    },
+    {
+      "input_path": "src/cli/commands/refs.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "1c7e7c54a172ca751de50a75953b2b1798db8821c5b4ba14477266923d7b8078"
+    },
+    {
+      "input_path": "src/cli/commands/reindex.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f1d10860b2aa25c73d1007ca38485bf37d3c98e245970cbf295448751a3433bb"
+    },
+    {
+      "input_path": "src/cli/commands/report.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "8983c505c0e02b1583d03d9e1313abb9689306bbb57bb38187260901e62b19a2"
+    },
+    {
+      "input_path": "src/cli/commands/search.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ce932e0b417e5b35e4b3af9e309081474a216df2da75743ec42320ad8fb8ca8f"
+    },
+    {
+      "input_path": "src/cli/commands/show.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c3884908e461404d68b2d68e9288adb52e9138b3597c130930586259bf03bd8e"
+    },
+    {
+      "input_path": "src/cli/commands/similar.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c870fe58c5cd8040e1dbe9068b409d8a148f710a76f12e9e900426531cc9a75d"
+    },
+    {
+      "input_path": "src/cli/commands/snapshot.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "679f4f3b85540c763060bfba20e9802c643830fa471ef0b14fa92e090efeda22"
+    },
+    {
+      "input_path": "src/cli/commands/stats.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "420d314ca3d2c32b41f2da0a559534c1c27d75a1277db775d56487686ed864de"
+    },
+    {
+      "input_path": "src/cli/commands/surprising.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3a36f2f028c581e97ea5de71da930e8b21178e2ac1934b375e46e2dd637c0e37"
+    },
+    {
+      "input_path": "src/cli/commands/tour.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a5d33af71275a3465e9c8f62ddebcf1944a0e80903845b85e5b4feed8e8b2a54"
+    },
+    {
+      "input_path": "src/cli/commands/trace.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "65e3f767987a46276104d9c5943445b75c4bf01b86d1fe436efe14f7766b754a"
+    },
+    {
+      "input_path": "src/cli/freshness.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "1915418913a1924f39ee87f327572f2f1f09754e833feb9e642b7f3cc5b6ba90"
+    },
+    {
+      "input_path": "src/cli/grep.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a9cfdd017235a6de8d3c5064b22d95a102df1b94fb81ba405b6080061b391e58"
+    },
+    {
+      "input_path": "src/cli/health.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "93aaa74c3cd453b6ac907eebdae6875a6c58c9a0ac05c9aa6080e229e2bf9bf4"
+    },
+    {
+      "input_path": "src/cli/index_ops.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ba4dfabf2be25034513861aedd8179b77629e0f3b9762f64eca24641eefabd9f"
+    },
+    {
+      "input_path": "src/cli/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e7491cb77376807f334fb35280502c9151926464e738f6d83c1f1966e335e8fe"
+    },
+    {
+      "input_path": "src/cli/paths.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c5d0ac77068a7bc215a0119e5466dd8a623ac58eb950ecbd652e1971618489a1"
+    },
+    {
+      "input_path": "src/cli/symbols.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "88bd3ff0e7307f0dffaabdd7a28644e035c1b707eb66434a8d1267d49c9a799d"
+    },
+    {
+      "input_path": "src/cli/tests.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "83d6460ab32e77f96df6493fd72535e062be4098bb4a01c6805aed0c4f29bfdf"
+    },
+    {
+      "input_path": "src/cli/usage.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "085d07c2663ee02809689360c0ae83d9cfae8ac9074548128f9177ab54446966"
+    },
+    {
+      "input_path": "src/domain.rs",
+      "decision": "selected_constants_adapted",
+      "output_path": "src/acquisition/code/semantics.rs",
+      "input_sha256": "0e70fc3fda7af6de90dbb9b1ee11824e15f860306d9536522961500db49e6b84"
+    },
+    {
+      "input_path": "src/embedding/context.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ae6fd33144f0875df7d3de1c7957b62fc4481755373a1cf5328d2d238d3f9ab4"
+    },
+    {
+      "input_path": "src/embedding/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "784e283f29c4e0e45bc557bfb58abab2ba0444538d9eb906f8bfdc57b8333a0a"
+    },
+    {
+      "input_path": "src/embedding/model.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ab93f708e0fe212ddc245220feff2b59a6f1ae2b712b11fdd166949df2a0afc2"
+    },
+    {
+      "input_path": "src/graph/boundaries/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c41d73026bad8f0eeaff569727e3357bfa0ac0473e817f0fbf11e37b3f2d8bac"
+    },
+    {
+      "input_path": "src/graph/boundaries/tests.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "34e328166326cb85897b1cf255a17f6463bc0322359b042cf7af6731f3fdc191"
+    },
+    {
+      "input_path": "src/graph/centrality.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a11fc17258413ee192ebf775d8e3c8d3831321853053272367031d05515a8e67"
+    },
+    {
+      "input_path": "src/graph/cycles.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a87d1a3af175c41615095b720d54a03509622766d094df2e72207a7b8d7f5ffa"
+    },
+    {
+      "input_path": "src/graph/impact.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6ce33d5fdba3d6d6f0ce2086d06809315d012953483f82b2f5d5ac9167a8227e"
+    },
+    {
+      "input_path": "src/graph/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a096e0ad31f3c764d4ae3077a9728553ac66fddde72d87953c7b792700f15132"
+    },
+    {
+      "input_path": "src/graph/query.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "aabedad8373bf37290bb4eec94d9ee02902b52104a78d4b801fea29097f4fd3d"
+    },
+    {
+      "input_path": "src/graph/reading_order.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "3ec200174785dd5d10bd77152581770b334486c3feccfba126a5e1464adc6a6a"
+    },
+    {
+      "input_path": "src/graph/routes.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b27f4f98a7a4539a8b42049803f0b7d82d8f57ceb518916121ad9118c6d8f67d"
+    },
+    {
+      "input_path": "src/graph/surprising.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7990a736bffab3eeed131f648ee7498194106e72bd410fcfbdfa041bd10f0cd0"
+    },
+    {
+      "input_path": "src/indexer/lock.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d27dc878e7d5f48fc34f153e6ff655469ecb7002670f8f7684f4304c7cedf69b"
+    },
+    {
+      "input_path": "src/indexer/merkle.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0948318ef3c9a6db37cfa675844ffa2856a2ce7e0c61b49cf4fd23a38ffb2ba0"
+    },
+    {
+      "input_path": "src/indexer/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "cea577134a67aa4fedebc6efb3c36aa4903a0affa628dd7de72db0527b63c2ed"
+    },
+    {
+      "input_path": "src/indexer/pipeline/context.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c6ec555ea4106d1b29a845e3711144ccbfbb2af7aed35acbc080059cf4b0f56d"
+    },
+    {
+      "input_path": "src/indexer/pipeline/embed.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "eb88643e28a1a99b2e1cb9c4d7cb88e9d35d301139ae4eeaeb5d291e486d403d"
+    },
+    {
+      "input_path": "src/indexer/pipeline/index_files.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0c35f5f7c80dd1312d480981ffb216308eac0e7e0db239d1eaa27b45c65da957"
+    },
+    {
+      "input_path": "src/indexer/pipeline/js_modules.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "8919006a9a603c007e741036abdf9251286069e4d386e96f848ed9b455cb6391"
+    },
+    {
+      "input_path": "src/indexer/pipeline/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ea0320b830b937242fea1113ddef547e826de88a4b2219461b7d0ffa3907c781"
+    },
+    {
+      "input_path": "src/indexer/pipeline/python_modules.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2be15ededcaea8d14181111d418663775d2ddba5ba2d88f78a91371d3f4ce5d7"
+    },
+    {
+      "input_path": "src/indexer/pipeline/resolve.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "26e93441927a088d92ff6062b63c90e2cdab42b46b79222e4799eab09231bdb5"
+    },
+    {
+      "input_path": "src/indexer/pipeline/tests.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f99e890b394d8f29a016523fafee5f94d33cf4f63900db5361a345d3ec249b8f"
+    },
+    {
+      "input_path": "src/indexer/resync.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4e282d851f28aacf4a1a41d8d0602b184acc2cc334319feb34eb4d44158f2fd6"
+    },
+    {
+      "input_path": "src/indexer/watcher.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6f3bae9b2eea717ca77bdb84ffcea3f83829ae0c72402f4e9ab622d2013a85e7"
+    },
+    {
+      "input_path": "src/lib.rs",
+      "decision": "replaced_at_same_path",
+      "output_path": "src/lib.rs",
+      "input_sha256": "52d8496ed3031d3acf5b9e3ba111acc84584581b44b344de0899b87f1a9c7952"
+    },
+    {
+      "input_path": "src/main.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7ad3cd44d301cd053c32cc66d67cf45536d63eae371d79ef15676f5be3f10d05"
+    },
+    {
+      "input_path": "src/mcp/metrics.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ff32eacc15a4e197f2e48b5a5e7c8daa9eb938888d7a7eb028b3ef295a26f181"
+    },
+    {
+      "input_path": "src/mcp/mod.rs",
+      "decision": "replaced_at_same_path",
+      "output_path": "src/mcp/mod.rs",
+      "input_sha256": "a7efeb083e553c206983854bbd8e6b7cba5fabe326ec20dd836ecc0653a9729c"
+    },
+    {
+      "input_path": "src/mcp/protocol.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "69ba4aa71abffa1dc6d1d092c8942734fd0582e7f384e06c2e4e9e614b77ed29"
+    },
+    {
+      "input_path": "src/mcp/server/backfill.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "95c49db7c4197a5b35eb4e81267c3065ba5aa9f2ca2fc61873f1202d0fe07278"
+    },
+    {
+      "input_path": "src/mcp/server/freshness.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "66c328c3edd196d2fe598df779ac3bde079d4a87600f4c134b6585fc14208019"
+    },
+    {
+      "input_path": "src/mcp/server/helpers.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "1da0e8e217d7c9e0ae6d81b853d5f3167c365399fae52c870ebf4cfe3ac42ff0"
+    },
+    {
+      "input_path": "src/mcp/server/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "38c9af2b958f8f3e9aeab8c0c86541e9f056de1adc9c16bb510c61df0203daf7"
+    },
+    {
+      "input_path": "src/mcp/server/tools/advanced.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "02fa83c4f12ec6bab6ca121c2b9d6089f145e7672ce574169938d5c6282300ef"
+    },
+    {
+      "input_path": "src/mcp/server/tools/ast_node.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "50f12c3d3c4072cc66aaea73e62b3ce6108115f83b5e96d69b04f5bfcbacbe30"
+    },
+    {
+      "input_path": "src/mcp/server/tools/ast_search.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "cee60abdbf473d4c82f2e60d9520546e65b554eb0fa97b8e38f96430f16ebd3b"
+    },
+    {
+      "input_path": "src/mcp/server/tools/callgraph.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "622c78f05855515d65fdc5cb98bcb151f0d42ecd3f45ef291c19bd48b0f79961"
+    },
+    {
+      "input_path": "src/mcp/server/tools/management.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d5de06452dd33e3e6277ce432cc02339cf53f182b9e77f9ff1dcaed435c55e52"
+    },
+    {
+      "input_path": "src/mcp/server/tools/overview.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f1560f1c56942c5ca5d21418532fc04006da3dec55676f11c5c92213800ae371"
+    },
+    {
+      "input_path": "src/mcp/server/tools/project_map.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b6e3dbbbbec526817c6fb97dabee89bc9e9a2618f724fb92b1e0c2190ad436eb"
+    },
+    {
+      "input_path": "src/mcp/server/tools/refs.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d9912ff8a9aac98a80c2b82b4729d32909a72b099ac021493c6ea09b280b488b"
+    },
+    {
+      "input_path": "src/mcp/server/tools/search.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "dede8577b45a85e7157b047bd9656e33ac97e2e9b2356feb5bb37b27f779983c"
+    },
+    {
+      "input_path": "src/mcp/server/tools.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a00d9419aaccf4909125ff12a4574df76ed2266432aeb084770e7942d655d94d"
+    },
+    {
+      "input_path": "src/mcp/tools.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5d98907ffc4c285ac1ef842d53eedcee64edf8e534888e4c971a5f95b69ce824"
+    },
+    {
+      "input_path": "src/mcp/types.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "8f23dbff3dcc3d6af4942bc167f1a8f84c94f702ce4d3bb41641dfa4893867f3"
+    },
+    {
+      "input_path": "src/outcome.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9748f5f83999235521854442240aae03738cbe1ddd5c17369f4238a38039d1ea"
+    },
+    {
+      "input_path": "src/parser/lang_config.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/lang_config.rs",
+      "input_sha256": "b3f7110616fa6c3e81ca14997e408e92a98ff4ef896f6e4416688d221a60d879"
+    },
+    {
+      "input_path": "src/parser/languages.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/languages.rs",
+      "input_sha256": "ae105f3b72e0b5cbf621c3839168134d75eb80403c8568a385dca8cfa71c5724"
+    },
+    {
+      "input_path": "src/parser/mod.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/mod.rs",
+      "input_sha256": "fc8b1d4f7ca7628c139cf65730fd353b816ba3a889b8126c44ff5df6a7bbd066"
+    },
+    {
+      "input_path": "src/parser/relations/calls.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/calls.rs",
+      "input_sha256": "3008ad20ce501120d4328fd66b6ad4f3f5ec10b60e43460196937a33eec18f98"
+    },
+    {
+      "input_path": "src/parser/relations/cpp.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/cpp.rs",
+      "input_sha256": "e4986dbf3c11cb65062bb8e41e99b4145f6d948d532aeb24c1096fd06630a3a3"
+    },
+    {
+      "input_path": "src/parser/relations/dart.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/dart.rs",
+      "input_sha256": "f25396fdf177ae0110454564751e71d5c05b5c1f253ac713909639506486e375"
+    },
+    {
+      "input_path": "src/parser/relations/exports.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/exports.rs",
+      "input_sha256": "206e9ffa6b274eb2288552c2eb30dd4731c134a71f9465af16b92dcc5c896e6b"
+    },
+    {
+      "input_path": "src/parser/relations/go.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/go.rs",
+      "input_sha256": "4914d41a87f5e9b77ed63a583c3b5213ea1e7fc33b99beff784bbb1d193ef00f"
+    },
+    {
+      "input_path": "src/parser/relations/helpers.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/helpers.rs",
+      "input_sha256": "dc28b58f7c614cb755ba41ee73aa0228cb58d33a7a050e6a5ef13fbbd55bca4e"
+    },
+    {
+      "input_path": "src/parser/relations/imports.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/imports.rs",
+      "input_sha256": "08cadff29358d2374986f05f4a8de36c5748e295aa304106c4097741b350df29"
+    },
+    {
+      "input_path": "src/parser/relations/inherits.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/inherits.rs",
+      "input_sha256": "fcbc6b0a43b26d44dfaf0cdced8a9378d8bf7f32840f30a1e7bab4848057680c"
+    },
+    {
+      "input_path": "src/parser/relations/java.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/java.rs",
+      "input_sha256": "c36bcfdceb0aaaa4704b9dcd40c1d6e1901181d4563a3388db1aeaa0027759ce"
+    },
+    {
+      "input_path": "src/parser/relations/member.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/member.rs",
+      "input_sha256": "0fae9cd754e9f8605b1209dd8b9c95586e4fbb197bda2e853e527d6de54a48ad"
+    },
+    {
+      "input_path": "src/parser/relations/mod.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/mod.rs",
+      "input_sha256": "9dafe89fbf7ca5e203c389b3c22cfde9b289314e7a5e59f6b75a3722a81db612"
+    },
+    {
+      "input_path": "src/parser/relations/python.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/python.rs",
+      "input_sha256": "2254db9f0dc9bdbdfccdd8e2c2d4be885533721feb3d5f8cde647482294d10f1"
+    },
+    {
+      "input_path": "src/parser/relations/receiver.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/receiver.rs",
+      "input_sha256": "156a378018372a5f228d2dc9068003e935176302fed15194f6343d8579ff7891"
+    },
+    {
+      "input_path": "src/parser/relations/routes.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/routes.rs",
+      "input_sha256": "ae5f3b7573d71a1818dcbe742db781be85ab68adcd44f908557abb69209067f9"
+    },
+    {
+      "input_path": "src/parser/relations/rust.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/rust.rs",
+      "input_sha256": "c95373ed547f181fe76fabe557bfd32f7b85697df3bfbe5cbb0419f59a0d2869"
+    },
+    {
+      "input_path": "src/parser/relations/rust_impls.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/rust_impls.rs",
+      "input_sha256": "735242313f4138958655a8265116c2bc4edbaea6ff8e064db71e7e8104ba6787"
+    },
+    {
+      "input_path": "src/parser/relations/rust_receiver.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/rust_receiver.rs",
+      "input_sha256": "e849efa5a0ece50eb8e9a1c48f2d14796b3d337f5ef9f2331a6c9ff15c3cdc7f"
+    },
+    {
+      "input_path": "src/parser/relations/rust_use.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/rust_use.rs",
+      "input_sha256": "3dfe029791fed9beb76914df252ba03f1edf73bd4534aeb240d4ad8d217b7077"
+    },
+    {
+      "input_path": "src/parser/relations/tests.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/tests.rs",
+      "input_sha256": "5749a60763e0b7f14e6a32a423e6493801abeb8b3b6493065922c8047198845c"
+    },
+    {
+      "input_path": "src/parser/relations/typescript.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/relations/typescript.rs",
+      "input_sha256": "8f642909e7a89dec9edfa49fee6cb1b811ac48181ff3b900852e3870d9e2aa3a"
+    },
+    {
+      "input_path": "src/parser/treesitter.rs",
+      "decision": "adapted_optional_parser",
+      "output_path": "src/acquisition/code/parser/treesitter.rs",
+      "input_sha256": "33d620032f80fbc45e25ca434907fe3124f1ecca039949299dee8c3a9d7ef4da"
+    },
+    {
+      "input_path": "src/resolve.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0408f1de77b01519ea6ff345e3f09141047c533a480020250754c8c4f472b24f"
+    },
+    {
+      "input_path": "src/sandbox/compressor.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b56c7121424fc6bb33233113d52ab0af6c629cdbdded1857f13ba4d3fdc29c4d"
+    },
+    {
+      "input_path": "src/sandbox/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "5e5026a7746d4b4677edd6bd70f43db8aa8207e9c0fd5ab7e23982c828fec9b5"
+    },
+    {
+      "input_path": "src/search/ast_query.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "80617cbaf541c434e14274c458034b87454d3061081610202050a0ab86cf9c58"
+    },
+    {
+      "input_path": "src/search/fusion.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "df9315f0f9cbef3ced45c905e34f09d6e821c28a8899bb7c642df6478cf5a29d"
+    },
+    {
+      "input_path": "src/search/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0ed11ccffe8450669affe629188dd376bc3c5271e21540bd4a8921bde0779450"
+    },
+    {
+      "input_path": "src/snapshot/config.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f63c962f3aeaa3d5c9be1de6c688008b24a323d7b706160ab9cdcfb9c04ef364"
+    },
+    {
+      "input_path": "src/snapshot/install.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "48f802e5d01afbc8a14518f7db918fab67b8fc68eb9fee01877c392af4161e5f"
+    },
+    {
+      "input_path": "src/snapshot/meta.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "47ba43823915c57cd5d4430f3895469d186ea3fb45f670ba2afec741fc3ede94"
+    },
+    {
+      "input_path": "src/snapshot/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "758561a8e22d264e60c44a0b19d00dbfdeae7fff0c8a9a8639c239c21123cb46"
+    },
+    {
+      "input_path": "src/snapshot/tests.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "03bb2261954304e163ed9cdc986bd36233223cfdd1f3f0e50cc553085dde9da2"
+    },
+    {
+      "input_path": "src/storage/db.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c2a03e333472f756acb05d927e91134b162a709fc1faa3b83b992b482d99c72e"
+    },
+    {
+      "input_path": "src/storage/mod.rs",
+      "decision": "replaced_at_same_path",
+      "output_path": "src/storage/mod.rs",
+      "input_sha256": "9f4bfd5a9f2a4d719e18d92268c644c30b1aca4fea72a842ec17de743987fb77"
+    },
+    {
+      "input_path": "src/storage/queries/dead_code.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d2fc7db12c1a22015a507006082e422be2f4e6c090a110af37639275ebedb0a9"
+    },
+    {
+      "input_path": "src/storage/queries/edges.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "aa19130fa35db04c3e13d12aef60f09907cf112bfeb2b3b137d72d3ff550bf35"
+    },
+    {
+      "input_path": "src/storage/queries/embedding_cache.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "be0f572a6ee6e66cf3a978e72db187ddadf57dbf9809844ef03717540d26c6bc"
+    },
+    {
+      "input_path": "src/storage/queries/files.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "30088f95921cb4922c2e5e2f118c015263fcf68234ff183186a8545b4d650591"
+    },
+    {
+      "input_path": "src/storage/queries/helpers.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0ec484a1818d656262731ecd5decbe1e9c85197a521061d0751f32e3572b9ea4"
+    },
+    {
+      "input_path": "src/storage/queries/imports.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d965c8b1934df887e96f14444d07082745602f19299cf80c71d9473debea09be"
+    },
+    {
+      "input_path": "src/storage/queries/meta.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "552bbbf1fcb8063fce380db8ffb9f7b17dd87c8ab69f18f5acf123d2020ae4ca"
+    },
+    {
+      "input_path": "src/storage/queries/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2b47304fd12aab9b9c83d0086f2e5e7f661465bf1ee986efc6908befa34aa261"
+    },
+    {
+      "input_path": "src/storage/queries/nodes.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d9ea15d77b2b7832d0c883a0787439103615ad07011c98fc2332e366e978473c"
+    },
+    {
+      "input_path": "src/storage/queries/project_map.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "d418c6523d46987856e9e62a9ea9833c06849e220f758354a5bab5247d163fb8"
+    },
+    {
+      "input_path": "src/storage/queries/routes.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0e7fff615e45006780dbb0df6f7a610387081e307045f50617802347007e9107"
+    },
+    {
+      "input_path": "src/storage/queries/search.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b700d11a90f0b1b04c22e9b880c86f7101d01020c0e662050b20f85e618b6a22"
+    },
+    {
+      "input_path": "src/storage/queries/vectors.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "9fcc02a401a90ae751a033e3c4ee37bc1c1e388b0ab9a6ad5437b371572b1f9d"
+    },
+    {
+      "input_path": "src/storage/schema.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4f95f263be47973afecc1e608b4ae4165d659c66c9444b0bacad97056c6dcd19"
+    },
+    {
+      "input_path": "src/utils/acronyms.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f2dca92d4da66fb920580c9dbe49f1ce34a1337529509c3e47d470b2b51d2967"
+    },
+    {
+      "input_path": "src/utils/config.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4a75341c848bb35a3860ea6a884185320d524bc0afeb9f7decc4b6ea510686d4"
+    },
+    {
+      "input_path": "src/utils/gitignore.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a115724c705963fffc03e3a91401eb52ff44e7fc4156ac54acd877228e2520ad"
+    },
+    {
+      "input_path": "src/utils/mod.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ce0bfcea2ee03b0530104540e4fb4ab5b4143e4bbdaaccd531b6b67a490f6e2d"
+    },
+    {
+      "input_path": "src/utils/owned.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "f878fb9f376a5a36a5b5f51a683e4f845e8bc5c929c29c10a212fe3a0dc66983"
+    },
+    {
+      "input_path": "src/utils/paths.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2836f006611e399b377db75cd30b7d8ad43f99367b8bffe7a94dbeef96076615"
+    },
+    {
+      "input_path": "src/utils/stdio.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "e83fff55a1328c018d2180064ac8e6b662f9042943c4802f997aee61ad542d8e"
+    },
+    {
+      "input_path": "src/utils/telemetry.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "dde65ff5d0d4f82c646cf204e2100001180fa69b25ce590a6e38e5a9db5f2bf4"
+    },
+    {
+      "input_path": "src/utils/tokenizer.rs",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7a99c08041fa42e79108a24d2a72749d1888d151cacc1ecbd17421ba94be5bea"
+    },
+    {
+      "input_path": "tasks/qa-e2e-2026-09-13.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "cd5bbfa1b79c679a26749e9045155d22063229933fffd59f26549d4591bb845a"
+    },
+    {
+      "input_path": "tasks/review-findings-2026-07-27-from-claudemd-session.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "463882739cb81c78bd4abd17494f3cdb0de2ebc6b84defd3bb82e9c8ca0d9b9a"
+    },
+    {
+      "input_path": "tasks/specs/adoption-answer-delivery.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "a4cd462ff65aa061f6a425095b52fe5398c55106799e548d0f6be80eda937bd6"
+    },
+    {
+      "input_path": "tasks/specs/compound-grep-postinject.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0d90fe2653109574cb3a496cffb947fb54337f82e28e0e954b81663409f29427"
+    },
+    {
+      "input_path": "tasks/specs/d229-zero-answer-disclosure.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b62c291962fd18b7f0653ff5dcd33dcc4a0beaabca16d6f6abec341deca13f19"
+    },
+    {
+      "input_path": "tasks/specs/d24-bare-name-fanout-to-a-new-duplicate.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "0adb24111155fa1bedc8666a7bc4a54582393194473c290cfa136f9621813d6c"
+    },
+    {
+      "input_path": "tasks/specs/d279-npm-publish-visibility.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "759e6bf1b519b8a76eb8d2d78afbcb212d05811f9798b4ec8cf329d5d15dcb81"
+    },
+    {
+      "input_path": "tasks/specs/d97-typed-call-class-drift.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "7fbfd61afc0a94431f684dfe1b26953a0c8865d64b77ad90bb382fed5ae28ecb"
+    },
+    {
+      "input_path": "tasks/specs/deny-grep-inline-answer.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "54ca0c6b2a0a69f1020d7ab9390e6fa3de5b7bd90c6dc10464b8726e123681a8"
+    },
+    {
+      "input_path": "tasks/specs/edit-log-coverage.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "88ca4f3c54118662bab0831f9cae806b363e08000a09530c2db9f92a632c3c1b"
+    },
+    {
+      "input_path": "tasks/specs/edit-time-covering-tests.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "53268a3bb35c7855e465fc6efa0ad34f0d0c2f46aace8deeb9efd6a918e425c2"
+    },
+    {
+      "input_path": "tasks/specs/grep-guard-red-noise.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6b0f6b7ff006d8b9b82904fac94fdfbfea56fc803d7a374d0c2d35b0dd3b4ea3"
+    },
+    {
+      "input_path": "tasks/specs/grep-hook-bare-src-dir.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "cdbd41601f9b07a8a5075319d63cea5c7969297f3d02775972fa388f48eaf880"
+    },
+    {
+      "input_path": "tasks/specs/grep-hook-source-roots.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "6f85dd2b5a4168c740599771deab512fe65a745f5f33bd15b3bcecf49e01b841"
+    },
+    {
+      "input_path": "tasks/specs/grep-parity.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "fb42313a2ac2c1339f85b8b6eb72d0fcc6b80f05254f8a769b42c4333362bb27"
+    },
+    {
+      "input_path": "tasks/specs/impact-node-id.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "1b2b623dc9ebcd5e1a0b6781b0b4a250134dfc33c5716f13a4bd81ac885c7429"
+    },
+    {
+      "input_path": "tasks/specs/js-ts-assigned-functions.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "2f96df4838518166f5b2a7f9c9d68c2c818f21336c27274bac151cf10d7ab4f9"
+    },
+    {
+      "input_path": "tasks/specs/mcp-numeric-argument-contract.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "b03e900df206a0402d5818db0a2453fe77480035a0d3869324379fb870989308"
+    },
+    {
+      "input_path": "tasks/specs/p1-budgeted-output.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "4d43a7ccab2c03cc020421f1f0a9af3f5dbfdb6056edbc5fb5be56909a75ad62"
+    },
+    {
+      "input_path": "tasks/specs/p1-empty-result-boundaries.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c30ea547b1a036a0a4372d7243dc0ce8b4654ce40700b3e6bb371648ddcc76fa"
+    },
+    {
+      "input_path": "tasks/specs/p1-subagent-and-stop-hooks.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "c9831b0a36abf88b8efb5856548d2d3d0b5d023c89892027aee841bef61246ae"
+    },
+    {
+      "input_path": "tasks/specs/plugin-bin-on-path.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "400123c9bd9f8db5e658adef2f764d3b17a95c15c8e6c9595ac117c7b1cc0daa"
+    },
+    {
+      "input_path": "tasks/specs/plugin-only-cli-invocation.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "17fd7483c6f2e0eef20e5a51373bf26ee3a4f9737aeb6af4036f2e3ad753f7d5"
+    },
+    {
+      "input_path": "tasks/specs/retrieval-short-query-slices.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "849cb640debd2035f987bbf47b875513f092c841a050041bf539a10eb2424cea"
+    },
+    {
+      "input_path": "tasks/specs/steering-affected.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "24e2a056fd2381259a749aa1e063b2e691ebdb7eb2391d27223e8f5c23fc1fb7"
+    },
+    {
+      "input_path": "tasks/specs/steering-channel.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "227a3a0914fb8b675a1c7ea0ceac5bc3bb4cd8d47991a2d99e3ed3295bb91b84"
+    },
+    {
+      "input_path": "tasks/specs/tree-sitter-0-25-raw-borrow.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "30221a395f70e1ab3f1f5617ec5487c8acd1f8f00ff61cd12ce544b7ccb3d6d0"
+    },
+    {
+      "input_path": "tasks/specs/uninstall-race-with-in-flight-auto-update.md",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "06659af8c5f8f5f99fcc8889113f9554645b9411adcad3b902583bd88cb11c05"
+    },
+    {
+      "input_path": "vendor/sqlite-vec/sqlite-vec.c",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "aea2ff1524ab80ccd1d51c698b09a74403c2d6ef00949d2a083661b4660881fe"
+    },
+    {
+      "input_path": "vendor/sqlite-vec/sqlite-vec.h",
+      "decision": "retired_from_distribution",
+      "output_path": null,
+      "input_sha256": "ee9f4ad2fd66e285f8c1c60d9174b6b21ae960704c0ec6a93e8bea01ae240420"
+    }
+  ]
+}

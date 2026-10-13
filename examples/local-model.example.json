@@ -1,0 +1,8 @@
+{
+  "port": 8080,
+  "model": "REPLACE_WITH_INSTALLED_MODEL_ID",
+  "model_digest": "REPLACE_WITH_VERIFIED_64_HEX_SHA256",
+  "license": "REPLACE_WITH_VERIFIED_MODEL_LICENSE",
+  "max_output_tokens": 2048,
+  "timeout_seconds": 30
+}
