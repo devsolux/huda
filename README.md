@@ -1,101 +1,318 @@
-# Huda
+<p align="center">
+  <img src="assets/icons/huda-128.png" alt="Huda application icon" width="96" height="96">
+</p>
 
-<img src="assets/icons/huda-128.png" alt="Huda application icon" width="96" height="96">
+<h1 align="center">Huda</h1>
 
-**Local, Tree-sitter-powered, and relation-first knowledge space.** Product **Huda** · application identifier **`com.devsolux.huda`** · Rust package `huda` · native executables `huda` and `huda-desktop`.
+<p align="center">
+  <strong>A local, relation-first knowledge space.</strong><br>
+  Typed n-ary relations with immutable history in one SQLite store.<br>
+  Native desktop, CLI, MCP and REST — offline by default.
+</p>
 
-> **Version 1.0.0 — unsigned, with native build evidence on Apple Silicon only.** The 2026-10-09 audit resolved a real `Cargo.lock`, made the tree compile on Rust 1.99.0, formatted it, and executed strict Clippy, all three test configurations, a locked release build of both executables, helper smoke, ad-hoc app/DMG packaging and an isolated-HOME desktop launch on native `aarch64-apple-darwin`. Intel macOS, Windows and Linux builds, real login registration, tray interaction, secret-store initialization, signing and the plan's native/semantic/provider gates remain unexecuted; see [verification](docs/verification/commands.json) and the [audit register](docs/verification/audit-2026-10-09.md).
+<p align="center">
+  <a href="https://github.com/devsolux/huda/actions/workflows/desktop.yml"><img src="https://github.com/devsolux/huda/actions/workflows/desktop.yml/badge.svg" alt="Native desktop workflow"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
+  <a href="rust-toolchain.toml"><img src="https://img.shields.io/badge/rust-1.99.0-orange.svg" alt="Rust 1.99.0"></a>
+  <a href="https://github.com/devsolux/huda/releases"><img src="https://img.shields.io/github/v/release/devsolux/huda" alt="Latest release"></a>
+</p>
 
-## Native macOS M4 / Apple Silicon
+---
 
-Install Apple Command Line Tools, native Rust/rustup and Python 3.11+ explicitly. `dev.sh` does not install global tools, invoke sudo, register startup, delete profiles or download models. It rejects Rosetta and non-arm64 hosts, and it runs the pinned rustup toolchain's own `cargo`/`rustc` even when a Homebrew or distribution Rust comes first on `PATH`.
+## Overview
 
-```sh
-chmod +x dev.sh
-rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
-./dev.sh doctor
-./dev.sh lock       # explicit network dependency resolution; inspect/retain Cargo.lock
-./dev.sh fmt        # rustfmt with the pinned toolchain; the tree is formatted and checked in CI
-./dev.sh check      # formatting, strict Clippy and source/SQLite checks
-./dev.sh test       # default, headless and all-feature Rust tests
-./dev.sh build      # native aarch64-apple-darwin, desktop + helper
-./dev.sh run        # debug desktop
-./dev.sh dmg        # release .app + .dmg, ad-hoc signed for local testing only
-```
+Huda stores knowledge as **typed relations**, not documents. Every relation has typed roles,
+qualifiers, polarity, modality, conditions and an optional valid time. Every assertion carries an
+authenticated technical origin; supporting evidence is optional. History is immutable.
 
-`./dev.sh all` performs check → test → build → packaging. Artifacts go under `dist/aarch64-apple-darwin/`. Existing packages are never silently replaced: move previous output before packaging again. The app contains both sibling executables in `Contents/MacOS/`. DMG/ad-hoc signing does **not** constitute Developer ID signing/notarization. Move Huda.app to Applications before enabling login launch.
+One per-user **Core** owns one SQLite database with a single writer. The native desktop, the
+CLI, the MCP server and the opt-in REST server all go through the same application handlers, so
+every interface sees the same data and the same rules.
 
-## All native targets and GitHub builds
+Huda runs entirely on your machine. It does not scan your files, download models or contact
+external services unless you explicitly configure and authorize it.
 
-| Target | Runner | Native package output configured in CI |
-|---|---|---|
-| Apple Silicon | `macos-26` / `aarch64-apple-darwin` | `.app` staging and `.dmg` containing it |
-| Intel macOS | `macos-26-intel` / `x86_64-apple-darwin` | Separate `.app` staging and `.dmg` |
-| Windows AMD64 | `windows-2025` / `x86_64-pc-windows-msvc` | Per-user Setup `.exe` and portable ZIP |
-| Linux AMD64 | `ubuntu-24.04` / `x86_64-unknown-linux-gnu` | `.deb`, fixed Ubuntu 24.04/glibc baseline |
-
-[`.github/workflows/desktop.yml`](.github/workflows/desktop.yml) runs only on manual dispatch and on published GitHub releases whose tag starts with `v` (for example `v1.0.0`). Pull requests and branch pushes do not trigger it, so run `./dev.sh check` and `./dev.sh test` locally, or dispatch the workflow on the branch, before merging. It resolves **one** dependency lock when absent, shares and verifies that exact lock across native jobs, checks all feature sets with `--locked`, builds both binaries, runs displayless helper smoke checks and packages only after those native job checks pass. Formatting is a separate mandatory gate so build diagnostics can still be collected when format debt exists. A release run fails unless its tag equals `v` plus the `Cargo.toml` version. All jobs must pass on the dispatched branch or release tag before release qualification.
-
-Actions are pinned to verified current release commits; Rust is pinned to 1.99.0. No dependency-update bot is configured; Cargo and action updates are manual, reviewed changes and are never merged automatically. The workflow never creates or publishes a release. After every job passes, a `sign` job without a code checkout signs each package and one combined `SHA256SUMS` keylessly with [Sigstore cosign](https://docs.sigstore.dev/cosign/) and verifies every signature; for a release a maintainer publishes, a final job attaches the packages, `SHA256SUMS` and their `.sigstore.json` bundles, and it never replaces existing assets. The bundles prove which workflow, ref and commit produced a file; they are not Developer ID, notarization or Authenticode signatures, so the packages remain unsigned/ad-hoc test candidates for the OS. No signing secrets or provider/model calls are configured. The repository contains the real `Cargo.lock` that Cargo 1.99.0 resolved on 2026-10-09 and re-resolved for the 2026-10-12 dependency upgrade (541 packages with crates.io checksums); CI consumes it with `--locked` and only resolves a candidate lock when none is committed. Compiled packages are not included. See [build operations](docs/desktop-build.md) and [dependency verification](docs/dependency-versions.md).
-
-## Icon, tray and login launch
-
-The earlier approved blue H/network artwork is preserved as `assets/icons/source.png`. PNG sizes 16–1024, multi-size ICO and ICNS are included; normal builds do not need Pillow or regenerate the icon. `scripts/generate_icons.py` reproduces the conversions when Pillow is explicitly available.
-
-The desktop uses **auto-launch 0.6.0** and **tray-icon 0.26.1**. Launch at login starts **off**. Enable/disable it explicitly from the desktop checkbox or tray menu. Windows registration is per-user, macOS uses a LaunchAgent, and Linux uses XDG session startup. No installer silently registers startup or starts a Core.
-
-The tray offers Show Huda, Ask Huda, Launch at login and Quit Huda. Keep running after close is session-only and off on normal launch. Login starts use `--background`; Linux deliberately remains recoverable as a minimized window when its shell may not display a tray icon. Tray and worker events wake the hidden UI. Quitting the desktop never terminates a shared Core serving another client.
-
-**Known platform limits:** auto-launch 0.6.0 does not honor a custom Linux `XDG_CONFIG_HOME`; Huda reports that unsupported configuration instead of creating an ineffective entry. Unrepresentable launch paths are rejected; Windows Run-key paths are quoted. A registered OS login entry is not proof the operating system permits it to run. One desktop runs per profile: a second manual launch exits and asks the running desktop to show its window through a per-profile desktop lease that is independent of the Core writer lease; a second `--background` launch exits silently. An isolated-HOME launch/relaunch smoke ran on Apple Silicon; real login registration, tray interaction and display tests on the other targets remain unexecuted.
-
-## Architecture and data continuity
-
-GUI / CLI / MCP / opt-in REST → shared application handlers → **one per-user Core, one SQLite authority and one writer**.
-
-Manual assertions, JSON, approved extraction, provider captures and Bridge captures use the same publication boundary. Query Core alone evaluates typed GoalSpec coverage/needs. One bounded acquisition controller consumes those results; one local LLM adapter handles distinct interpretation/extraction/answer tasks. No second graph, model judge, cloud service, agent or provider-proxy MCP is added.
-
-Relations have typed/n-ary roles, qualifiers, polarity, modality, conditions and optional valid time. **Evidence may be empty; authenticated technical origin is required.** Published `active` status is not a proof of truth. Source-owned withdrawal preserves independent assertions and immutable history. Persistent inferred assertions remain disabled.
-
-Default profile locations (credentials are stored as `huda.<profile-fingerprint>` OS-secret entries):
-
-| OS | Default profile |
+| | |
 |---|---|
-| macOS | `~/Library/Application Support/Huda` |
-| Windows | `%LOCALAPPDATA%\Huda` |
-| Linux | `${XDG_DATA_HOME:-~/.local/share}/huda` |
+| Product | Huda |
+| Executables | `huda` (CLI, Core, MCP) and `huda-desktop` (native desktop) |
+| Application identifier | `com.devsolux.huda` |
+| Rust package | `huda` |
 
-Windows now has restrictive DACL/local named-pipe/peer-SID source at the existing runtime boundary; it is **not yet native-security-qualified**. Use disposable profiles while qualifying.
+## Features
 
-## Explicit offline startup after a successful build
+- **Relation-first model** — typed, n-ary relations with qualifiers, polarity, modality,
+  conditions and optional valid time. See the [relation model](docs/relation-model.md).
+- **Immutable history** — withdrawing a source preserves independent assertions; nothing is
+  silently overwritten or deleted.
+- **One authority** — one Core, one SQLite store and one writer per profile, shared by every
+  interface.
+- **Goal-aware queries** — Query Core evaluates typed goal coverage and returns bounded, typed
+  paths without persisting inferences.
+- **Offline by default** — provider access, automatic admission and local models are separate,
+  explicit opt-ins.
+- **Optional local LLM** — a single adapter for a model you configure yourself; graph operations
+  work without one.
+- **Model Context Protocol** — a stdio MCP server targeting MCP `2026-07-28`, and OpenAPI `3.1.2`
+  contracts generated from the handler types.
+- **Native desktop** — an egui application with a tray menu, opt-in launch at login and
+  single-instance activation.
+- **Optional code adapter** — Tree-sitter syntax parsing behind the `code-adapter` feature (see
+  [NOTICE](NOTICE.md)).
 
-Install both executables beside one another (the packaging scripts already do this), then:
+## Project status
 
-```sh
-huda init
-huda status
-huda-desktop
-huda mcp stdio
+Huda is a **source candidate**, not a security-qualified release. Use a disposable profile while
+evaluating it.
+
+- The [CI workflow](.github/workflows/desktop.yml) builds, lints, tests and packages all four
+  supported targets.
+- Native installation, login registration, tray, secret-store and upgrade testing is incomplete.
+  So far, only an isolated desktop launch smoke test on Apple Silicon has been run.
+- The Windows named-pipe access controls are implemented but not yet natively qualified.
+- Packages are not Developer ID–signed, notarized or Authenticode-signed, so Gatekeeper and
+  SmartScreen will warn on first launch.
+- MCP over HTTP, some API routes and the remote, macOS and Windows Bridge backends are incomplete.
+
+The [gate matrix](docs/verification/gates.md) tracks every release gate and the evidence behind it.
+
+## Supported platforms
+
+| Platform | Target | Package |
+|---|---|---|
+| macOS, Apple Silicon | `aarch64-apple-darwin` | `.dmg` containing `Huda.app` |
+| macOS, Intel | `x86_64-apple-darwin` | `.dmg` containing `Huda.app` |
+| Windows, x64 | `x86_64-pc-windows-msvc` | Per-user setup `.exe` and portable `.zip` |
+| Linux, x64 | `x86_64-unknown-linux-gnu` | `.deb` built against the Ubuntu 24.04 baseline |
+
+## Installation
+
+Download the package for your platform from
+[GitHub Releases](https://github.com/devsolux/huda/releases), then verify it against the
+release's `SHA256SUMS`. On Linux:
+
+```bash
+sha256sum --check --ignore-missing SHA256SUMS
 ```
 
-The desktop also offers **Initialize profile**, which explicitly delegates to its packaged helper. It never opens SQLite. Initialization creates owner/MCP credentials in an available unlocked OS secret store. No plaintext fallback exists. Ordinary requests start one Core on demand; no request means no hidden scan, model download or provider fetch. The Core retires after 300 idle seconds. `huda core --idle-seconds 0` explicitly holds it in the foreground.
+On macOS:
 
-```sh
+```bash
+shasum -a 256 --check --ignore-missing SHA256SUMS
+```
+
+On Windows, compare the output of `Get-FileHash -Algorithm SHA256 <file>` in PowerShell with the
+matching line in `SHA256SUMS`.
+
+Newer releases also include a [Sigstore](https://docs.sigstore.dev/cosign/) bundle
+(`<file>.sigstore.json`) for each asset. Set `TAG` to the release tag and `FILE` to the
+downloaded package, then verify it with cosign 3.x:
+
+```bash
+cosign verify-blob --bundle "$FILE.sigstore.json" --certificate-identity "https://github.com/devsolux/huda/.github/workflows/desktop.yml@refs/tags/$TAG" --certificate-oidc-issuer https://token.actions.githubusercontent.com "$FILE"
+```
+
+A valid bundle proves which workflow run built the file. It is not an operating-system code
+signature. Releases published before signing was introduced include only `SHA256SUMS`.
+
+On macOS, move `Huda.app` to Applications before enabling launch at login.
+
+## Quick start
+
+The packages install `huda` and `huda-desktop` side by side, which both executables require.
+
+```bash
+huda init         # create an empty offline profile and its credentials
+huda status       # start the Core on demand and report its state
+huda-desktop      # open the native desktop
+huda mcp stdio    # serve MCP over stdio
+```
+
+The desktop can also initialize a profile with **Initialize profile**. Credentials live only in
+an unlocked OS secret store; there is no plaintext fallback.
+
+Requests start one Core on demand. The Core never scans, downloads or fetches anything on its
+own, and it exits after 300 idle seconds. `huda core --idle-seconds 0` keeps it in the
+foreground.
+
+```bash
 huda call list_relation_types --input examples/empty.json
 huda call explore_relations --input examples/empty.json
 huda ask "What does Project A depend on in production?"
 huda contracts --output openapi.json
 ```
 
-The authored [manual gold runner](examples/manual_gold.py) creates an evidence-free direct relation plus an independent JSON assertion, withdraws the JSON source and checks the surviving user relation. Run it only against a fresh test profile initialized with the same `--profile` path. It has not been executed against Rust here.
+`huda contracts` never overwrites an existing file. Use `--profile <dir>` with any command to
+work with a profile other than the default. See [examples](examples/README.md) for the
+sample inputs.
 
-No model is bundled. Independently configure a local model using [the example](examples/local-model.example.json), then explicitly run `huda core --idle-seconds 0 --model-config /absolute/path/to/local-model.json`. Without it, graph operations remain available; the app does not invent an AI answer. Null/empty optional tool-call fields are accepted, but actual model tool requests remain forbidden.
+## Configuration
 
-Provider egress and registration/structured/semantic admission are independently authorized, off by default. Context is not consent. Protocol targets remain MCP `2026-07-28` and OpenAPI `3.1.2`; both were checked against the published MCP schema and OpenAPI specification on 2026-10-09, and the stdio server now returns the `cacheScope`/`ttlMs` fields that revision requires. MCP HTTP, some API routes and remote/macOS/Windows Bridge backends remain incomplete. See [operations](docs/operations.md).
+### Profiles
 
-## Scope and evidence
+| OS | Default profile directory |
+|---|---|
+| macOS | `~/Library/Application Support/Huda` |
+| Windows | `%LOCALAPPDATA%\Huda` |
+| Linux | `${XDG_DATA_HOME:-~/.local/share}/huda` |
 
-Huda ships no code-index runtime, file watcher, model download, npm/Claude-plugin distribution or destructive recovery. Syntax parsing is **adapted, attributed and optional** behind `code-adapter` (see [NOTICE](NOTICE.md)); it has no independent database, filesystem scanner or code-first startup.
+Each profile's credentials are stored as `huda.<profile-fingerprint>` entries in the OS secret
+store.
 
-Actual executed checks on native macOS 26 / Apple Silicon with Rust 1.99.0: `cargo fmt --check`, `cargo clippy --all-targets --all-features -D warnings`, **36 default-feature, 36 headless and 384 all-feature Rust tests** plus integration tests, a locked release build of `huda` and `huda-desktop`, helper `--help/--version` smoke, ad-hoc-signed `.app`/`.dmg` packaging, an isolated-HOME desktop launch/relaunch smoke, `cargo audit` (no advisories), **19 SQLite tests**, **15 offline desktop/packaging checks** and shell/YAML validation. Exact commands, environment, failures and blocked checks are in [verification](docs/verification/commands.json).
+### Local model (optional)
 
-[Gate matrix](docs/verification/gates.md) · [Architecture](docs/architecture.md) · [Threat model](docs/threat-model.md)
+No model is bundled or downloaded. Create a configuration from
+[the example](examples/local-model.example.json), which stays invalid until you supply the
+model's identity, digest and license, then start the Core with it:
+
+```bash
+huda core --idle-seconds 0 --model-config /absolute/path/to/local-model.json
+```
+
+The adapter only connects to a loopback endpoint (`127.0.0.1:<port>/v1/chat/completions`) and
+rejects model tool calls. Without a model, graph operations stay available, and Huda never
+fabricates an answer.
+
+### Providers and REST
+
+Provider access and automatic admission are authorized independently and are off by default.
+The REST server is opt-in, listens only on `127.0.0.1`, and requires a build with the `rest`
+feature (included in release packages):
+
+```bash
+huda core --rest-port 8787
+```
+
+See [operations](docs/operations.md) for credentials, backup, recovery and provider consent.
+
+## Desktop integration
+
+- **Tray menu:** Show Huda, Ask Huda, Launch at login and Quit Huda.
+- **Launch at login** is off by default and enabled only from the desktop or the tray. It uses a
+  per-user Run key on Windows, a LaunchAgent on macOS and XDG autostart on Linux. Installers never
+  register startup.
+- **Single instance:** one desktop runs per profile. A second launch brings the running window to
+  the front, and a second `--background` launch exits silently.
+- **Shared Core:** quitting the desktop never stops a Core that is serving another client.
+
+Known limitations:
+
+- Launch at login does not support a custom Linux `XDG_CONFIG_HOME`. Huda reports this instead of
+  writing an entry that would not work.
+- On Linux shells without a tray host, the desktop stays available as a minimized window.
+- A registered login entry does not guarantee that the operating system will run it.
+
+## Architecture
+
+```text
+Desktop · CLI · MCP (stdio) · REST (opt-in, loopback)
+                       │
+          shared application handlers
+                       │
+           one per-user Core, one writer
+                       │
+                SQLite authority
+```
+
+Manual assertions, JSON imports, approved extraction, provider captures and Bridge captures all
+pass through the same publication boundary. Query Core alone evaluates goal coverage. One bounded
+acquisition controller acts on its results, and one local LLM adapter handles interpretation,
+extraction and answers.
+
+Huda deliberately has no second graph, vector or code index, file watcher, cloud service, agent
+layer or destructive recovery path. See [architecture](docs/architecture.md) for the details.
+
+## Building from source
+
+**Requirements:**
+
+- Rust 1.99.0 with `rustfmt` and `clippy`; the version is pinned in
+  [`rust-toolchain.toml`](rust-toolchain.toml)
+- Python 3.11 or later
+- A native C/C++ toolchain for your platform
+
+The committed `Cargo.lock` is used with `--locked` everywhere. SQLite is bundled.
+
+### macOS (Apple Silicon)
+
+[`dev.sh`](dev.sh) wraps the full workflow for native `aarch64-apple-darwin`. It never installs
+global tools, runs `sudo`, registers startup, deletes profiles or downloads models. It also
+always runs the pinned toolchain, even when another Rust comes first on `PATH`.
+
+```bash
+rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
+./dev.sh doctor   # check the host and toolchain
+./dev.sh check    # formatting, strict Clippy, source and SQLite checks
+./dev.sh test     # default, headless and all-feature tests
+./dev.sh build    # desktop and helper binaries
+./dev.sh run      # debug desktop
+./dev.sh dmg      # release .app and .dmg, ad-hoc signed for local testing
+./dev.sh all      # check, test, build and package
+```
+
+Packages are written to `dist/aarch64-apple-darwin/`, and existing packages are never
+overwritten.
+
+### Other targets
+
+```bash
+cargo fmt --all -- --check
+cargo clippy --locked --all-targets --all-features -- -D warnings
+cargo test --locked --all-features
+cargo build --locked --release --features desktop,rest --bins
+python3 scripts/package_desktop.py --target x86_64-unknown-linux-gnu
+```
+
+The platform prerequisites are covered in [build and packaging](docs/desktop-build.md):
+
+- Apple Command Line Tools on macOS
+- MSVC build tools and Inno Setup 7.1.0 on Windows
+- the system libraries on Ubuntu 24.04
+
+### Continuous integration
+
+[`desktop.yml`](.github/workflows/desktop.yml) runs on manual dispatch and on published releases
+whose tag is `v` followed by the `Cargo.toml` version. It does not run on pushes or pull
+requests, so run the checks above locally first. Each run:
+
+1. Verifies the committed dependency lock and shares it with every job.
+2. Lints, tests, builds and packages all four targets, with formatting as a separate gate.
+3. Signs every package and the combined `SHA256SUMS` keylessly with Sigstore cosign, then
+   verifies each signature.
+4. For a published release, attaches the packages, checksums and signature bundles. It never
+   replaces existing assets.
+
+Actions are pinned to release commits and updated manually. See
+[dependency versions](docs/dependency-versions.md) for the pinned versions.
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [Architecture](docs/architecture.md) | Authority, schema choices, source lifecycle and deliberate limits |
+| [Relation model](docs/relation-model.md) | Entity and relation identity, roles, qualifiers and canonicalization |
+| [Operations](docs/operations.md) | Profiles, credentials, Core lifetime, backup and recovery |
+| [API contracts](docs/api/README.md) | Handler, REST and MCP operation contracts |
+| [Build and packaging](docs/desktop-build.md) | Per-platform build, packaging and signing boundaries |
+| [Threat model](docs/threat-model.md) | Protected authority, controls and open security obligations |
+| [Gate matrix](docs/verification/gates.md) | Release gates and their recorded evidence |
+| [Evaluations](docs/evaluations.md) | Evaluation contract for native and semantic gates |
+| [Dependency versions](docs/dependency-versions.md) | Pinned crates, actions and protocol versions |
+
+## Security
+
+Please report vulnerabilities privately through
+[GitHub private vulnerability reporting](https://github.com/devsolux/huda/security/advisories/new),
+not in a public issue. See the [security policy](SECURITY.md) and the
+[threat model](docs/threat-model.md).
+
+## Contributing
+
+Read [AGENTS.md](AGENTS.md) for the engineering rules and architecture invariants. Run the checks
+listed in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md), and report failed or
+skipped checks as such.
+
+## License
+
+Huda is released under the [MIT License](LICENSE). Third-party attributions, including the adapted
+Tree-sitter code, are listed in [NOTICE](NOTICE.md).
