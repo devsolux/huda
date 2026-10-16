@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Build, packaging and CI
+
+- Keyless Sigstore signing: once every gate passes, a new `sign` job (the only one with
+  `id-token: write`, no code checkout) signs each package and the combined `SHA256SUMS` with
+  cosign v3.1.3 and verifies every bundle against the workflow identity. Releases also get one
+  `<file>.sigstore.json` per asset. These bundles are not OS code signatures; packages stay
+  unsigned/ad-hoc for Gatekeeper/SmartScreen.
+- The signing job signs only the packages that the per-target `SHA256SUMS` list, each exactly
+  once.
+- Release runs are no longer cancelled by a newer run for the same ref; only superseded
+  dispatch runs are.
+- `actions/download-artifact` v8.0.2 and `sigstore/cosign-installer` v4.1.2, SHA-pinned.
+
 ## 1.0.0 — 2026-10-14
 
 First Huda release: product **Huda**, Rust package `huda`, executables `huda` and

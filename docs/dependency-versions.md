@@ -55,26 +55,33 @@ not dependency-update knobs; product version remains 1.0.0, MCP 2026-07-28 and O
 | actions/checkout | v7.0.1 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
 | actions/setup-python | v7.0.0 | `5fda3b95a4ea91299a34e894583c3862153e4b97` |
 | actions/upload-artifact | v7.0.2 | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
-| actions/download-artifact | v8.0.1 | `3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c` |
+| actions/download-artifact | v8.0.2 | `9000827ccba6bdab643e8b6fd33ac0654aef8333` |
+| sigstore/cosign-installer | v4.1.2 | `6f9f17788090df1f26f669e9d70d6ae9567deba6` |
+
+The installer is told to install cosign **v3.1.3** (`cosign-release`), not its v3.0.6 default.
 
 Primary references:
 - https://github.com/actions/checkout/releases/tag/v7.0.1
 - https://github.com/actions/setup-python/releases/tag/v7.0.0
 - https://github.com/actions/upload-artifact/releases/tag/v7.0.2
-- https://raw.githubusercontent.com/actions/download-artifact/3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c/package.json
-- https://raw.githubusercontent.com/actions/download-artifact/main/package.json
+- https://github.com/actions/download-artifact/releases/tag/v8.0.2
+- https://github.com/sigstore/cosign-installer/releases/tag/v4.1.2
+- https://github.com/sigstore/cosign/releases/tag/v3.1.3
 - https://docs.github.com/en/actions/reference/runners/github-hosted-runners
 
-All four pinned commits were re-verified on 2026-10-09 against the GitHub tag objects
-(`actions/checkout` v7.0.1, `actions/setup-python` v7.0.0, `actions/upload-artifact` v7.0.2,
-`actions/download-artifact` v8.0.1, all Node 24 actions). `download-artifact` v8.0.2 was
-published on 2026-10-07; the reviewed v8.0.1 pin is retained; adopting it is a manual,
-reviewed change. The `digest-mismatch` input exists at the pinned download commit, Python 3.14.8 is
-present in the `actions/python-versions` manifest for all four runner platforms, and the
-runner labels `macos-26` (arm64), `macos-26-intel` (x64), `windows-2025` and `ubuntu-24.04`
-are listed by `actions/runner-images`. This is version-source verification, not an executed
-workflow; actionlint was unavailable in the audit environment. Subsequent updates are manual,
-reviewed changes; no floating action tags, update bots or automatic merging are used.
+On 2026-10-16 each pin above was checked against its repository's latest GitHub release and the
+tag's commit from `git ls-remote`; every pin is the latest release. `download-artifact` moved
+from v8.0.1 to v8.0.2 (HTTP 429 retry handling, `@actions/artifact` 6.3.1); its `action.yml`
+still runs on Node 24 and keeps the `digest-mismatch` input. `cosign-installer` v4.1.2 checks
+a requested cosign release with its SHA-256-pinned bootstrap binary, against both the
+keyless and the KMS Sigstore bundles that cosign v3.1.3 publishes. Python 3.14.8 is still the
+newest 3.14 release in the `actions/python-versions` manifest; 3.15.0 is also listed but is
+not adopted here. The runner labels `macos-26` (arm64), `macos-26-intel` (x64), `windows-2025`
+and `ubuntu-24.04` were checked against `actions/runner-images` on 2026-10-09, and the
+`v1.0.0` release run used them on 2026-10-13. This is version-source verification; the
+signing path has not run yet, and actionlint was unavailable in the audit environment.
+Subsequent updates are manual, reviewed changes; no floating action tags, update bots or
+automatic merging are used.
 
 ## Protocol pins
 

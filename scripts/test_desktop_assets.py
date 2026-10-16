@@ -88,20 +88,34 @@ class DesktopSourceTests(unittest.TestCase):
         actions = re.findall(r"uses: ([\w/-]+)@([^\s]+)", source)
         self.assertTrue(actions)
         for action, revision in actions:
-            self.assertRegex(action, r"^actions/")
+            # GitHub's own actions plus the Sigstore installer; nothing else.
+            self.assertRegex(action, r"^(actions/[\w-]+|sigstore/cosign-installer)$")
             self.assertRegex(revision, r"^[0-9a-f]{40}$")
         self.assertIn("contents: read", source)
         self.assertNotIn("pull_request_target", source)
         self.assertNotIn("continue-on-error", source)
         self.assertIn("digest-mismatch: error", source)
         self.assertIn("--locked", source)
+        # Only the keyless signing job may mint an OIDC identity token, after every gate and
+        # without checking out code, and it verifies each signature against this workflow.
+        self.assertEqual(source.count("id-token: write"), 1)
+        sign = source.split("\n  sign:\n", 1)[1].split("\n  release-assets:\n", 1)[0]
+        self.assertIn("id-token: write", sign)
+        self.assertIn("needs: [dependencies, formatting, native]", sign)
+        self.assertNotIn("actions/checkout", sign)
+        self.assertNotIn("contents: write", sign)
+        self.assertRegex(sign, r"cosign-release: v\d+\.\d+\.\d+\n")
+        self.assertIn("cosign verify-blob", sign)
+        self.assertIn("--certificate-identity", sign)
+        self.assertIn("--certificate-oidc-issuer", sign)
         # Only the final release-asset job may write, only for published releases, without
         # checking out code and without replacing existing assets.
         self.assertEqual(source.count("contents: write"), 1)
         job = source.split("\n  release-assets:\n", 1)[1]
         self.assertIn("contents: write", job)
         self.assertIn("if: github.event_name == 'release'", job)
-        self.assertIn("needs: [dependencies, formatting, native]", job)
+        self.assertIn("needs: [dependencies, formatting, native, sign]", job)
+        self.assertIn(".sigstore.json", job)
         self.assertNotIn("actions/checkout", job)
         self.assertNotIn("--clobber", source)
 
