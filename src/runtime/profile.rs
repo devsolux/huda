@@ -185,6 +185,45 @@ impl Profile {
         options.open(self.directory.join("desktop.activate"))?;
         Ok(())
     }
+    /// A small private value the Core keeps across restarts, such as a provider backoff. A
+    /// missing file reads as None; reads are bounded and never follow a symlink.
+    pub(crate) fn read_state(&self, name: &str) -> Result<Option<String>> {
+        use std::io::Read;
+        self.check_file(name)?;
+        let mut options = OpenOptions::new();
+        options.read(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
+        }
+        let file = match options.open(self.directory.join(name)) {
+            Ok(file) => file,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(e) => return Err(e.into()),
+        };
+        let mut value = String::new();
+        file.take(256).read_to_string(&mut value)?;
+        Ok(Some(value))
+    }
+    /// Replaces a private state value read by `read_state`.
+    pub(crate) fn write_state(&self, name: &str, value: &str) -> Result<()> {
+        use std::io::Write;
+        self.check_file(name)?;
+        let mut options = OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options
+                .mode(0o600)
+                .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
+        }
+        let mut file = options.open(self.directory.join(name))?;
+        file.write_all(value.as_bytes())?;
+        file.sync_all()?;
+        Ok(())
+    }
     /// Consumes a pending activation marker. Returns whether one was present.
     pub fn take_desktop_activation(&self) -> Result<bool> {
         self.check_file("desktop.activate")?;

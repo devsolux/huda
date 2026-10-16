@@ -1110,7 +1110,15 @@ fn hub_seed_context_is_trimmed_and_disclosed() {
     let goal = f.goal();
     let context = f.store.query_goal(&f.caller, goal).unwrap();
     assert!(context.truncated);
+    assert!(!context.goal_coverage.goal_met);
+    assert_eq!(
+        context.goal_coverage.state,
+        super::query::CoverageState::Partial
+    );
     assert!(!context.relations.is_empty() && context.relations.len() < 400);
+    // The trimmed context still fits the model input together with its relation markers.
+    let response = answer::formulate(&context, &BudgetedAnswerModel).unwrap();
+    assert!(response.answer.is_some());
     assert!(crate::relation::canonical_bytes(&context).unwrap().len() <= 524_288);
     let slot = &context.goal_coverage.slots[0];
     assert!(!slot.coverage_basis.is_empty());
@@ -1118,6 +1126,54 @@ fn hub_seed_context_is_trimmed_and_disclosed() {
         .coverage_basis
         .iter()
         .all(|id| context.relations.iter().any(|r| &r.relation_id == id)));
+}
+struct BudgetedAnswerModel;
+impl LocalLlm for BudgetedAnswerModel {
+    fn available(&self) -> bool {
+        true
+    }
+    fn generate(&self, _purpose: ModelUse, input: &Value) -> Result<Value> {
+        assert!(serde_json::to_vec(input).unwrap().len() <= 524_288);
+        Ok(json!({"answer":"Project A depends on it. [R1]","used_markers":["R1"]}))
+    }
+}
+#[test]
+fn a_revoked_caller_gets_no_replay() {
+    use crate::runtime::auth::{PrincipalRequest, RevokeRequest};
+    let mut f = Fixture::new();
+    let epoch = f.store.epochs().unwrap().policy;
+    f.store
+        .add_principal(
+            &f.caller,
+            PrincipalRequest {
+                actor: "writer".into(),
+                read_scopes: ["local".into()].into(),
+                write_scopes: ["local".into()].into(),
+                permissions: ["read".into(), "write".into()].into(),
+                expected_policy_epoch: epoch,
+            },
+            &"c".repeat(64),
+        )
+        .unwrap();
+    let writer = f.store.authenticate(&"c".repeat(64)).unwrap();
+    let mut request = f.request("writer-key");
+    request.expected_policy_epoch = f.store.epochs().unwrap().policy;
+    f.store.assert_relation(&writer, request.clone()).unwrap();
+    let epoch = f.store.epochs().unwrap().policy;
+    f.store
+        .revoke_principal(
+            &f.caller,
+            RevokeRequest {
+                actor: "writer".into(),
+                expected_version: 1,
+                expected_policy_epoch: epoch,
+            },
+        )
+        .unwrap();
+    assert_eq!(
+        f.store.assert_relation(&writer, request).unwrap_err().code,
+        "PERMISSION_DENIED"
+    );
 }
 #[test]
 fn committed_assertion_replays_after_the_policy_epoch_moves() {
@@ -1158,8 +1214,9 @@ fn source_retry_replays_although_the_extraction_differs() {
     let request_key = first.request_key.clone();
     let capture = first.capture.clone();
     let committed = f.store.publish_source(&f.caller, first).unwrap();
-    // A retried semantic job may extract differently from the same capture.
-    let mut retry = f.batch("1", 0, false, ExtractedData::default());
+    // A retried semantic job may extract differently from the same capture, and it reads the
+    // source generation afresh, as a repeated expansion of a cached capture does.
+    let mut retry = f.batch("1", 1, false, ExtractedData::default());
     retry.request_key = request_key;
     retry.capture = capture;
     let replayed = f.store.publish_source(&f.caller, retry).unwrap();
@@ -1217,4 +1274,217 @@ fn model_input_over_budget_degrades_instead_of_failing() {
     assert!(response
         .degraded_components
         .contains(&"model_input_exceeds_budget".to_string()));
+}
+#[test]
+fn a_provider_owned_source_refuses_local_imports() {
+    use crate::acquisition::providers::{OfflineRequest, ProviderPolicy, ProviderPolicyRequest};
+    let mut f = Fixture::new();
+    let epoch = f.store.epochs().unwrap().policy;
+    f.store
+        .set_offline(
+            &f.caller,
+            OfflineRequest {
+                offline: false,
+                expected_policy_epoch: epoch,
+            },
+        )
+        .unwrap();
+    let epoch = f.store.epochs().unwrap().policy;
+    f.store
+        .set_provider_policy(
+            &f.caller,
+            ProviderPolicyRequest {
+                policy: ProviderPolicy {
+                    provider_id: "wikidata".into(),
+                    scope: "local".into(),
+                    allowed_actors: ["owner".into()].into(),
+                    languages: ["en".into()].into(),
+                    approved_public_terms: ["Photosynthesis".into()].into(),
+                    may_fetch: true,
+                    auto_register_provider_types: false,
+                    auto_admit_structured: true,
+                    auto_admit_semantic: false,
+                    semantic_types: Default::default(),
+                    user_agent: format!("Huda/{} (ops@example.invalid)", crate::VERSION),
+                    ttl_seconds: 3600,
+                },
+                expected_policy_epoch: epoch,
+            },
+        )
+        .unwrap();
+    let mut provider = f.batch("rev-1", 0, false, ExtractedData::default());
+    provider.source_key = "provider-source".into();
+    provider.capture.provider_id = Some("wikidata".into());
+    f.store.publish_source(&f.caller, provider).unwrap();
+    // An ingest principal must not publish or withdraw under the provider-created policy.
+    let mut local = f.batch("local-1", 1, true, f.data());
+    local.source_key = "provider-source".into();
+    assert_eq!(
+        f.store.publish_source(&f.caller, local).unwrap_err().code,
+        "POLICY_DENIED"
+    );
+}
+#[test]
+fn a_rejected_assertion_stays_rejected_when_its_source_refreshes() {
+    let mut f = Fixture::new();
+    f.admit(false);
+    let batch = f.batch("1", 0, false, f.data());
+    let proposed = f.store.publish_source(&f.caller, batch).unwrap().published[0].clone();
+    let epoch = f.store.epochs().unwrap().policy;
+    f.store
+        .review_assertion(
+            &f.caller,
+            super::publish::ReviewAssertionRequest {
+                assertion_id: proposed.assertion_id.clone(),
+                expected_version: proposed.assertion_version,
+                expected_policy_epoch: epoch,
+                approve: false,
+            },
+        )
+        .unwrap();
+    // Even with auto-admission, a refresh of the same statement goes back to review.
+    f.admit(true);
+    let batch = f.batch("2", 1, false, f.data());
+    let refreshed = f.store.publish_source(&f.caller, batch).unwrap();
+    assert!(refreshed.published.is_empty());
+    assert_eq!(refreshed.proposal_ids.len(), 1);
+    let status: String = f
+        .store
+        .conn
+        .query_row(
+            "SELECT current_status FROM relation_assertions WHERE assertion_id=?1",
+            [&proposed.assertion_id],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(status, "rejected");
+}
+#[test]
+fn extraction_context_holds_only_the_target_scope() {
+    use crate::runtime::auth::PrincipalRequest;
+    let mut f = Fixture::new();
+    let epoch = f.store.epochs().unwrap().policy;
+    f.store
+        .add_principal(
+            &f.caller,
+            PrincipalRequest {
+                actor: "two-scopes".into(),
+                read_scopes: ["local".into(), "personal".into()].into(),
+                write_scopes: ["local".into(), "personal".into()].into(),
+                permissions: ["read".into(), "write".into()].into(),
+                expected_policy_epoch: epoch,
+            },
+            &"d".repeat(64),
+        )
+        .unwrap();
+    let caller = f.store.authenticate(&"d".repeat(64)).unwrap();
+    let epoch = f.store.epochs().unwrap().policy;
+    f.store
+        .upsert_entity(
+            &caller,
+            EntityRequest {
+                entity: EntityInput {
+                    namespace: "demo".into(),
+                    kind: "concept".into(),
+                    canonical_key: "diary".into(),
+                    name: "Private diary".into(),
+                    aliases: vec![],
+                },
+                scope: "personal".into(),
+                expected_policy_epoch: epoch,
+            },
+        )
+        .unwrap();
+    let all = f.store.visible_entities(&caller).unwrap();
+    assert!(all.iter().any(|e| e.canonical_key == "diary"));
+    let local = f.store.scope_entities(&caller, "local").unwrap();
+    assert!(local.iter().all(|e| e.canonical_key != "diary"));
+    assert!(local.iter().any(|e| e.canonical_key == "project-a"));
+    assert_eq!(
+        f.store
+            .scope_entities(&f.caller, "personal")
+            .unwrap_err()
+            .code,
+        "PERMISSION_DENIED"
+    );
+}
+#[test]
+fn scope_limited_policy_holders_cannot_take_over_profile_controls() {
+    use crate::acquisition::providers::{OfflineRequest, ProviderPolicy, ProviderPolicyRequest};
+    use crate::runtime::auth::PrincipalRequest;
+    let mut f = Fixture::new();
+    let consent = |scope: &str, epoch: u64| ProviderPolicyRequest {
+        policy: ProviderPolicy {
+            provider_id: "wikidata".into(),
+            scope: scope.into(),
+            allowed_actors: ["owner".into()].into(),
+            languages: ["en".into()].into(),
+            approved_public_terms: ["Photosynthesis".into()].into(),
+            may_fetch: false,
+            auto_register_provider_types: false,
+            auto_admit_structured: false,
+            auto_admit_semantic: false,
+            semantic_types: Default::default(),
+            user_agent: format!("Huda/{} (ops@example.invalid)", crate::VERSION),
+            ttl_seconds: 3600,
+        },
+        expected_policy_epoch: epoch,
+    };
+    let epoch = f.store.epochs().unwrap().policy;
+    f.store
+        .set_provider_policy(&f.caller, consent("local", epoch))
+        .unwrap();
+    let epoch = f.store.epochs().unwrap().policy;
+    f.store
+        .add_principal(
+            &f.caller,
+            PrincipalRequest {
+                actor: "team-admin".into(),
+                read_scopes: ["team".into()].into(),
+                write_scopes: ["team".into()].into(),
+                permissions: ["read".into(), "policy".into(), "bridge".into()].into(),
+                expected_policy_epoch: epoch,
+            },
+            &"e".repeat(64),
+        )
+        .unwrap();
+    let team = f.store.authenticate(&"e".repeat(64)).unwrap();
+    let epoch = f.store.epochs().unwrap().policy;
+    assert_eq!(
+        f.store
+            .set_provider_policy(&team, consent("team", epoch))
+            .unwrap_err()
+            .code,
+        "PERMISSION_DENIED"
+    );
+    assert_eq!(
+        f.store
+            .set_offline(
+                &team,
+                OfflineRequest {
+                    offline: false,
+                    expected_policy_epoch: epoch,
+                },
+            )
+            .unwrap_err()
+            .code,
+        "PERMISSION_DENIED"
+    );
+    // A Bridge for an unwritable scope is refused before any path is examined.
+    let request: crate::bridge::ConfigureBridgeRequest = serde_json::from_value(json!({
+        "config": {
+            "bridge_id": "b", "source_key": "s", "scope": "local", "enabled": true,
+            "executable": "/nonexistent/provider", "executable_sha256": "0".repeat(64),
+            "arguments": [], "input_file": null,
+            "read": {"method": "tool", "name": "read", "arguments": {}},
+            "semantic_text": false, "ttl_seconds": 3600, "license": "test"
+        },
+        "expected_version": 0,
+        "expected_policy_epoch": epoch
+    }))
+    .unwrap();
+    assert_eq!(
+        f.store.configure_bridge(&team, request).unwrap_err().code,
+        "PERMISSION_DENIED"
+    );
 }

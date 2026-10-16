@@ -1,8 +1,9 @@
 # Windows AMD64 native candidate
 
 The runtime now contains private DACL/local named-pipe/SID-verification source; the earlier
-blanket unsupported-platform stub is removed. This does not establish a successful Windows
-build or native security qualification. Native MSVC tests are a required workflow gate.
+blanket unsupported-platform stub is removed. The workflow compiles, tests and packages it on
+`windows-2025`; that is build evidence, not native security qualification. Native MSVC tests
+are a required workflow gate.
 
 `Huda.iss` builds a per-user, non-administrative installer using Inno Setup 7.1.0. Product
 version/identifier/staging paths are supplied by `scripts/package_desktop.py` from Cargo

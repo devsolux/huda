@@ -286,6 +286,18 @@ impl Store {
         caller.check()?;
         Ok(self.snapshot(caller, None, false)?.entities)
     }
+    /// Entities and labels of one scope, for extraction whose output is published there: a
+    /// model must not see, and so cannot copy, labels from the caller's other scopes.
+    pub fn scope_entities(&mut self, caller: &Caller, scope: &str) -> Result<Vec<EntityView>> {
+        require(
+            caller.read(scope),
+            "PERMISSION_DENIED",
+            "Scope is not readable",
+        )?;
+        let mut scoped = caller.clone();
+        scoped.read_scopes = BTreeSet::from([scope.to_owned()]);
+        self.visible_entities(&scoped)
+    }
     fn snapshot(
         &mut self,
         caller: &Caller,
@@ -891,7 +903,9 @@ impl Store {
             context_hash: String::new(),
         };
         context.context_hash = crate::answer::context::context_hash(&context)?;
-        let size = canonical_bytes(&context)?.len();
+        // Answering sends the context with one marker per relation, under the same budget.
+        let size = canonical_bytes(&context)?.len()
+            + canonical_bytes(&crate::answer::context::references(&context))?.len();
         if size > MAX_CONTEXT_BYTES {
             trim_context(&mut context, size)?;
         }
@@ -999,8 +1013,10 @@ fn ineligible_reason(view: &RelationView, goal: &GoalSpec) -> Option<&'static st
 const MAX_CONTEXT_BYTES: usize = 524_288;
 /// A hub seed can touch more relations than one context holds. Relations outside every slot
 /// basis go first, then surplus basis relations (each slot keeps its first), last first; path
-/// steps and conflict sides always stay. The cut is disclosed as `truncated`.
+/// steps and conflict sides always stay. `size` counts the context and its relation markers.
+/// The cut is disclosed as `truncated`, and a trimmed context makes no complete-goal claim.
 fn trim_context(context: &mut RelationContext, mut size: usize) -> Result<()> {
+    let references = crate::answer::context::references(context);
     let basis: BTreeSet<String> = context
         .goal_coverage
         .slots
@@ -1027,7 +1043,7 @@ fn trim_context(context: &mut RelationContext, mut size: usize) -> Result<()> {
     );
     let mut dropped = BTreeSet::new();
     for in_basis in [false, true] {
-        for relation in context.relations.iter().rev() {
+        for (relation, reference) in context.relations.iter().zip(&references).rev() {
             if size <= MAX_CONTEXT_BYTES {
                 break;
             }
@@ -1035,7 +1051,9 @@ fn trim_context(context: &mut RelationContext, mut size: usize) -> Result<()> {
             if fixed.contains(id) || basis.contains(id) != in_basis {
                 continue;
             }
-            size = size.saturating_sub(canonical_bytes(relation)?.len() + 1);
+            size = size.saturating_sub(
+                canonical_bytes(relation)?.len() + canonical_bytes(reference)?.len() + 2,
+            );
             dropped.insert(id.clone());
         }
     }
@@ -1059,6 +1077,10 @@ fn trim_context(context: &mut RelationContext, mut size: usize) -> Result<()> {
         .collect();
     context.entities.retain(|e| used.contains(&e.entity_id));
     context.truncated = true;
+    context.goal_coverage.goal_met = false;
+    if context.goal_coverage.state == CoverageState::Covered {
+        context.goal_coverage.state = CoverageState::Partial;
+    }
     context.context_hash = crate::answer::context::context_hash(context)?;
     require(
         canonical_bytes(context)?.len() <= MAX_CONTEXT_BYTES,

@@ -205,7 +205,8 @@ impl Store {
             "Too many proposals",
         )?;
         // Only request inputs identify a retry: a model can extract different data from the same
-        // capture. Earlier builds hashed the extracted data instead of the revision and generation.
+        // capture. The generation a retry reads afresh is not one of them. Earlier builds hashed
+        // the extracted data instead of the revision.
         let request_hash = stable_id(
             "import",
             &(
@@ -214,7 +215,6 @@ impl Store {
                 batch.complete,
                 &batch.capture.sha256,
                 &batch.capture.revision,
-                batch.expected_generation,
                 &batch.extractor_digest,
             ),
         )?;
@@ -257,6 +257,20 @@ impl Store {
             caller.write(&policy.scope) && policy.allowed_actors.contains(&caller.actor),
             "PERMISSION_DENIED",
             "Source publication is not authorized",
+        )?;
+        // A source keeps the capture origin of its history: a provider-owned source accepts only
+        // that provider's captures, so a local import cannot publish or withdraw under its policy.
+        let prior_origin: Option<Option<String>> = tx
+            .query_row(
+                "SELECT json_extract(capture_json,'$.provider_id') FROM source_revisions WHERE source_key=?1 ORDER BY generation DESC LIMIT 1",
+                [&batch.source_key],
+                |r| r.get(0),
+            )
+            .optional()?;
+        require(
+            prior_origin.is_none_or(|origin| origin == batch.capture.provider_id),
+            "POLICY_DENIED",
+            "Source is owned by another capture origin",
         )?;
         require(
             generation == batch.expected_generation,
@@ -305,10 +319,14 @@ impl Store {
         for assertion in &batch.data.assertions {
             caller.check()?;
             let normalized = normalize_relation(&tx, caller, &assertion.relation, &policy.scope);
-            if !policy.allows_type(&assertion.relation.relation_type)
-                || normalized.as_ref().is_err_and(|e| e.code == "TYPE_UNKNOWN")
-            {
-                let reason = if !policy.allows_type(&assertion.relation.relation_type) {
+            // Admission compares the registered key, as review does, not the input spelling.
+            let admitted = policy.allows_type(
+                normalized
+                    .as_ref()
+                    .map_or(&assertion.relation.relation_type, |(r, _)| &r.relation_type),
+            );
+            if !admitted || normalized.as_ref().is_err_and(|e| e.code == "TYPE_UNKNOWN") {
+                let reason = if !admitted {
                     "type_not_admitted"
                 } else {
                     "type_unknown"
@@ -351,9 +369,17 @@ impl Store {
             )?;
             // Turning off auto-admission does not revoke a previously accepted assertion.
             // Keep that assertion (freshness is independently evaluated), and retain the
-            // unapproved refresh as a proposal rather than downgrading the active head.
-            let existing_active=tx.prepare("SELECT 1 FROM relation_assertions WHERE assertion_id=?1 AND current_status='active'")?.exists([&assertion_id])?;
-            if !active && existing_active {
+            // unapproved refresh as a proposal rather than downgrading the active head. A
+            // reviewer's rejection is durable the same way: a refresh goes back to review.
+            let current: Option<String> = tx
+                .query_row(
+                    "SELECT current_status FROM relation_assertions WHERE assertion_id=?1",
+                    [&assertion_id],
+                    |r| r.get(0),
+                )
+                .optional()?;
+            let current = current.as_deref();
+            if current == Some("rejected") || (!active && current == Some("active")) {
                 result.proposal_ids.push(insert_proposal(
                     &tx,
                     caller,

@@ -1,4 +1,4 @@
-# Native desktop build and packaging — Huda 1.1.0
+# Native desktop build and packaging — Huda 1.2.0
 
 ## Prerequisites and reproducibility
 
@@ -66,14 +66,14 @@ The `.deb` places both real binaries in `/usr/lib/huda`, with `/usr/bin` symlink
 
 Build/packaging output is labelled `unqualified` and contains lock/provenance metadata. File hashes detect corruption, not safety, licensing or reproducibility on their own. Artifacts are uploaded only after their native build/test job passes; no GitHub Release is created or published automatically. Once every gate and native job passes, the `sign` job (the only job with `id-token: write`, and without a code checkout) verifies each target's `SHA256SUMS`, requires it to list exactly the downloaded packages, and signs every package plus one combined `SHA256SUMS` keylessly with Sigstore cosign: the job's GitHub OIDC token is exchanged for a short-lived Fulcio certificate naming this workflow, ref and commit, and each signature is recorded in the public Rekor transparency log. It then verifies every bundle against that identity. Dispatch runs sign too, so a dispatch on `main` exercises the signing path; its certificates name `refs/heads/main`, not a release tag. For a release a maintainer publishes, the final `release-assets` job (the only job with `contents: write`, and without a code checkout) re-checks the checksums and attaches the packages, the combined `SHA256SUMS` and one `<file>.sigstore.json` bundle per file. It fails rather than replace an existing asset, so delete stale assets explicitly before re-running a release build. Require **every** workflow job and the plan's native/semantic/security gates before release.
 
-Verify a downloaded release asset with cosign 3.x, pinning the identity to the release tag:
+Verify a downloaded release asset with cosign 3.x, pinning the identity to the release tag. Set `TAG` to the release tag (for example `v1.2.0`) and `FILE` to the downloaded package:
 
 ```bash
 cosign verify-blob \
-  --bundle Huda-1.1.0-x86_64-unknown-linux-gnu.deb.sigstore.json \
-  --certificate-identity https://github.com/devsolux/huda/.github/workflows/desktop.yml@refs/tags/v1.1.0 \
+  --bundle "$FILE.sigstore.json" \
+  --certificate-identity "https://github.com/devsolux/huda/.github/workflows/desktop.yml@refs/tags/$TAG" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  Huda-1.1.0-x86_64-unknown-linux-gnu.deb
+  "$FILE"
 ```
 
 A valid bundle shows which workflow run produced the file. It is not Developer ID signing, notarization or Authenticode, does not change Gatekeeper/SmartScreen behavior and does not qualify the package. Releases published before signing was added (including `v1.0.0`) carry only `SHA256SUMS`.

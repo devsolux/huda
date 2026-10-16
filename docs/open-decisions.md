@@ -41,23 +41,7 @@ waits for a maintainer decision. Nothing here is a qualified result.
 - **Recommendation:** the first option as one versioned extractor change
   (`tree-sitter-syntax-v2`), with a recorded differential run over the parser corpus.
 
-## 3. Provider backoff across Core restarts
-
-- **Evidence:** the Wikimedia `Retry-After`, 503 and `maxlag` backoff lives in memory
-  (`src/acquisition/providers/wikimedia.rs`). The Core retires after 300 idle seconds, and
-  the next on-demand start may ask the provider again before the backoff it requested has
-  ended. Expansion now stops at once with `rate_limited` while a backoff is active, but only
-  within one Core lifetime.
-- **Options:**
-  - Persist the next allowed request time in the database. This needs a migration (see 1).
-  - Persist it in a private managed file in the profile (0600, `O_NOFOLLOW`, like the lease
-    files).
-  - Keep the Core alive while a backoff is pending. A seven-day `Retry-After` would keep it
-    running for seven days.
-- **Recommendation:** the managed profile file. It needs no schema change, and it is read
-  once at Core start.
-
-## 4. Login entry for a moved application
+## 3. Login entry for a moved application
 
 - **Evidence:** auto-launch 0.6.0's `is_enabled` only checks that the LaunchAgent plist, the
   XDG autostart file or the Run value exists (`desktop/startup.rs`). After `Huda.app` is moved
@@ -74,7 +58,7 @@ waits for a maintainer decision. Nothing here is a qualified result.
 - **Constraint:** the comparison must be qualified natively on all three systems.
 - **Recommendation:** the comparison, qualified with the remaining native login gates (G8).
 
-## 5. Windows named-pipe squatting
+## 4. Windows named-pipe squatting
 
 - **Evidence:** the pipe name `\\.\pipe\com.devsolux.huda-<profile fingerprint>`
   (`src/runtime/transport/windows.rs`) is derived from the profile path. Any local user can
@@ -89,3 +73,56 @@ waits for a maintainer decision. Nothing here is a qualified result.
   testing.
 - **Recommendation:** the nonce file, implemented together with the outstanding native Windows
   pipe qualification (G1).
+
+## 5. Capture storage growth
+
+- **Evidence:** every `publish_source` stores a new immutable `source_revisions` row with the
+  full capture (`src/relation/publish.rs`). Captures are never deduplicated by content, no
+  quota applies, and history has no erasure path. A principal with `ingest` on an admitted
+  source can therefore grow the database without bound, about 1 MiB per call.
+- **Options:**
+  - Return the previous result when a capture's SHA-256 and revision equal the current head.
+  - Store capture bodies once per SHA-256.
+  - Add a per-actor size or rate quota.
+- **Constraint:** content-addressed storage is a schema change (see 1). A quota needs a policy
+  default.
+- **Recommendation:** the head check now, which needs no schema change, and a quota together
+  with the migration.
+
+## 6. Relation types in model prompts
+
+- **Evidence:** semantic extraction sends every registered relation type to the local model
+  (`src/acquisition/text.rs`). Provider auto-registration adds up to 16 types per Wikidata
+  capture. Once the registry passes roughly 800 types, extraction exceeds the 512 KiB model
+  input budget and fails with `LIMIT_EXCEEDED`. Question parsing already falls back to the
+  deterministic parser in that case.
+- **Options:**
+  - Send only the source policy's admitted types plus the core types, capped at about 64.
+  - Paginate `list_relation_types` and send a ranked subset.
+- **Recommendation:** the admitted types. Admission already defines which types a source may
+  publish.
+
+## 7. One invalid assertion in a batch
+
+- **Evidence:** in `publish_source`, a normalization or evidence error other than `TYPE_UNKNOWN`
+  (cardinality, undeclared role, kind mismatch, an entity not labelled in scope) fails the
+  whole batch. Statements of a type the source does not admit are stored as proposals with
+  their raw JSON, bounded only by the batch size.
+- **Options:**
+  - Record each invalid assertion as a bounded `invalid_assertion` proposal (error code and
+    hash, not the payload) and publish the rest.
+  - Keep the all-or-nothing rule, which is easier to audit.
+- **Recommendation:** bounded proposals for model and provider batches, and all-or-nothing for
+  explicit JSON imports.
+
+## 8. Entities from sources that publish only proposals
+
+- **Evidence:** `publish_source` inserts a batch's entities and labels before admission is
+  considered. Entities from a source whose assertions all stay proposals still become
+  searchable and model-visible, and labels are never withdrawn with their source.
+- **Options:**
+  - Insert entities only when an assertion that references them is active.
+  - Mark labels with their source and hide them when no active assertion remains.
+- **Constraint:** both change what `explore` and goal-seed resolution see.
+- **Recommendation:** source-marked labels. Withdrawal stays non-destructive, because labels
+  are hidden rather than erased.

@@ -9,7 +9,7 @@ COMMAND="${1:-help}"
 [ "$#" -eq 0 ] || shift
 usage() {
   cat <<'EOF'
-Huda 1.1.0 — native macOS Apple Silicon (M1/M2/M3/M4 and later)
+Huda 1.2.0 — native macOS Apple Silicon (M1/M2/M3/M4 and later)
 Usage: ./dev.sh {doctor|lock|fmt|check|test|build|run|bundle|dmg|all|help}
   doctor   Check native arm64 host, Xcode CLI tools, Python and pinned Rust.
   lock     Explicitly resolve and validate a real Cargo.lock (network required).

@@ -2912,7 +2912,7 @@
   "info": {
     "description": "Unqualified source candidate. Core permission checks are mandatory; localhost is not trusted.",
     "title": "Huda local application API",
-    "version": "1.1.0"
+    "version": "1.2.0"
   },
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "openapi": "3.1.2",

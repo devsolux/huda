@@ -3,6 +3,7 @@ use super::{PropertyMetadata, ProviderPolicy};
 use crate::acquisition::admission::Capture;
 use crate::error::{require, Error, Result};
 use crate::relation::{canonical_bytes, now_ms, sha256_hex, text};
+use crate::runtime::Profile;
 use reqwest::blocking::Client;
 use serde_json::Value;
 use std::io::Read;
@@ -55,6 +56,8 @@ struct RateState {
 /// One shared limiter for this Core, stricter than separate per-job concurrency limits.
 pub struct Wikimedia {
     rate: Mutex<RateState>,
+    /// Where a provider-requested backoff outlives this Core; None keeps it in memory only.
+    backoff: Option<Profile>,
 }
 impl Default for Wikimedia {
     fn default() -> Self {
@@ -62,10 +65,39 @@ impl Default for Wikimedia {
             rate: Mutex::new(RateState {
                 next: Instant::now(),
             }),
+            backoff: None,
         }
     }
 }
+/// Profile state file holding the end of a provider backoff, in Unix milliseconds.
+const BACKOFF_FILE: &str = "provider-backoff";
 impl Wikimedia {
+    /// A Core retires when idle; a backoff the provider requested before then still applies
+    /// to the next one. An unreadable or malformed record is treated as no backoff.
+    pub(crate) fn new(profile: Profile) -> Self {
+        let wait = profile
+            .read_state(BACKOFF_FILE)
+            .ok()
+            .flatten()
+            .and_then(|value| value.trim().parse::<u64>().ok())
+            .and_then(|until| until.checked_sub(now_ms()))
+            .map(|ms| Duration::from_millis(ms.min(604_800_000)))
+            .unwrap_or_default();
+        Self {
+            rate: Mutex::new(RateState {
+                next: Instant::now() + wait,
+            }),
+            backoff: Some(profile),
+        }
+    }
+    fn back_off(&self, rate: &mut RateState, delay: Duration) {
+        rate.next = Instant::now() + delay;
+        if let Some(profile) = &self.backoff {
+            // Best effort: without the record the wait still holds for this Core's lifetime.
+            let until = now_ms().saturating_add(delay.as_millis() as u64);
+            let _ = profile.write_state(BACKOFF_FILE, &until.to_string());
+        }
+    }
     fn read(
         &self,
         host: &str,
@@ -158,7 +190,7 @@ impl Wikimedia {
                 .and_then(|v| v.parse::<u64>().ok())
                 .unwrap_or(86400)
                 .clamp(60, 604800);
-            rate.next = Instant::now() + Duration::from_secs(delay);
+            self.back_off(&mut rate, Duration::from_secs(delay));
             return Err(Error::new(
                 "RATE_LIMITED",
                 "Provider requested backoff; this expansion stopped",
@@ -197,13 +229,18 @@ impl Wikimedia {
         let mut bytes = Vec::new();
         let mut body = response.take(1024 * 1024 + 1);
         let mut chunk = [0u8; 16 * 1024];
+        let mut checked = Instant::now();
         loop {
             require(
                 Instant::now() < deadline,
                 "DEADLINE_EXCEEDED",
                 "Provider response exceeded its deadline",
             )?;
-            checkpoint()?;
+            // Policy rechecks take the store lock; a few per second keep revocation prompt.
+            if checked.elapsed() >= Duration::from_millis(250) {
+                checkpoint()?;
+                checked = Instant::now();
+            }
             let read = body.read(&mut chunk)?;
             if read == 0 {
                 break;
@@ -220,7 +257,7 @@ impl Wikimedia {
         let value: Value = serde_json::from_slice(&bytes)?;
         if let Some(error) = value.get("error") {
             if error.get("code").and_then(Value::as_str) == Some("maxlag") {
-                rate.next = Instant::now() + Duration::from_secs(60);
+                self.back_off(&mut rate, Duration::from_secs(60));
                 return Err(Error::new(
                     "RATE_LIMITED",
                     "Provider maxlag requires backoff",
@@ -540,6 +577,32 @@ fn public_address(ip: IpAddr) -> bool {
 mod tests {
     use super::*;
     #[test]
+    fn a_job_waiting_for_the_limiter_stays_cancellable() {
+        let wikimedia = Wikimedia::default();
+        let policy: ProviderPolicy = serde_json::from_value(serde_json::json!({
+            "provider_id": "wikidata", "scope": "local", "allowed_actors": ["owner"],
+            "languages": ["en"], "approved_public_terms": ["Photosynthesis"],
+            "user_agent": format!("Huda/{} (ops@example.invalid)", crate::VERSION),
+            "ttl_seconds": 3600
+        }))
+        .unwrap();
+        // Another job holds the limiter; this one must observe its cancellation, not block.
+        let _held = wikimedia.rate.lock().unwrap();
+        let mut budget = Budget::new();
+        let error = wikimedia
+            .read(
+                "www.wikidata.org",
+                &["w", "api.php"],
+                &[],
+                &policy,
+                &mut budget,
+                &|| Err(Error::new("CANCELLED", "test")),
+            )
+            .unwrap_err();
+        assert_eq!(error.code, "CANCELLED");
+        assert_eq!(budget.requests, 0);
+    }
+    #[test]
     fn a_term_starts_only_when_its_worst_case_fits() {
         let mut budget = Budget::new();
         budget.requests = 10;
@@ -550,11 +613,12 @@ mod tests {
     }
     #[test]
     fn backoff_beyond_the_budget_stops_at_once_without_egress() {
-        let wikimedia = Wikimedia {
-            rate: Mutex::new(RateState {
-                next: Instant::now() + Duration::from_secs(86_400),
-            }),
-        };
+        let directory = tempfile::tempdir().unwrap();
+        let profile = Profile::new(directory.path().join("profile")).unwrap();
+        // The backoff is recorded by one Core and honoured by the next one.
+        let first = Wikimedia::new(profile.clone());
+        first.back_off(&mut first.rate.lock().unwrap(), Duration::from_secs(86_400));
+        let wikimedia = Wikimedia::new(profile);
         let policy = ProviderPolicy {
             provider_id: "wikidata".into(),
             scope: "local".into(),

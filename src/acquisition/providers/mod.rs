@@ -178,6 +178,21 @@ impl Store {
             "Provider scope is not writable",
         )?;
         let tx = self.begin(caller, request.expected_policy_epoch)?;
+        // A policy holder for one scope cannot replace consent that another scope owns.
+        let existing_scope: Option<Option<String>> = tx
+            .query_row(
+                "SELECT json_extract(policy_json,'$.scope') FROM knowledge_provider_policies WHERE provider_id=?1",
+                [&request.policy.provider_id],
+                |r| r.get(0),
+            )
+            .optional()?;
+        require(
+            existing_scope
+                .flatten()
+                .is_none_or(|scope| caller.write(&scope)),
+            "PERMISSION_DENIED",
+            "Provider consent belongs to a scope this caller cannot write",
+        )?;
         for actor in &request.policy.allowed_actors {
             require(
                 tx.query_row(
@@ -208,6 +223,10 @@ impl Store {
     }
     pub fn set_offline(&mut self, caller: &Caller, request: OfflineRequest) -> Result<()> {
         caller.require("policy")?;
+        // Going offline is always allowed; lifting the profile-wide switch is an admin decision.
+        if !request.offline {
+            caller.require("admin")?;
+        }
         let tx = self.begin(caller, request.expected_policy_epoch)?;
         let t = tick(&tx)?;
         tx.execute(

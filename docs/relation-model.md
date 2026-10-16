@@ -1,4 +1,4 @@
-# Relation model — 1.1.0
+# Relation model — 1.2.0
 
 Entities use namespace + kind + canonical key. Names are scoped labels, never global identity. Relation identity uses the registered type version, named role bindings, identity-significant registered qualifiers, polarity, modality, normalized conditions and valid time. Arrays of unordered role values are canonicalized; ordered roles preserve order. Decimal literals use a constrained canonical string spelling, not platform-dependent floats.
 

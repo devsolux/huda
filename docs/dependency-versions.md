@@ -47,7 +47,7 @@ javascript, go, python and css 0.25.0, c 0.24.2, php 0.25.1, bash 0.25.1, swift 
 markdown 0.5.3, dart-orchard 0.7.0, typescript 0.23.2, rust 0.24.2, java 0.23.5, cpp 0.23.4,
 html 0.23.2, c-sharp 0.23.5, kotlin-ng 1.1.0, ruby 0.23.1 and json 0.24.8. `libc` and optional
 `anyhow` retain compatible ranges which the real lock must resolve. The package/MCP/OpenAPI/schema version contracts are
-not dependency-update knobs; product version is 1.1.0, MCP 2026-07-28 and OpenAPI 3.1.2.
+not dependency-update knobs; product version is 1.2.0, MCP 2026-07-28 and OpenAPI 3.1.2.
 
 ## GitHub actions: current release commits
 
@@ -80,8 +80,8 @@ newest 3.14 release in the `actions/python-versions` manifest; 3.15.0 is also li
 not adopted here. The runner labels `macos-26` (arm64), `macos-26-intel` (x64), `windows-2025`
 and `ubuntu-24.04` were checked against `actions/runner-images` on 2026-10-09, and the
 `v1.0.0` release run used them on 2026-10-13. This is version-source verification; the
-`sign` job passed on a 2026-10-16 `main` dispatch, `release-assets` has not yet attached signed
-files, and actionlint was unavailable in the audit environment.
+`sign` job passed on a 2026-10-16 `main` dispatch, the `v1.1.0` release run signed and attached
+every package, and actionlint was unavailable in the audit environment.
 Subsequent updates are manual, reviewed changes; no floating action tags, update bots or
 automatic merging are used.
 

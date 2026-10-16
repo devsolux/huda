@@ -48,7 +48,7 @@ fn relation_tools_and_routes_share_an_operation() {
 }
 #[test]
 fn protocol_and_product_versions_are_distinct() {
-    assert_eq!(huda::VERSION, "1.1.0");
+    assert_eq!(huda::VERSION, "1.2.0");
     assert_eq!(huda::MCP_VERSION, "2026-07-28");
     assert_eq!(contracts::openapi()["openapi"], "3.1.2");
 }

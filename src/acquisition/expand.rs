@@ -385,7 +385,10 @@ pub(crate) fn run(
                 // links or instructions are executed, and no completeness is attested.
                 let (entities, types) = {
                     let mut store = app.store()?;
-                    (store.visible_entities(&caller)?, store.list_types(&caller)?)
+                    (
+                        store.scope_entities(&caller, &scope)?,
+                        store.list_types(&caller)?,
+                    )
                 };
                 let data =
                     super::text::extract(app.model.as_ref(), &source_key, html, &entities, &types)?;
@@ -474,6 +477,7 @@ fn soft_stop(error: &Error) -> Option<&'static str> {
     match error.code.as_str() {
         "BUDGET_EXHAUSTED" => Some("exhausted"),
         "RATE_LIMITED" => Some("rate_limited"),
+        "DEADLINE_EXCEEDED" => Some("provider_timeout"),
         _ => None,
     }
 }
@@ -485,6 +489,7 @@ mod tests {
         let stop = |code: &str| soft_stop(&Error::new(code, "test"));
         assert_eq!(stop("BUDGET_EXHAUSTED"), Some("exhausted"));
         assert_eq!(stop("RATE_LIMITED"), Some("rate_limited"));
+        assert_eq!(stop("DEADLINE_EXCEEDED"), Some("provider_timeout"));
         assert_eq!(stop("TEMPORARY_FAILURE"), None);
         assert_eq!(stop("POLICY_DENIED"), None);
     }

@@ -104,6 +104,21 @@ impl BridgeConfig {
         Ok(())
     }
 }
+/// A sandboxed program's typed output is a capture, not the operator's own statement: it cannot
+/// attest provenance by citing other captures, and what it asserts is recorded as extracted.
+fn untrusted_structure(data: &mut ExtractedData) -> Result<()> {
+    for assertion in &mut data.assertions {
+        require(
+            assertion.evidence.is_empty(),
+            "MODEL_OUTPUT_INVALID",
+            "Bridge output may not attach evidence",
+        )?;
+        if assertion.epistemic_kind == EpistemicKind::Asserted {
+            assertion.epistemic_kind = EpistemicKind::Extracted;
+        }
+    }
+    Ok(())
+}
 fn approved_file(input: &str, profile: &Path, max: u64) -> Result<PathBuf> {
     let path = Path::new(input);
     require(
@@ -126,6 +141,14 @@ fn approved_file(input: &str, profile: &Path, max: u64) -> Result<PathBuf> {
         "POLICY_DENIED",
         "Huda profile files cannot be exposed to a Bridge process",
     )?;
+    // Kernel pseudo-files (a process's environment or memory, devices) are not source files.
+    require(
+        !["/proc", "/sys", "/dev"]
+            .iter()
+            .any(|root| canonical.starts_with(root)),
+        "POLICY_DENIED",
+        "Kernel pseudo-files cannot be exposed to a Bridge process",
+    )?;
     Ok(canonical)
 }
 impl Store {
@@ -136,12 +159,13 @@ impl Store {
     ) -> Result<()> {
         caller.require("policy")?;
         caller.require("bridge")?;
-        request.config.validate(self.profile.directory())?;
+        // Authorize before probing paths, so file checks are no existence oracle.
         require(
             caller.write(&request.config.scope),
             "PERMISSION_DENIED",
             "Bridge scope is not writable",
         )?;
+        request.config.validate(self.profile.directory())?;
         self.source_generation(caller, &request.config.source_key)?;
         let tx = self.begin(caller, request.expected_policy_epoch)?;
         let prior: Option<(String, String, u64)> = tx
@@ -275,7 +299,10 @@ impl App {
                     let content = source_text(&result)?;
                     let (entities, types) = {
                         let mut store = app.store()?;
-                        (store.visible_entities(&caller)?, store.list_types(&caller)?)
+                        (
+                            store.scope_entities(&caller, &config.scope)?,
+                            store.list_types(&caller)?,
+                        )
                     };
                     (
                         crate::acquisition::text::extract(
@@ -298,12 +325,12 @@ impl App {
                             )
                         })?
                     };
-                    (
+                    let mut data =
                         serde_json::from_value::<ExtractedData>(value).map_err(|_| {
                             Error::new("UNSUPPORTED_SCHEMA", "Bridge output is not ExtractedData")
-                        })?,
-                        false,
-                    )
+                        })?;
+                    untrusted_structure(&mut data)?;
+                    (data, false)
                 };
                 let revision = stable_id("capture", &result)?;
                 let mut capture = Capture::local(revision, result)?;
@@ -621,4 +648,49 @@ fn capture_process(app: &App, caller: &Caller, config: &BridgeConfig, epoch: u64
     drop(process);
     let _ = reader.join();
     result
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::acquisition::admission::StructuredAssertion;
+    #[test]
+    fn bridge_output_cannot_cite_evidence_and_is_extracted() {
+        let relation: RelationInput = serde_json::from_value(json!({
+            "relation_type": "core:DEPENDS_ON@1",
+            "roles": {"dependent": [{"kind": "entity", "entity_id": "a"}], "dependency": [{"kind": "entity", "entity_id": "b"}]}
+        }))
+        .unwrap();
+        let assertion = |evidence: Vec<Evidence>| StructuredAssertion {
+            anchor: "a".into(),
+            relation: relation.clone(),
+            evidence,
+            epistemic_kind: EpistemicKind::Asserted,
+        };
+        let mut plain = ExtractedData {
+            entities: vec![],
+            assertions: vec![assertion(vec![])],
+        };
+        untrusted_structure(&mut plain).unwrap();
+        assert_eq!(plain.assertions[0].epistemic_kind, EpistemicKind::Extracted);
+        let mut cited = ExtractedData {
+            entities: vec![],
+            assertions: vec![assertion(vec![Evidence {
+                source_revision: "other@1".into(),
+                locator: "x".into(),
+                sha256: "0".repeat(64),
+                approximate: false,
+            }])],
+        };
+        assert_eq!(
+            untrusted_structure(&mut cited).unwrap_err().code,
+            "MODEL_OUTPUT_INVALID"
+        );
+    }
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn kernel_pseudo_files_are_not_bridge_inputs() {
+        let error =
+            approved_file("/proc/self/status", Path::new("/nonexistent"), 1 << 20).unwrap_err();
+        assert_eq!(error.code, "POLICY_DENIED");
+    }
 }

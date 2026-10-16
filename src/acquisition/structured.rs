@@ -78,7 +78,9 @@ pub(crate) fn wikidata(
                     }
                     "string" => {
                         let value = raw.as_str()?;
-                        if value.len() > 8192 {
+                        // The literal bound itself: a longer value is skipped, not a whole-item
+                        // failure at publication.
+                        if value.len() > 4096 {
                             return None;
                         }
                         RoleValue::Literal {

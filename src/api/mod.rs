@@ -30,6 +30,8 @@ pub struct App {
     active_jobs: Arc<AtomicUsize>,
     activity: Arc<AtomicU64>,
     cancellations: Arc<Mutex<BTreeMap<String, Arc<AtomicBool>>>>,
+    /// Serializes credential issuance without holding the store across an OS secret prompt.
+    issuing: Arc<Mutex<()>>,
 }
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -57,13 +59,16 @@ impl Drop for JobSlot {
 }
 impl App {
     pub fn new(store: Store, model: Arc<dyn LocalLlm>) -> Self {
+        let wikimedia =
+            crate::acquisition::providers::wikimedia::Wikimedia::new(store.profile.clone());
         Self {
             storage: Arc::new(Mutex::new(store)),
             model,
-            wikimedia: Arc::new(Default::default()),
+            wikimedia: Arc::new(wikimedia),
             active_jobs: Arc::new(AtomicUsize::new(0)),
             activity: Arc::new(AtomicU64::new(now_ms())),
             cancellations: Arc::new(Mutex::new(BTreeMap::new())),
+            issuing: Arc::new(Mutex::new(())),
         }
     }
     pub(crate) fn store(&self) -> Result<MutexGuard<'_, Store>> {
@@ -178,12 +183,18 @@ impl App {
             "add_principal" => {
                 let request: crate::runtime::auth::PrincipalRequest = decode(input)?;
                 caller.require("admin")?;
-                // One store lock spans preflight, secret issue and insert: a refused request
-                // writes no credential, and two requests for one actor cannot swap secrets.
-                let mut store = self.store()?;
-                store.check_new_principal(caller, &request)?;
-                let token = OsSecrets::create(&store.profile, &request.actor)?;
-                store.add_principal(caller, request, &token)?;
+                // Issuance is serialized: two requests for one actor cannot swap secrets, and a
+                // refused request writes no credential. The store is not held across the OS
+                // secret write, which can wait on an unlock prompt. The guarded value is (),
+                // so a poisoned lock carries no broken state.
+                let _issuing = self.issuing.lock().unwrap_or_else(|p| p.into_inner());
+                let profile = {
+                    let store = self.store()?;
+                    store.check_new_principal(caller, &request)?;
+                    store.profile.clone()
+                };
+                let token = OsSecrets::create(&profile, &request.actor)?;
+                self.store()?.add_principal(caller, request, &token)?;
                 Ok(json!({"created":true,"credential_location":"os_secret_store"}))
             }
             "revoke_principal" => {
@@ -301,6 +312,7 @@ impl App {
         };
         let goal = json!({"source_key":request.source_key,"revision":request.revision,"scope_key":request.extraction_scope_key});
         let epoch = request.expected_policy_epoch;
+        let source_scope = scope.clone();
         self.spawn_job(
             caller,
             "source_ingestion",
@@ -323,7 +335,10 @@ impl App {
                     SourcePayload::Text { text } | SourcePayload::Markdown { text } => {
                         let (entities, types) = {
                             let mut store = app.store()?;
-                            (store.visible_entities(&caller)?, store.list_types(&caller)?)
+                            (
+                                store.scope_entities(&caller, &source_scope)?,
+                                store.list_types(&caller)?,
+                            )
                         };
                         (
                             crate::acquisition::text::extract(

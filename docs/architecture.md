@@ -1,10 +1,10 @@
-# Architecture — 1.1.0
+# Architecture — 1.2.0
 
 ## Authority and responsibility
 
 `runtime/profile.rs` owns the per-profile lease, private files and version-fenced open path. `storage/Store` retains one connection behind `api::App`'s mutex. IPC clients do not open SQLite. Native GUI and MCP helpers are proxies; REST runs only inside the explicitly started Core. Background acquisition is bounded in-process work, not a second service or graph.
 
-`relation/model.rs`, `registry.rs`, and `condition.rs` define typed domain values, immutable type versions, canonicalization and three-valued conditions. `relation/publish.rs` is the semantic publication boundary for direct writes and source batches. Schema, scope, generation, policy epoch, idempotency and current job state are checked in the write transaction. The SQL engine additionally enforces immutable history/ownership, current-head foreign keys, active historical-set membership, mandatory technical-origin fields and the disabled inferred epistemic class.
+`relation/model.rs`, `registry.rs`, and `condition.rs` define typed domain values, immutable type versions, canonicalization and three-valued conditions. `relation/publish.rs` is the semantic publication boundary for direct writes and source batches. Schema, scope, generation, policy epoch, idempotency and current job state are checked in the write transaction. A committed direct assertion is replayed from its idempotency record before the policy-epoch check, so a lost response stays recoverable after the epoch moves; a source import still pins its job epoch first. The SQL engine additionally enforces immutable history/ownership, current-head foreign keys, active historical-set membership, mandatory technical-origin fields and the disabled inferred epistemic class.
 
 `relation/query.rs` filters assertions before relation assembly, derives caller-visible version fingerprints, evaluates GoalSpec slots/needs, and returns bounded typed paths. Paths do not become direct relations or persisted inference. Negative, conditional, planned, hypothetical, stale or undetermined-time relations remain disclosed rather than silently satisfying a positive factual slot. The current implementation is bounded and conservative, not a general semantic reasoner.
 
