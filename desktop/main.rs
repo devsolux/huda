@@ -34,6 +34,8 @@ struct Desktop {
     cancellation: Arc<AtomicBool>,
     confirm_mutation: bool,
     pending_cancellable: bool,
+    /// A request reported AUTH_REQUIRED: the database exists, but initialization never finished.
+    needs_init: bool,
     tray: Option<shell::Tray>,
     shell_started: bool,
     background_requested: bool,
@@ -59,7 +61,7 @@ impl Desktop {
             question: String::new(), language: "en".into(), expansion: "off".into(),
             output: format!("{} {} — desktop source candidate.\nUse Initialize profile once, then inspect the relation space.\nNo source scans, model downloads, or provider requests occur on launch.", huda::APP_NAME, huda::VERSION),
             pending: None, cancellation: Arc::new(AtomicBool::new(false)), confirm_mutation: false, pending_cancellable: true,
-            tray: None, shell_started: false, background_requested: background,
+            needs_init: false, tray: None, shell_started: false, background_requested: background,
             keep_running: background, quitting: false, startup_state: None,
             startup_pending: None, shell_status: "Login registration has not been checked".into(), context,
             _instance: instance,
@@ -87,6 +89,8 @@ impl Desktop {
         if let Some(receiver) = &self.pending {
             match receiver.try_recv() {
                 Ok(result) => {
+                    self.needs_init =
+                        matches!(&result, Err(error) if error.code == "AUTH_REQUIRED");
                     self.output = match result {
                         Ok(value) => serde_json::to_string_pretty(&value)
                             .unwrap_or_else(|_| "Response could not be displayed".into()),
@@ -287,7 +291,7 @@ impl eframe::App for Desktop {
                 match self.tab {
                     Tab::Space => {
                         ui.heading("Explore typed relations and their assertions");
-                        if !self.client.profile.database().exists() {
+                        if self.needs_init || !self.client.profile.database().exists() {
                             ui.label("Initialize a private local profile and OS-store credentials. This enables no network access.");
                             if ui.button("Initialize profile").clicked() { self.initialize_profile(); }
                         }

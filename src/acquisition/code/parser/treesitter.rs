@@ -1821,7 +1821,18 @@ fn extract_function_node(
 /// `[...r]`), and nested patterns recurse to their leaf identifiers. Mirrors the
 /// require-destructuring walk in relations/mod.rs (which keys on the export/key side
 /// for CJS import edges; extraction wants the local binding, i.e. the value side).
-fn collect_binding_names(pattern: &tree_sitter::Node, source: &str, out: &mut Vec<String>) {
+/// Untrusted nesting stops at `MAX_AST_DEPTH`, and one declarator yields at most
+/// `MAX_BINDING_NAMES` names, each of which would otherwise copy the declarator text.
+fn collect_binding_names(
+    pattern: &tree_sitter::Node,
+    source: &str,
+    out: &mut Vec<String>,
+    depth: usize,
+) {
+    if depth > MAX_AST_DEPTH || out.len() >= MAX_BINDING_NAMES {
+        return;
+    }
+    let depth = depth + 1;
     match pattern.kind() {
         "identifier" | "shorthand_property_identifier_pattern" => {
             let t = node_text(pattern, source);
@@ -1832,7 +1843,7 @@ fn collect_binding_names(pattern: &tree_sitter::Node, source: &str, out: &mut Ve
         // `{ key: local }` — the VALUE side is the local binding that gets exported.
         "pair_pattern" => {
             if let Some(v) = pattern.child_by_field_name("value") {
-                collect_binding_names(&v, source, out);
+                collect_binding_names(&v, source, out, depth);
             }
         }
         // `{ x = default }` / `[x = default]` — the LEFT side is the binding.
@@ -1841,20 +1852,23 @@ fn collect_binding_names(pattern: &tree_sitter::Node, source: &str, out: &mut Ve
                 .child_by_field_name("left")
                 .or_else(|| pattern.named_child(0))
             {
-                collect_binding_names(&l, source, out);
+                collect_binding_names(&l, source, out, depth);
             }
         }
         // Containers + rest: recurse into every named child.
         "object_pattern" | "array_pattern" | "rest_pattern" => {
             for i in 0..pattern.named_child_count() {
                 if let Some(c) = pattern.named_child_at(i) {
-                    collect_binding_names(&c, source, out);
+                    collect_binding_names(&c, source, out, depth);
                 }
             }
         }
         _ => {}
     }
 }
+
+/// Names one destructuring declarator may export; see `collect_binding_names`.
+const MAX_BINDING_NAMES: usize = 64;
 
 /// JS/TS function kinds that open a scope.
 const JS_FUNCTION_KINDS: &[&str] = &[
@@ -2010,7 +2024,7 @@ fn extract_named_arrows(node: &tree_sitter::Node, source: &str) -> Vec<ParsedNod
                 let names: Vec<String> =
                     if matches!(name_node.kind(), "object_pattern" | "array_pattern") {
                         let mut v = Vec::new();
-                        collect_binding_names(&name_node, source, &mut v);
+                        collect_binding_names(&name_node, source, &mut v, 0);
                         v
                     } else {
                         vec![name.clone()]
@@ -3925,6 +3939,23 @@ function scope() {
             by("localOnly").is_none(),
             "function-local const must not be a symbol"
         );
+    }
+
+    #[test]
+    fn typescript_destructuring_exports_are_bounded() {
+        // Untrusted nesting must not overflow the stack, and one declarator must not
+        // amplify into an unbounded number of nodes that each copy its text.
+        let depth = 20_000;
+        let code = format!(
+            "export const {}deep{} = x;\nexport const [{}] = y;\n",
+            "[".repeat(depth),
+            "]".repeat(depth),
+            vec!["a"; 1_000].join(", ")
+        );
+        let nodes = parse_code(&code, "typescript").unwrap();
+        assert!(nodes.iter().all(|n| n.name != "deep"));
+        let a = nodes.iter().filter(|n| n.name == "a").count();
+        assert!(a > 0 && a <= MAX_BINDING_NAMES, "{a} bindings");
     }
 
     #[test]

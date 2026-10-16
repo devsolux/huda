@@ -43,7 +43,7 @@ def binary_fixture(target: str) -> bytes:
 
 class DesktopSourceTests(unittest.TestCase):
     def test_product_identity(self):
-        self.assertEqual(package.metadata(), {"name": "Huda", "id": "com.devsolux.huda", "version": "1.0.0"})
+        self.assertEqual(package.metadata(), {"name": "Huda", "id": "com.devsolux.huda", "version": "1.1.0"})
         rust = (ROOT / "src/lib.rs").read_text()
         self.assertIn('APP_NAME: &str = "Huda"', rust)
         self.assertIn('APP_ID: &str = "com.devsolux.huda"', rust)
@@ -178,7 +178,7 @@ class PackageLayoutTests(unittest.TestCase):
         with (app / "Contents/Info.plist").open("rb") as stream:
             info = plistlib.load(stream)
         self.assertEqual(info["CFBundleIdentifier"], "com.devsolux.huda")
-        self.assertEqual(info["CFBundleShortVersionString"], "1.0.0")
+        self.assertEqual(info["CFBundleShortVersionString"], "1.1.0")
         self.assertEqual(info["CFBundleExecutable"], "huda-desktop")
         self.assertTrue((app / "Contents/MacOS/huda").is_file())
         self.assertTrue((app / "Contents/Resources/huda.icns").is_file())

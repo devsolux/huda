@@ -1,4 +1,4 @@
-# Architecture — 1.0.0
+# Architecture — 1.1.0
 
 ## Authority and responsibility
 
@@ -28,7 +28,7 @@ Jobs record commits in the same transaction as source publication. Cancellation/
 
 ## Deliberate limits
 
-Implementation/qualification gaps are in `verification/gates.md`. Especially: the new Windows private-pipe/DACL source is not compiled or natively qualified; actual filesystem/native sandbox behavior is not qualified; no remote Bridge or MCP HTTP/SSE; limited provider datatype/rank mappings and query-language fallback; no persisted inference; no real model/provider/native gold results. These are open obligations, not replacements of the normative architecture.
+Implementation/qualification gaps are in `verification/gates.md`. Especially: the Windows private-pipe/DACL source is compiled and tested in CI but not natively qualified; actual filesystem/native sandbox behavior is not qualified; no remote Bridge or MCP HTTP/SSE; limited provider datatype/rank mappings and query-language fallback; no persisted inference; no real model/provider/native gold results. These are open obligations, not replacements of the normative architecture.
 
 ## Desktop integration boundary
 

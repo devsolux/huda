@@ -101,6 +101,8 @@ pub(crate) fn normalize_relation(
 ) -> Result<(RelationInput, String)> {
     let ty = load_type(conn, &input.relation_type)?;
     let mut relation = input.clone();
+    // `@01` and `@1` name one registered version; identity, conflicts and paths use its key.
+    relation.relation_type = ty.key();
     require(
         relation.roles.keys().all(|k| ty.roles.contains_key(k)),
         "INVALID_INPUT",

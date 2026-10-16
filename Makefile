@@ -1,4 +1,4 @@
-VERSION ?= 1.0.0
+VERSION ?= 1.1.0
 
 # -----------------------------------------------------------------------------
 # GitHub — CLI auth, local repo init, gh repo create, push (override as needed)

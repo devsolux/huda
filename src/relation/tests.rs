@@ -840,3 +840,152 @@ fn auto_expansion_without_independent_consent_creates_no_job_and_no_egress() {
     assert_eq!(jobs, 0);
     assert_eq!(app.running_jobs(), 0);
 }
+
+#[test]
+fn provider_consent_stored_by_another_version_survives_an_upgrade() {
+    use crate::acquisition::providers::{ProviderPolicy, ProviderPolicyRequest};
+    let Fixture {
+        _directory,
+        mut store,
+        caller,
+        ..
+    } = Fixture::new();
+    let epoch = store.epochs().unwrap().policy;
+    store
+        .set_provider_policy(
+            &caller,
+            ProviderPolicyRequest {
+                policy: ProviderPolicy {
+                    provider_id: "wikidata".into(),
+                    scope: "local".into(),
+                    allowed_actors: ["owner".into()].into(),
+                    languages: ["en".into()].into(),
+                    approved_public_terms: ["Photosynthesis".into()].into(),
+                    may_fetch: true,
+                    auto_register_provider_types: false,
+                    auto_admit_structured: false,
+                    auto_admit_semantic: false,
+                    semantic_types: Default::default(),
+                    user_agent: format!("Huda/{} (ops@example.invalid)", crate::VERSION),
+                    ttl_seconds: 3600,
+                },
+                expected_policy_epoch: epoch,
+            },
+        )
+        .unwrap();
+    // The row an earlier release wrote names that release's version.
+    let changed = store
+        .conn
+        .execute(
+            "UPDATE knowledge_provider_policies SET policy_json=replace(policy_json,?1,'Huda/0.9.0 ') WHERE provider_id='wikidata'",
+            [format!("Huda/{} ", crate::VERSION)],
+        )
+        .unwrap();
+    assert_eq!(changed, 1);
+    let status = store.provider_status(&caller).unwrap();
+    let wikidata = &status["providers"][0];
+    assert_eq!(wikidata["provider_id"], "wikidata");
+    assert_eq!(wikidata["configured"], true);
+    assert_eq!(wikidata["may_fetch"], true);
+    assert_eq!(
+        wikidata["policy"]["user_agent"],
+        format!("Huda/{} (ops@example.invalid)", crate::VERSION)
+    );
+}
+
+#[test]
+fn relation_type_version_spelling_does_not_split_identity() {
+    let mut f = Fixture::new();
+    let canonical = f
+        .store
+        .assert_relation(&f.caller, f.request("canonical"))
+        .unwrap();
+    let mut padded = f.request("padded");
+    padded.relation.relation_type = "core:DEPENDS_ON@01".into();
+    let padded = f.store.assert_relation(&f.caller, padded).unwrap();
+    assert_eq!(padded.relation_id, canonical.relation_id);
+}
+#[test]
+fn explore_query_keeps_matching_entities_without_relations() {
+    let mut f = Fixture::new();
+    let request: super::query::ExploreRequest =
+        serde_json::from_value(json!({ "query": "project" })).unwrap();
+    let response = f.store.explore(&f.caller, request).unwrap();
+    assert!(response.relations.is_empty());
+    assert_eq!(response.entities.len(), 1);
+    assert!(response.entities[0].labels.iter().any(|l| l == "Project A"));
+}
+#[test]
+fn membership_of_another_literal_type_is_unknown() {
+    let condition = Condition::In {
+        key: "replicas".into(),
+        values: vec![Literal::Integer(5)],
+    };
+    let facts = |literal| BTreeMap::from([("replicas".into(), Fact::Present(literal))]);
+    assert_eq!(
+        condition.evaluate(&facts(Literal::Decimal("5".into()))),
+        Truth::Unknown
+    );
+    assert_eq!(condition.evaluate(&facts(Literal::Integer(5))), Truth::True);
+    assert_eq!(
+        condition.evaluate(&facts(Literal::Integer(6))),
+        Truth::False
+    );
+}
+struct CompoundCitationFixture;
+impl LocalLlm for CompoundCitationFixture {
+    fn available(&self) -> bool {
+        true
+    }
+    fn generate(&self, _purpose: ModelUse, _input: &Value) -> Result<Value> {
+        Ok(json!({"answer":"Project A depends on Service B [R1, R99]. [R1]","used_markers":["R1"]}))
+    }
+}
+#[test]
+fn answer_validation_checks_every_marker_of_a_compound_citation() {
+    let mut f = Fixture::new();
+    f.store
+        .assert_relation(&f.caller, f.request("manual"))
+        .unwrap();
+    let goal = f.goal();
+    let context = f.store.query_goal(&f.caller, goal).unwrap();
+    let error = answer::formulate(&context, &CompoundCitationFixture).unwrap_err();
+    assert_eq!(error.code, "MODEL_OUTPUT_INVALID");
+}
+struct EvidenceFixture(Value);
+impl LocalLlm for EvidenceFixture {
+    fn available(&self) -> bool {
+        true
+    }
+    fn generate(&self, purpose: ModelUse, _input: &Value) -> Result<Value> {
+        assert!(matches!(purpose, ModelUse::Extract));
+        Ok(self.0.clone())
+    }
+}
+#[test]
+fn model_extraction_cannot_attach_evidence() {
+    let mut f = Fixture::new();
+    let types = f.store.list_types(&f.caller).unwrap();
+    let entities = f.store.visible_entities(&f.caller).unwrap();
+    let assertion = StructuredAssertion {
+        anchor: "a".into(),
+        relation: f.relation.clone(),
+        evidence: vec![Evidence {
+            source_revision: "other@1".into(),
+            locator: "x".into(),
+            sha256: "0".repeat(64),
+            approximate: false,
+        }],
+        epistemic_kind: EpistemicKind::Asserted,
+    };
+    let mut output = json!({ "assertions": [assertion] });
+    let model = EvidenceFixture(output.clone());
+    let error =
+        crate::acquisition::text::extract(&model, "doc", "A.", &entities, &types).unwrap_err();
+    assert_eq!(error.message, "Model may not attach evidence");
+    // The same proposition without model-chosen evidence is accepted.
+    output["assertions"][0]["evidence"] = json!([]);
+    let model = EvidenceFixture(output);
+    let data = crate::acquisition::text::extract(&model, "doc", "A.", &entities, &types).unwrap();
+    assert_eq!(data.assertions.len(), 1);
+}

@@ -162,23 +162,44 @@ impl Client {
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
             .spawn()?;
+        let result = self.wait_until_ready(&mut child, cancelled);
         // Reap our child; never kill a shared Core just because this client closes.
         std::thread::spawn(move || {
             let _ = child.wait();
         });
-        let deadline = Instant::now() + Duration::from_secs(5);
-        while Instant::now() < deadline {
+        result
+    }
+    fn wait_until_ready(
+        &self,
+        child: &mut std::process::Child,
+        cancelled: &AtomicBool,
+    ) -> Result<Stream> {
+        let mut deadline = Instant::now() + Duration::from_secs(5);
+        let mut exited = false;
+        loop {
             check_cancelled(cancelled)?;
             match Stream::connect(&self.profile) {
                 Ok(stream) => return Ok(stream),
                 Err(error) if error.code == "CORE_UNAVAILABLE" => {}
                 Err(error) => return Err(error),
             }
+            if !exited && child.try_wait()?.is_some() {
+                // Our Core may have lost a start race to another client's; let that one listen.
+                exited = true;
+                deadline = deadline.min(Instant::now() + Duration::from_secs(1));
+            }
+            if Instant::now() >= deadline {
+                break;
+            }
             std::thread::sleep(Duration::from_millis(50));
         }
         Err(Error::new(
             "CORE_UNAVAILABLE",
-            "Core did not become ready; run huda core in the foreground for its redacted error",
+            if exited {
+                "Core exited during startup; run huda core in the foreground for its redacted error"
+            } else {
+                "Core did not become ready; run huda core in the foreground for its redacted error"
+            },
         ))
     }
 }

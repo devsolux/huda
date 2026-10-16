@@ -2,7 +2,7 @@
 use crate::error::{require, Error, Result};
 use crate::relation::{now_ms, Caller};
 use crate::runtime::{profile::Lease, Profile};
-use rusqlite::{Connection, OpenFlags, Transaction, TransactionBehavior};
+use rusqlite::{Connection, OpenFlags, OptionalExtension, Transaction, TransactionBehavior};
 use std::path::Path;
 
 pub const APPLICATION_ID: i32 = 0x48554441; // "HUDA"
@@ -180,6 +180,7 @@ pub(crate) fn recheck(conn: &Connection, caller: &Caller, epoch: u64) -> Result<
             [&caller.actor],
             |r| r.get(0),
         )
+        .optional()?
         .unwrap_or(false);
     require(enabled, "PERMISSION_DENIED", "Caller has been revoked")
 }

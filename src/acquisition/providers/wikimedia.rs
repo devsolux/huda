@@ -480,13 +480,18 @@ fn public_address(ip: IpAddr) -> bool {
                 || a[0] >= 240
                 || a[0] == 127
                 || (a[0] == 100 && (64..=127).contains(&a[1]))
+                || (a[0] == 192 && a[1] == 0 && a[2] == 0)
+                || (a[0] == 192 && a[1] == 88 && a[2] == 99)
                 || (a[0] == 198 && (a[1] == 18 || a[1] == 19)))
         }
         IpAddr::V6(v) => {
             let a = v.segments();
+            // 2001::/23 holds Teredo and other protocol assignments; 6to4 (2002::/16) embeds
+            // an arbitrary IPv4 address.
             v.to_ipv4_mapped().is_none()
                 && (a[0] & 0xe000) == 0x2000
-                && !(a[0] == 0x2001 && (a[1] == 0 || a[1] == 0xdb8))
+                && !(a[0] == 0x2001 && (a[1] < 0x0200 || a[1] == 0xdb8))
+                && a[0] != 0x2002
         }
     }
 }
@@ -509,8 +514,16 @@ mod tests {
             "::1",
             "fc00::1",
             "::ffff:127.0.0.1",
+            "192.0.0.8",
+            "192.88.99.1",
+            "2001:0:4136:e378::1",
+            "2001:1ff::1",
+            "2002:a00:1::",
         ] {
-            assert!(!public_address(ip.parse().unwrap()));
+            assert!(!public_address(ip.parse().unwrap()), "{ip}");
+        }
+        for ip in ["208.80.154.224", "2620:0:861:ed1a::1", "2001:200::1"] {
+            assert!(public_address(ip.parse().unwrap()), "{ip}");
         }
     }
 }

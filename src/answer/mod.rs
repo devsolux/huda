@@ -324,15 +324,21 @@ fn validate_answer(
             "Declared relation marker is absent from answer",
         )?;
     }
-    // Scan every bracket marker, not just the model's declared list.
+    // Scan every marker in every bracket group, not just the model's declared list, so a
+    // compound citation such as `[R1, R99]` cannot carry an unvalidated marker.
     for part in answer.answer.split('[').skip(1) {
-        if let Some((marker, _)) = part.split_once(']') {
-            if marker.starts_with('R') && marker[1..].bytes().all(|b| b.is_ascii_digit()) {
-                require(
-                    used.contains(marker),
-                    "MODEL_OUTPUT_INVALID",
-                    "Answer contains an unvalidated marker",
-                )?;
+        if let Some((group, _)) = part.split_once(']') {
+            for marker in group.split(|c: char| !c.is_ascii_alphanumeric()) {
+                if marker.len() > 1
+                    && marker.starts_with('R')
+                    && marker[1..].bytes().all(|b| b.is_ascii_digit())
+                {
+                    require(
+                        used.contains(marker),
+                        "MODEL_OUTPUT_INVALID",
+                        "Answer contains an unvalidated marker",
+                    )?;
+                }
             }
         }
     }

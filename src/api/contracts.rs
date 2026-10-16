@@ -415,6 +415,6 @@ mod tests {
     fn rest_uses_selected_compatibility_pin() {
         let schema = openapi();
         assert_eq!(schema["openapi"], "3.1.2");
-        assert_eq!(schema["info"]["version"], "1.0.0");
+        assert_eq!(schema["info"]["version"], "1.1.0");
     }
 }

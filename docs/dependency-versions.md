@@ -10,8 +10,9 @@ warnings`, tested (42 default-feature, 42 headless and 392 all-feature library t
 desktop and integration tests) and release-built on native `aarch64-apple-darwin` only. Every
 exact pin below was the current stable release on crates.io at resolution time. This is not a
 license audit or a four-platform compile; `cargo audit` reported no advisories against the
-resolved lock (RustSec database of 2026-10-13), which is a tool finding, not a security
-certification.
+resolved lock (RustSec database of 2026-10-13), and again after the
+[2026-10-16 security update](#2026-10-16-security-update); this is a tool finding, not a
+security certification.
 
 ## Required desktop and shared stack
 
@@ -46,7 +47,7 @@ javascript, go, python and css 0.25.0, c 0.24.2, php 0.25.1, bash 0.25.1, swift 
 markdown 0.5.3, dart-orchard 0.7.0, typescript 0.23.2, rust 0.24.2, java 0.23.5, cpp 0.23.4,
 html 0.23.2, c-sharp 0.23.5, kotlin-ng 1.1.0, ruby 0.23.1 and json 0.24.8. `libc` and optional
 `anyhow` retain compatible ranges which the real lock must resolve. The package/MCP/OpenAPI/schema version contracts are
-not dependency-update knobs; product version remains 1.0.0, MCP 2026-07-28 and OpenAPI 3.1.2.
+not dependency-update knobs; product version is 1.1.0, MCP 2026-07-28 and OpenAPI 3.1.2.
 
 ## GitHub actions: current release commits
 
@@ -79,7 +80,8 @@ newest 3.14 release in the `actions/python-versions` manifest; 3.15.0 is also li
 not adopted here. The runner labels `macos-26` (arm64), `macos-26-intel` (x64), `windows-2025`
 and `ubuntu-24.04` were checked against `actions/runner-images` on 2026-10-09, and the
 `v1.0.0` release run used them on 2026-10-13. This is version-source verification; the
-signing path has not run yet, and actionlint was unavailable in the audit environment.
+`sign` job passed on a 2026-10-16 `main` dispatch, `release-assets` has not yet attached signed
+files, and actionlint was unavailable in the audit environment.
 Subsequent updates are manual, reviewed changes; no floating action tags, update bots or
 automatic merging are used.
 
@@ -163,3 +165,14 @@ Release-note findings and the changes they required:
   faults on AVX2-without-BMI2 x86-64 CPUs.
 - serde_json, sha2, cc, syn, uuid, smallvec, litrs and unicode-ident: bug fixes and additive
   features only. sha2 raised its MSRV to 1.88, below the pinned 1.99.0.
+
+## 2026-10-16 security update
+
+`cargo audit` against the RustSec database of 2026-10-16 reported four low-severity advisories
+in the transitive **rustls 0.23.45** (via reqwest): RUSTSEC-2026-0346 (`Debug` output of client
+session values exposes TLS secrets), RUSTSEC-2026-0347 (buffered data sent to the outer server
+after an ECH rejection), RUSTSEC-2026-0348 (Brotli certificate decompression can allocate up to
+1 GiB before authentication) and RUSTSEC-2026-0349 (an unauthenticated ServerHello can downgrade
+later connections to classical key exchange). `cargo update -p rustls --precise 0.23.46` moved
+only that package; the committed lock changes no other entry, and `cargo audit` then reported no
+advisories. No direct pin changed.

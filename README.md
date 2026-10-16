@@ -120,6 +120,9 @@ On macOS, move `Huda.app` to Applications before enabling launch at login.
 ## Quick start
 
 The packages install `huda` and `huda-desktop` side by side, which both executables require.
+The Linux package links both into `/usr/bin`. On macOS the helper is
+`Huda.app/Contents/MacOS/huda`, and on Windows it is `%LOCALAPPDATA%\Programs\Huda\huda.exe`;
+neither installer adds it to `PATH`.
 
 ```bash
 huda init         # create an empty offline profile and its credentials
@@ -259,7 +262,7 @@ overwritten.
 cargo fmt --all -- --check
 cargo clippy --locked --all-targets --all-features -- -D warnings
 cargo test --locked --all-features
-cargo build --locked --release --features desktop,rest --bins
+cargo build --locked --release --target x86_64-unknown-linux-gnu --features desktop,rest --bins
 python3 scripts/package_desktop.py --target x86_64-unknown-linux-gnu
 ```
 

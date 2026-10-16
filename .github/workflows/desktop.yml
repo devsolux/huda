@@ -288,5 +288,5 @@ jobs:
   # bundles prove which workflow, ref and commit produced each file; they are not Developer ID,
   # notarization or Authenticode signatures, so packages remain unsigned/ad-hoc test candidates
   # for the OS. All jobs, including formatting and signing, must pass before release
-  # qualification; dispatch this workflow on a branch to check it before merging. Real
+  # qualification; dispatch this workflow on `main` to check it before a release. Real
   # install/UI tests remain separate.

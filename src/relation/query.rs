@@ -448,10 +448,12 @@ impl Store {
         relations.truncate(request.limit);
         let mut relevant = matching;
         if !request.query.is_empty() || request.entity_id.is_some() {
-            relevant = relations
-                .iter()
-                .flat_map(|r| entity_ids(&r.relation))
-                .collect();
+            // A query keeps its matching entities even when none of their relations is
+            // returned; an entity filter alone narrows the listing to that neighbourhood.
+            if request.query.is_empty() {
+                relevant.clear();
+            }
+            relevant.extend(relations.iter().flat_map(|r| entity_ids(&r.relation)));
             if let Some(id) = request.entity_id {
                 relevant.insert(id);
             }

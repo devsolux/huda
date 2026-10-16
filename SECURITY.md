@@ -8,7 +8,8 @@ controls that exist in source and the qualification work that remains open.
 
 | Version | Status |
 |---|---|
-| 1.0.x | Source candidate; security fixes land on `main` |
+| 1.1.x | Source candidate; security fixes land on `main` |
+| 1.0.x | Superseded by 1.1.x; upgrade instead of expecting separate fixes |
 | < 1.0 | Unsupported |
 
 ## Reporting a vulnerability

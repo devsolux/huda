@@ -200,8 +200,11 @@ impl Condition {
                 }
                 _ => Unknown,
             },
+            // Like Eq, a comparison with no value of the fact's type stays UNKNOWN.
             Self::In { key, values } => match facts.get(key) {
-                Some(Fact::Present(actual)) => {
+                Some(Fact::Present(actual))
+                    if values.iter().any(|v| v.type_name() == actual.type_name()) =>
+                {
                     if values.contains(actual) {
                         True
                     } else {

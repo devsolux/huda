@@ -158,7 +158,7 @@ impl Profile {
         self.lease(
             "core.lock",
             "CORE_UNAVAILABLE",
-            "Another core owns this profile, or the filesystem cannot provide a safe lease",
+            "Another core owns this profile",
         )
     }
     /// Desktop-instance coordination only: one GUI process per profile, so repeated launches
@@ -218,12 +218,31 @@ impl Profile {
             )?;
             // SAFETY: file owns this live descriptor. Closing the file releases flock.
             if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
-                return Err(Error::new(code, message));
+                let held = std::io::Error::last_os_error().kind() == std::io::ErrorKind::WouldBlock;
+                return Err(lease_error(held, code, message));
             }
         }
         #[cfg(windows)]
-        file.try_lock().map_err(|_| Error::new(code, message))?;
+        file.try_lock().map_err(|error| {
+            lease_error(
+                matches!(error, std::fs::TryLockError::WouldBlock),
+                code,
+                message,
+            )
+        })?;
         Ok(Lease { _file: file })
+    }
+}
+/// Only a lease held by another process is reported as such; a filesystem that cannot lock
+/// (for example some network mounts) must not look like a running Core or desktop.
+fn lease_error(held: bool, code: &str, message: &str) -> Error {
+    if held {
+        Error::new(code, message)
+    } else {
+        Error::new(
+            "IO_ERROR",
+            "The profile filesystem cannot provide a safe exclusive lease",
+        )
     }
 }
 #[cfg(not(windows))]

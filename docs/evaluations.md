@@ -1,6 +1,6 @@
 # Evaluation contract — not measured results
 
-The executable Python suite checks the actual SQLite migration, constraints, query compilation, scoped selector, backup and SQL-engine rollback. It is not an alternate implementation of the Rust Core and cannot close application/transport/native gates. Raw output is in `verification/sqlite-tests.txt`.
+The executable Python suite checks the actual SQLite migration, constraints, query compilation, scoped selector, backup and SQL-engine rollback. It is not an alternate implementation of the Rust Core and cannot close application/transport/native gates. Raw output is in `verification/check-sqlite.txt`.
 
 Rust tests are authored for evidence-free direct + independent JSON assertions, scoped refresh/withdrawal, policy/generation CAS, idempotency, inferred-publication rejection, empty-graph goals, no-model status, an explicitly fake answer adapter's structural contract, conditions, owner lease, read-only readers, cancellation, private assertion visibility and input/transport contracts. Parser regression tests are retained behind `code-adapter`. On 2026-10-09 all of them executed and passed on native macOS arm64 (36 default-feature, 36 headless, 384 all-feature library tests plus the integration tests), together with new end-to-end Core serve, loopback REST, desktop lease, conflict, valid-time, n-ary literal and zero-egress regressions; raw output is in `verification/cargo-test*.txt`. They have not run on the other three targets. A fake adapter test is not a real-model gold evaluation.
 

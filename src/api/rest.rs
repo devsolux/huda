@@ -71,6 +71,15 @@ impl RestServer {
                 Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
                     std::thread::sleep(Duration::from_millis(25))
                 }
+                // A peer that resets before accept fails only itself; dropping the listener
+                // here would free the port for another local process.
+                Err(error)
+                    if matches!(
+                        error.kind(),
+                        std::io::ErrorKind::ConnectionAborted
+                            | std::io::ErrorKind::ConnectionReset
+                            | std::io::ErrorKind::Interrupted
+                    ) => {}
                 Err(error) => return Err(error.into()),
             }
         }

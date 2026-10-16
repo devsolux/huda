@@ -1,6 +1,45 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 — 2026-10-16
+
+### Fixes
+
+- Provider consent stored by an earlier version stays valid after an upgrade: the stored
+  User-Agent keeps the operator contact, and its `Huda/<version>` token names the running
+  build. Previously every 1.0.0 policy read back as "not configured" under a new version.
+- Relation types are stored under their registered key, so `@01` and `@1` no longer split one
+  relation into two identities that hide conflicts from goal coverage.
+- `explore`/`search_knowledge` with a query keep matching entities that have no returned
+  relation. An `In` condition with no value of the fact's literal type is UNKNOWN, like `Eq`.
+- A database error while rechecking a caller is reported as a storage error, not as a revoked
+  caller.
+- The answer validator checks every marker inside a compound citation such as `[R1, R99]`.
+  Model extraction may not attach evidence; technical origin comes from the capture.
+- The optional code adapter bounds destructuring-export extraction to 64 nesting levels and 64
+  names per declarator, so untrusted input can no longer overflow the Core's stack.
+- Provider egress also rejects 192.0.0.0/24, 192.88.99.0/24, 2001::/23 and 6to4 2002::/16.
+- The opt-in REST listener survives a client that resets before `accept`, and a Core whose REST
+  listener stops shuts down instead of serving IPC alone.
+- A filesystem that cannot provide a lock reports `IO_ERROR` instead of claiming that another
+  Core or desktop is running. A Core that exits during an on-demand start is reported after one
+  second instead of a five-second generic timeout.
+- A panicking MCP tool call answers with a JSON-RPC internal error and frees its request slot.
+- The desktop offers **Initialize profile** again when a request reports `AUTH_REQUIRED`, for
+  example after an interrupted first initialization.
+
+### Dependencies
+
+- rustls 0.23.45 → 0.23.46 (RUSTSEC-2026-0346, -0347, -0348 and -0349, all low severity).
+  No other lock entry changed; `cargo audit` is clean.
+
+### Documentation
+
+- Version 1.1.0 across the manifest, Windows application manifest, docs and templates; the
+  security policy now supports 1.1.x.
+- README notes where `huda` is installed on each OS and builds the "other targets" example for
+  the packaged target. Docs record that CI compiles and tests the Windows source (it is still
+  not natively qualified), that signing has run on `main`, and that workflow dispatches happen
+  on `main`.
 
 ### Build, packaging and CI
 

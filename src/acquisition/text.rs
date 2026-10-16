@@ -45,6 +45,13 @@ pub fn extract(
     }
     let known: BTreeSet<_> = visible.iter().map(|e| e.entity_id.as_str()).collect();
     for assertion in &mut data.assertions {
+        // Model output cannot attest provenance; a source could otherwise make it cite another
+        // capture. Technical origin comes from the capture being published.
+        require(
+            assertion.evidence.is_empty(),
+            "MODEL_OUTPUT_INVALID",
+            "Model may not attach evidence",
+        )?;
         for value in assertion.relation.roles.values_mut().flatten() {
             if let RoleValue::Entity { entity_id } = value {
                 if let Some(id) = local.get(entity_id) {

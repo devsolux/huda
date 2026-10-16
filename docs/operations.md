@@ -1,4 +1,4 @@
-# Operations — 1.0.0 source candidate
+# Operations — 1.1.0 source candidate
 
 ## Qualification before use
 
@@ -10,7 +10,7 @@ Generate a fresh `Cargo.lock` explicitly with `cargo generate-lockfile`, inspect
 
 ## Profiles, credentials, Core lifetime
 
-Use the OS user-data path or an explicit absolute private directory. Unix requires the profile to be user-owned, mode 0700, with regular singly linked 0600 managed files. The lease inode is never deleted. The Unix socket is private and the process checks peer credentials plus a scoped token. Windows now has user-private DACL and SID-verified local named-pipe source, with an exclusive file lease. It has not been compiled or qualified on Windows; it no longer contains the old blanket unsupported-platform stub.
+Use the OS user-data path or an explicit absolute private directory. Unix requires the profile to be user-owned, mode 0700, with regular singly linked 0600 managed files. The lease inode is never deleted. The Unix socket is private and the process checks peer credentials plus a scoped token. Windows now has user-private DACL and SID-verified local named-pipe source, with an exclusive file lease. CI compiles, lints and tests it on `windows-2025`, but it has not been natively qualified on Windows; it no longer contains the old blanket unsupported-platform stub.
 
 `huda init` explicitly creates an empty authority and owner/MCP credentials in an available unlocked OS secret store. Tokens are stored under service `huda.<profile fingerprint>`, account `owner`, `mcp`, or an explicitly created principal. The database stores hashes, not plaintext tokens. Applications integrating with REST obtain their configured scoped credential from that OS store; do not place tokens in command lines, URLs, logs or source files. There is no anonymous REST mode or plaintext credential fallback. Same-OS-user malware/compromise is not an isolation guarantee.
 

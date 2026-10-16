@@ -200,7 +200,12 @@ fn run(options: Options) -> Result<()> {
                 let server = huda::api::rest::RestServer::bind(port)?;
                 let app = app.clone();
                 let flag = shutdown.clone();
-                Some(std::thread::spawn(move || server.serve(app, flag)))
+                Some(std::thread::spawn(move || {
+                    let result = server.serve(app, flag.clone());
+                    // Without its listener the Core must not keep serving as if REST were up.
+                    flag.store(true, Ordering::Release);
+                    result
+                }))
             } else {
                 None
             };

@@ -223,7 +223,12 @@ pub fn stdio(client: Client) -> Result<()> {
             let active = active.clone();
             let output = output.clone();
             workers.push(std::thread::spawn(move || {
-                let result = handle(request, &client, flag.clone());
+                let id = request["id"].clone();
+                // A panicking handler still answers its request and frees its slot below.
+                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    handle(request, &client, flag.clone())
+                }))
+                .unwrap_or_else(|_| rpc_error(id, -32603, "Internal error", None));
                 if !flag.load(Ordering::Acquire) {
                     let _ = write(&output, &result);
                 }

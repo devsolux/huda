@@ -117,11 +117,25 @@ pub(crate) fn policy(conn: &Connection, provider: &str) -> Result<ProviderPolicy
             |r| r.get(0),
         )
         .optional()?;
-    let policy: ProviderPolicy = serde_json::from_str(
+    let mut policy: ProviderPolicy = serde_json::from_str(
         &json.ok_or_else(|| Error::new("POLICY_DENIED", "No provider consent is configured"))?,
     )?;
+    // Consent survives an upgrade: a policy stored by another build keeps its operator contact,
+    // and its outbound User-Agent names the running version.
+    policy.user_agent = current_user_agent(&policy.user_agent);
     policy.validate()?;
     Ok(policy)
+}
+/// Replaces the version token after the first `Huda/` with this build's version.
+fn current_user_agent(user_agent: &str) -> String {
+    let Some(start) = user_agent.find("Huda/").map(|i| i + "Huda/".len()) else {
+        return user_agent.into();
+    };
+    let rest = &user_agent[start..];
+    let end = rest
+        .find(|c: char| !(c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | '+')))
+        .unwrap_or(rest.len());
+    format!("{}{}{}", &user_agent[..start], crate::VERSION, &rest[end..])
 }
 pub(crate) fn check_egress(
     conn: &Connection,

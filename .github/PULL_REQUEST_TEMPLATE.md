@@ -5,7 +5,7 @@
 ## Verification
 
 The native workflow runs only on manual dispatch and published `v*` releases, so run the
-checks locally (or dispatch the workflow on this branch) and paste the real results.
+checks locally (maintainers can dispatch the workflow on `main`) and paste the real results.
 
 - [ ] `cargo fmt --all -- --check`
 - [ ] `cargo clippy --locked --all-targets --all-features -- -D warnings`
