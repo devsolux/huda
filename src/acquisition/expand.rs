@@ -235,7 +235,7 @@ pub(crate) fn run(
     let mut items = 0;
     let mut articles = 0;
     let mut stop = "no_match";
-    for _round in 0..2 {
+    'rounds: for _round in 0..2 {
         let reads = eligible(&app, &caller, &context, epoch)?;
         if reads.is_empty() {
             stop = if context.goal_coverage.goal_met {
@@ -261,6 +261,17 @@ pub(crate) fn run(
                 stop = "model_unavailable";
                 continue;
             }
+            if (provider == "wikidata" && items >= 5) || (provider == "wikipedia" && articles >= 3)
+            {
+                stop = "exhausted";
+                continue;
+            }
+            // Start a term only when its worst case fits: search, fetch and, for Wikidata, one
+            // property-metadata read. A half-read term would only spend egress.
+            if !budget.has_room(if provider == "wikidata" { 3 } else { 2 }) {
+                stop = "exhausted";
+                break 'rounds;
+            }
             let language = &original_goal.language;
             let checkpoint = || {
                 let store = app.store()?;
@@ -272,8 +283,16 @@ pub(crate) fn run(
                 providers::check_egress(&store.conn, &caller, &provider, language, &term, epoch)?
             };
             let candidates =
-                app.wikimedia
-                    .discover(&policy, language, &term, &mut budget, &checkpoint)?;
+                match app
+                    .wikimedia
+                    .discover(&policy, language, &term, &mut budget, &checkpoint)
+                {
+                    Ok(candidates) => candidates,
+                    Err(error) => {
+                        stop = soft_stop(&error).ok_or(error)?;
+                        break 'rounds;
+                    }
+                };
             // Never resolve an ambiguous label by taking the first search hit.
             let exact: Vec<_> = candidates
                 .into_iter()
@@ -288,11 +307,6 @@ pub(crate) fn run(
                 continue;
             }
             let candidate = &exact[0];
-            if (provider == "wikidata" && items >= 5) || (provider == "wikipedia" && articles >= 3)
-            {
-                stop = "exhausted";
-                continue;
-            }
             let source_key = relation::stable_id(
                 "src",
                 &(&provider, language, &candidate.id, &caller.actor, &scope),
@@ -308,10 +322,19 @@ pub(crate) fn run(
                 .filter(|capture| capture.expires_at.is_some_and(|expires| expires > now_ms()));
             let capture = match cached_capture {
                 Some(capture) => capture,
-                None => {
-                    app.wikimedia
-                        .fetch(&policy, language, candidate, &mut budget, &checkpoint)?
-                }
+                None => match app.wikimedia.fetch(
+                    &policy,
+                    language,
+                    candidate,
+                    &mut budget,
+                    &checkpoint,
+                ) {
+                    Ok(capture) => capture,
+                    Err(error) => {
+                        stop = soft_stop(&error).ok_or(error)?;
+                        break 'rounds;
+                    }
+                },
             };
             if provider == "wikidata" {
                 items += 1;
@@ -333,9 +356,19 @@ pub(crate) fn run(
                             .collect()
                     })
                     .unwrap_or_default();
-                let properties =
-                    app.wikimedia
-                        .properties(&pids, &policy, language, &mut budget, &checkpoint)?;
+                let properties = match app.wikimedia.properties(
+                    &pids,
+                    &policy,
+                    language,
+                    &mut budget,
+                    &checkpoint,
+                ) {
+                    Ok(properties) => properties,
+                    Err(error) => {
+                        stop = soft_stop(&error).ok_or(error)?;
+                        break 'rounds;
+                    }
+                };
                 let (data, raw) = structured::wikidata(&capture, language, &properties)?;
                 (data, properties, raw, false)
             } else {
@@ -434,4 +467,25 @@ pub(crate) fn run(
     Ok(
         json!({"stop_reason":stop,"goal_coverage":context.goal_coverage,"remaining_needs":context.knowledge_needs,"added_relation_count":after.difference(&before).count(),"proposal_count":proposals,"requests":budget.requests,"response_bytes":budget.bytes,"used_providers":used,"source_keys":captures,"context_hash":context.context_hash}),
     )
+}
+/// Budget exhaustion or provider backoff ends an expansion but keeps the report of what it
+/// already committed; any other provider error still fails the job.
+fn soft_stop(error: &Error) -> Option<&'static str> {
+    match error.code.as_str() {
+        "BUDGET_EXHAUSTED" => Some("exhausted"),
+        "RATE_LIMITED" => Some("rate_limited"),
+        _ => None,
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn only_budget_and_backoff_end_an_expansion_softly() {
+        let stop = |code: &str| soft_stop(&Error::new(code, "test"));
+        assert_eq!(stop("BUDGET_EXHAUSTED"), Some("exhausted"));
+        assert_eq!(stop("RATE_LIMITED"), Some("rate_limited"));
+        assert_eq!(stop("TEMPORARY_FAILURE"), None);
+        assert_eq!(stop("POLICY_DENIED"), None);
+    }
 }

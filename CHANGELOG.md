@@ -1,5 +1,40 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Query Core: a typed connection between seeds that resolve to one entity is no longer covered
+  by an empty path; the negated twin of a mid-path step is checked for conflicts; and a hub
+  seed whose context exceeds 512 KiB is trimmed and marked `truncated` instead of failing with
+  `LIMIT_EXCEEDED`. Path steps and conflict sides always stay, and each slot keeps a basis.
+- A committed `assert_relation` request is replayed from its record even after the policy epoch
+  moved on. A retried source import is identified by its request inputs, not by data a model
+  may extract differently. Records written by earlier builds still replay.
+- `add_principal` validates its input, epoch and actor under one store lock before it writes
+  the OS secret store. `huda init` and `add_principal` issue fresh credentials instead of
+  adopting an entry an earlier profile at the same path left behind.
+- Expansion checks its item and article caps before searching, starts a term only when the
+  term's worst case fits the request budget, and ends with `exhausted` or `rate_limited`
+  (a `partial` job that keeps its report) instead of failing.
+- Wikimedia reads stay serial but cancellable while they wait for the limiter. They stop at once
+  when a provider backoff outlasts the budget, and they bound each response body by the
+  request deadline rather than per read. The local model client bounds its response the same
+  way.
+- A model input over its byte budget falls back to the deterministic question parser and
+  reports `model_input_exceeds_budget` instead of failing the request.
+- The code adapter shortens an over-long symbol or file name and digests an oversized key,
+  instead of refusing the whole file. Keys that fit are unchanged.
+- `huda core` reports readiness only after its IPC listener is bound.
+- The desktop shows a startup failure that happens before its window opens in a small window
+  of its own, and it reports once when a relaunch marker cannot be read.
+
+### Documentation
+
+- `docs/open-decisions.md` records five confirmed findings that need a maintainer decision:
+  an assertion index migration, code-symbol identity, persistent provider backoff, login entries
+  for a moved app, and Windows pipe-name squatting.
+
 ## 1.1.0 — 2026-10-16
 
 ### Fixes

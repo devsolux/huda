@@ -215,11 +215,18 @@ fn run(options: Options) -> Result<()> {
                 "ADAPTER_UNAVAILABLE",
                 "Build with --features rest before opting into a loopback listener",
             )?;
-            eprintln!(
-                "Huda {} Core owner ready; no model downloads or source scans",
-                huda::VERSION
+            let result = huda::runtime::ipc::serve_announced(
+                app,
+                profile,
+                idle_seconds,
+                shutdown.clone(),
+                || {
+                    eprintln!(
+                        "Huda {} Core owner ready; no model downloads or source scans",
+                        huda::VERSION
+                    )
+                },
             );
-            let result = huda::runtime::ipc::serve(app, profile, idle_seconds, shutdown.clone());
             shutdown.store(true, Ordering::Release);
             #[cfg(feature = "rest")]
             if let Some(http) = http {

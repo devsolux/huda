@@ -69,8 +69,8 @@ pub fn extract(source: &str, language: &str, path: &str, namespace: &str) -> Res
     let file = EntityInput {
         namespace: namespace.into(),
         kind: "code_file".into(),
-        canonical_key: format!("{language}:{path}"),
-        name: path.into(),
+        canonical_key: bounded_key(format!("{language}:{path}"), language, "file"),
+        name: clip(path, 512).into(),
         aliases: vec![],
     };
     let file_id = file.id()?;
@@ -88,17 +88,27 @@ pub fn extract(source: &str, language: &str, path: &str, namespace: &str) -> Res
         let name = node.qualified_name.as_deref().unwrap_or(&node.name);
         // The explicit input namespace and signature discriminator prevent label-only identity.
         let discriminator = stable_id("sig", &(&node.signature, node.start_line, node.end_line))?;
-        let entity = EntityInput {
-            namespace: namespace.into(),
-            kind: "code_symbol".into(),
-            canonical_key: format!(
+        // Entity bounds apply per symbol, not per file: a long name (a setext heading, say) is
+        // shortened for display and an oversized key is digested. Keys that fit are unchanged.
+        let canonical_key = bounded_key(
+            format!(
                 "{language}:{path}:{}:{name}:{discriminator}",
                 node.node_type
             ),
-            name: name.into(),
+            language,
+            &node.node_type,
+        );
+        let entity = EntityInput {
+            namespace: namespace.into(),
+            kind: "code_symbol".into(),
+            canonical_key,
+            name: clip(name, 512).into(),
             aliases: vec![],
         };
-        let id = entity.id()?;
+        // A symbol that still cannot be an entity (an empty name) is not publishable alone.
+        let Ok(id) = entity.id() else {
+            continue;
+        };
         if !seen.insert(id.clone()) {
             continue;
         }
@@ -135,6 +145,22 @@ pub fn extract(source: &str, language: &str, path: &str, namespace: &str) -> Res
     data.validate_bounds()?;
     Ok(data)
 }
+/// A canonical key within the entity bound; only keys that would not fit are digested.
+fn bounded_key(key: String, language: &str, kind: &str) -> String {
+    if key.len() <= 1024 {
+        key
+    } else {
+        format!("{language}:{kind}:digest:{}", sha256_hex(key.as_bytes()))
+    }
+}
+/// The longest prefix of `text` within `max` bytes that ends on a character boundary.
+fn clip(text: &str, max: usize) -> &str {
+    let mut end = text.len().min(max);
+    while !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    &text[..end]
+}
 /// Register this version through the ordinary privileged registry handler before admission.
 pub fn definition_type() -> RelationType {
     RelationType{name:"code:DEFINED_IN".into(),version:1,description:"A syntactic symbol definition belongs to this explicitly captured code file. No runtime call or dependency inference.".into(),roles:BTreeMap::from([
@@ -159,5 +185,22 @@ mod tests {
             .assertions
             .iter()
             .all(|a| a.relation.relation_type == "code:DEFINED_IN@1" && a.evidence.is_empty()));
+    }
+    #[test]
+    fn one_oversized_symbol_does_not_refuse_its_file() {
+        let long = "é".repeat(400);
+        let source = format!("def {long}():\n    pass\n\ndef short():\n    pass\n");
+        let deep_path = format!("{}/m.py", ["d"; 400].join("/"));
+        for path in ["m.py", deep_path.as_str()] {
+            let data = extract(&source, "python", path, "repo").unwrap();
+            let names: Vec<_> = data.entities.iter().map(|e| e.name.as_str()).collect();
+            assert!(names.contains(&"short"), "{path}");
+            let clipped = data
+                .entities
+                .iter()
+                .find(|e| e.name.starts_with('é'))
+                .unwrap();
+            assert!(clipped.name.len() <= 512 && clipped.canonical_key.len() <= 1024);
+        }
     }
 }

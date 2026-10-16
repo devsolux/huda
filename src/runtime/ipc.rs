@@ -218,7 +218,19 @@ pub fn serve(
     idle_seconds: u64,
     shutdown: Arc<AtomicBool>,
 ) -> Result<()> {
+    serve_announced(app, profile, idle_seconds, shutdown, || {})
+}
+/// Like `serve`, calling `ready` once the private listener is bound, so a readiness message is
+/// never shown for a Core that then fails to listen.
+pub fn serve_announced(
+    app: App,
+    profile: Profile,
+    idle_seconds: u64,
+    shutdown: Arc<AtomicBool>,
+    ready: impl FnOnce(),
+) -> Result<()> {
     let mut listener = Listener::bind(&profile)?;
+    ready();
     let clients = Arc::new(AtomicUsize::new(0));
     while !shutdown.load(Ordering::Acquire) {
         match listener.accept() {

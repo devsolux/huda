@@ -178,9 +178,12 @@ impl App {
             "add_principal" => {
                 let request: crate::runtime::auth::PrincipalRequest = decode(input)?;
                 caller.require("admin")?;
-                let profile = self.store()?.profile.clone();
-                let token = OsSecrets::create(&profile, &request.actor)?;
-                self.store()?.add_principal(caller, request, &token)?;
+                // One store lock spans preflight, secret issue and insert: a refused request
+                // writes no credential, and two requests for one actor cannot swap secrets.
+                let mut store = self.store()?;
+                store.check_new_principal(caller, &request)?;
+                let token = OsSecrets::create(&store.profile, &request.actor)?;
+                store.add_principal(caller, request, &token)?;
                 Ok(json!({"created":true,"credential_location":"os_secret_store"}))
             }
             "revoke_principal" => {

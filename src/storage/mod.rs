@@ -72,6 +72,14 @@ impl Store {
         recheck(&tx, caller, epoch)?;
         Ok(tx)
     }
+    /// A write transaction whose policy-epoch check its caller makes after an idempotent replay.
+    pub(crate) fn begin_unpinned(&mut self, caller: &Caller) -> Result<Transaction<'_>> {
+        let tx = self
+            .conn
+            .transaction_with_behavior(TransactionBehavior::Immediate)?;
+        recheck_caller(&tx, caller)?;
+        Ok(tx)
+    }
     pub fn backup(&self, caller: &Caller, filename: &str) -> Result<String> {
         caller.require("admin")?;
         require(
@@ -174,6 +182,11 @@ pub(crate) fn recheck(conn: &Connection, caller: &Caller, epoch: u64) -> Result<
         "POLICY_CHANGED",
         "Policy changed; start a new operation",
     )?;
+    recheck_caller(conn, caller)
+}
+/// Cancellation and revocation only; for reads that do not depend on the policy epoch.
+pub(crate) fn recheck_caller(conn: &Connection, caller: &Caller) -> Result<()> {
+    caller.check()?;
     let enabled: bool = conn
         .query_row(
             "SELECT enabled FROM principals WHERE actor=?1",

@@ -44,6 +44,8 @@ struct Desktop {
     startup_state: Option<bool>,
     startup_pending: Option<mpsc::Receiver<huda::error::Result<bool>>>,
     shell_status: String,
+    /// A relaunch marker that cannot be read is reported once, not every second.
+    activation_failed: bool,
     context: egui::Context,
     /// Held for the process lifetime so repeated launches do not create duplicate trays.
     _instance: huda::runtime::profile::Lease,
@@ -63,7 +65,8 @@ impl Desktop {
             pending: None, cancellation: Arc::new(AtomicBool::new(false)), confirm_mutation: false, pending_cancellable: true,
             needs_init: false, tray: None, shell_started: false, background_requested: background,
             keep_running: background, quitting: false, startup_state: None,
-            startup_pending: None, shell_status: "Login registration has not been checked".into(), context,
+            startup_pending: None, shell_status: "Login registration has not been checked".into(),
+            activation_failed: false, context,
             _instance: instance,
         }
     }
@@ -229,13 +232,14 @@ impl eframe::App for Desktop {
         }
         // A second launch cannot reach this process directly; it leaves an activation marker
         // in the profile directory and exits. Poll it slowly so a hidden window stays reachable.
-        if self
-            .client
-            .profile
-            .take_desktop_activation()
-            .unwrap_or(false)
-        {
-            shell::show(context);
+        match self.client.profile.take_desktop_activation() {
+            Ok(true) => shell::show(context),
+            Ok(false) => {}
+            Err(error) if !self.activation_failed => {
+                self.activation_failed = true;
+                self.shell_status = format!("Relaunching cannot show this window: {error}");
+            }
+            Err(_) => {}
         }
         context.request_repaint_after(std::time::Duration::from_secs(1));
     }
@@ -409,6 +413,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             .with_icon(icon),
         ..Default::default()
     };
+    GUI_STARTED.store(true, Ordering::Release);
     eframe::run_native(
         huda::APP_NAME,
         options,
@@ -423,11 +428,34 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     )?;
     Ok(())
 }
+/// Set once the desktop window starts; a failure before it is shown in a window of its own.
+static GUI_STARTED: AtomicBool = AtomicBool::new(false);
+/// GUI launches (Finder, login items, the Windows subsystem) have no visible stderr. If the
+/// window system itself cannot start, only stderr and the exit code remain.
+fn show_startup_error(message: String) {
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_app_id(huda::APP_ID)
+            .with_title(huda::APP_NAME)
+            .with_inner_size([520.0, 200.0]),
+        ..Default::default()
+    };
+    let _ = eframe::run_ui_native(huda::APP_NAME, options, move |ui, _| {
+        ui.heading("Huda could not start");
+        ui.label(&message);
+        if ui.button("Quit Huda").clicked() {
+            ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+        }
+    });
+}
 fn main() -> std::process::ExitCode {
     match run() {
         Ok(()) => std::process::ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("Huda: {error}");
+            if !GUI_STARTED.load(Ordering::Acquire) {
+                show_startup_error(error.to_string());
+            }
             std::process::ExitCode::FAILURE
         }
     }

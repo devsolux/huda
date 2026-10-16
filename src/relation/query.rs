@@ -805,6 +805,38 @@ impl Store {
                 remaining_need_ids: need_ids,
             });
         }
+        // The negated twin of a mid-path step touches no seed, yet it contradicts that step.
+        let twin_key = |r: &RelationView| {
+            serde_json::to_string(&(
+                &r.relation.relation_type,
+                &r.relation.roles,
+                &r.relation.qualifiers,
+                &r.relation.modality,
+            ))
+        };
+        let mut relevant_polarities: BTreeMap<String, Vec<&Polarity>> = BTreeMap::new();
+        for r in filtered
+            .iter()
+            .filter(|r| relevant_ids.contains(&r.relation_id))
+        {
+            relevant_polarities
+                .entry(twin_key(r)?)
+                .or_default()
+                .push(&r.relation.polarity);
+        }
+        let mut twins = Vec::new();
+        for r in filtered
+            .iter()
+            .filter(|r| !relevant_ids.contains(&r.relation_id))
+        {
+            if relevant_polarities
+                .get(&twin_key(r)?)
+                .is_some_and(|p| p.iter().any(|p| **p != r.relation.polarity))
+            {
+                twins.push(r.relation_id.clone());
+            }
+        }
+        relevant_ids.extend(twins);
         let relations: Vec<_> = filtered
             .into_iter()
             .filter(|r| relevant_ids.contains(&r.relation_id))
@@ -859,11 +891,10 @@ impl Store {
             context_hash: String::new(),
         };
         context.context_hash = crate::answer::context::context_hash(&context)?;
-        require(
-            canonical_bytes(&context)?.len() <= 524_288,
-            "LIMIT_EXCEEDED",
-            "Relation context exceeds byte budget; narrow the query",
-        )?;
+        let size = canonical_bytes(&context)?.len();
+        if size > MAX_CONTEXT_BYTES {
+            trim_context(&mut context, size)?;
+        }
         Ok(context)
     }
     pub fn check_policy(&self, caller: &Caller, epoch: u64) -> Result<()> {
@@ -965,6 +996,76 @@ fn ineligible_reason(view: &RelationView, goal: &GoalSpec) -> Option<&'static st
     }
     None
 }
+const MAX_CONTEXT_BYTES: usize = 524_288;
+/// A hub seed can touch more relations than one context holds. Relations outside every slot
+/// basis go first, then surplus basis relations (each slot keeps its first), last first; path
+/// steps and conflict sides always stay. The cut is disclosed as `truncated`.
+fn trim_context(context: &mut RelationContext, mut size: usize) -> Result<()> {
+    let basis: BTreeSet<String> = context
+        .goal_coverage
+        .slots
+        .iter()
+        .flat_map(|s| s.coverage_basis.iter().cloned())
+        .collect();
+    let mut fixed: BTreeSet<String> = context
+        .goal_coverage
+        .slots
+        .iter()
+        .filter_map(|s| s.coverage_basis.first().cloned())
+        .collect();
+    fixed.extend(
+        context
+            .derived_paths
+            .iter()
+            .flat_map(|p| p.steps.iter().map(|s| s.relation_id.clone())),
+    );
+    fixed.extend(
+        context
+            .conflicts
+            .iter()
+            .flat_map(|c| c.relation_ids.iter().cloned()),
+    );
+    let mut dropped = BTreeSet::new();
+    for in_basis in [false, true] {
+        for relation in context.relations.iter().rev() {
+            if size <= MAX_CONTEXT_BYTES {
+                break;
+            }
+            let id = &relation.relation_id;
+            if fixed.contains(id) || basis.contains(id) != in_basis {
+                continue;
+            }
+            size = size.saturating_sub(canonical_bytes(relation)?.len() + 1);
+            dropped.insert(id.clone());
+        }
+    }
+    context
+        .relations
+        .retain(|r| !dropped.contains(&r.relation_id));
+    for slot in &mut context.goal_coverage.slots {
+        slot.coverage_basis.retain(|id| !dropped.contains(id));
+    }
+    let used: BTreeSet<String> = context
+        .relations
+        .iter()
+        .flat_map(|r| entity_ids(&r.relation))
+        .chain(
+            context
+                .goal
+                .seeds
+                .iter()
+                .filter_map(|s| s.entity_id.clone()),
+        )
+        .collect();
+    context.entities.retain(|e| used.contains(&e.entity_id));
+    context.truncated = true;
+    context.context_hash = crate::answer::context::context_hash(context)?;
+    require(
+        canonical_bytes(context)?.len() <= MAX_CONTEXT_BYTES,
+        "LIMIT_EXCEEDED",
+        "Relation context exceeds byte budget; narrow the query",
+    )
+}
 fn find_path(
     adjacency: &BTreeMap<String, Vec<PathStep>>,
     start: &str,
@@ -972,8 +1073,9 @@ fn find_path(
     max_hops: u8,
     caller: &Caller,
 ) -> Result<(Option<Vec<PathStep>>, bool)> {
+    // Two seeds that resolve to one entity name no typed connection; an empty path is no basis.
     if start == target {
-        return Ok((Some(Vec::new()), false));
+        return Ok((None, false));
     }
     let mut queue = VecDeque::from([(start.to_owned(), Vec::<PathStep>::new())]);
     let mut visited = BTreeSet::from([start.to_owned()]);

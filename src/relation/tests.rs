@@ -989,3 +989,232 @@ fn model_extraction_cannot_attach_evidence() {
     let data = crate::acquisition::text::extract(&model, "doc", "A.", &entities, &types).unwrap();
     assert_eq!(data.assertions.len(), 1);
 }
+
+impl Fixture {
+    fn entity(&mut self, key: &str, name: &str) -> String {
+        let epoch = self.store.epochs().unwrap().policy;
+        self.store
+            .upsert_entity(
+                &self.caller,
+                EntityRequest {
+                    entity: EntityInput {
+                        namespace: "demo".into(),
+                        kind: "concept".into(),
+                        canonical_key: key.into(),
+                        name: name.into(),
+                        aliases: vec![],
+                    },
+                    scope: "local".into(),
+                    expected_policy_epoch: epoch,
+                },
+            )
+            .unwrap()
+    }
+    fn dependency(&self, dependent: &str, dependency: &str, polarity: Polarity) -> RelationInput {
+        let mut relation = self.relation.clone();
+        relation.roles = BTreeMap::from([
+            (
+                "dependent".into(),
+                vec![RoleValue::Entity {
+                    entity_id: dependent.into(),
+                }],
+            ),
+            (
+                "dependency".into(),
+                vec![RoleValue::Entity {
+                    entity_id: dependency.into(),
+                }],
+            ),
+        ]);
+        relation.polarity = polarity;
+        relation
+    }
+    fn assert_dependency(&mut self, key: &str, relation: RelationInput) {
+        let mut request = self.request(key);
+        request.relation = relation;
+        self.store.assert_relation(&self.caller, request).unwrap();
+    }
+    fn goal_for(&mut self, question: &str) -> GoalSpec {
+        let request: AskRequest = serde_json::from_value(json!({ "question": question })).unwrap();
+        let entities = self.store.visible_entities(&self.caller).unwrap();
+        let types = self.store.list_types(&self.caller).unwrap();
+        answer::understand(&request, &entities, &types, &UnavailableModel).unwrap()
+    }
+}
+#[test]
+fn seeds_naming_one_entity_do_not_cover_a_typed_connection() {
+    let mut f = Fixture::new();
+    let request = f.request("manual");
+    f.store.assert_relation(&f.caller, request).unwrap();
+    let goal = f.goal_for("Explain the relationships between Project A and project-a");
+    let context = f.store.query_goal(&f.caller, goal).unwrap();
+    assert!(!context.goal_coverage.goal_met);
+    assert_eq!(
+        context.goal_coverage.slots[0].state,
+        super::query::CoverageState::Partial
+    );
+    assert!(context.derived_paths.is_empty());
+}
+#[test]
+fn negated_twin_of_a_mid_path_step_is_a_conflict() {
+    let mut f = Fixture::new();
+    let a = f.relation.roles["dependent"][0].clone();
+    let b = f.relation.roles["dependency"][0].clone();
+    let (RoleValue::Entity { entity_id: a }, RoleValue::Entity { entity_id: b }) = (a, b) else {
+        unreachable!()
+    };
+    let d = f.entity("database-d", "Database D");
+    let c = f.entity("cache-c", "Cache C");
+    for (key, from, to, polarity) in [
+        ("ab", &a, &b, Polarity::Positive),
+        ("bd", &b, &d, Polarity::Positive),
+        ("dc", &d, &c, Polarity::Positive),
+        ("not-bd", &b, &d, Polarity::Negative),
+    ] {
+        let relation = f.dependency(from, to, polarity);
+        f.assert_dependency(key, relation);
+    }
+    let goal = f.goal_for("Explain the relationships between Project A and Cache C");
+    let context = f.store.query_goal(&f.caller, goal).unwrap();
+    assert_eq!(context.derived_paths[0].steps.len(), 3);
+    assert_eq!(context.conflicts.len(), 1);
+    assert!(!context.goal_coverage.goal_met);
+}
+#[test]
+fn hub_seed_context_is_trimmed_and_disclosed() {
+    let mut f = Fixture::new();
+    f.admit(true);
+    let RoleValue::Entity { entity_id: hub } = f.relation.roles["dependent"][0].clone() else {
+        unreachable!()
+    };
+    let mut data = ExtractedData::default();
+    for i in 0..400 {
+        let entity = EntityInput {
+            namespace: "demo".into(),
+            kind: "concept".into(),
+            canonical_key: format!("dependency-{i}"),
+            name: format!("Dependency {i} {}", "x".repeat(480)),
+            aliases: vec![],
+        };
+        let relation = f.dependency(&hub, &entity.id().unwrap(), Polarity::Positive);
+        data.assertions.push(StructuredAssertion {
+            anchor: format!("hub-{i}"),
+            relation,
+            evidence: vec![],
+            epistemic_kind: EpistemicKind::Asserted,
+        });
+        data.entities.push(entity);
+    }
+    let batch = f.batch("1", 0, true, data);
+    f.store.publish_source(&f.caller, batch).unwrap();
+    let goal = f.goal();
+    let context = f.store.query_goal(&f.caller, goal).unwrap();
+    assert!(context.truncated);
+    assert!(!context.relations.is_empty() && context.relations.len() < 400);
+    assert!(crate::relation::canonical_bytes(&context).unwrap().len() <= 524_288);
+    let slot = &context.goal_coverage.slots[0];
+    assert!(!slot.coverage_basis.is_empty());
+    assert!(slot
+        .coverage_basis
+        .iter()
+        .all(|id| context.relations.iter().any(|r| &r.relation_id == id)));
+}
+#[test]
+fn committed_assertion_replays_after_the_policy_epoch_moves() {
+    use crate::acquisition::providers::OfflineRequest;
+    let mut f = Fixture::new();
+    let request = f.request("replayed");
+    let first = f.store.assert_relation(&f.caller, request.clone()).unwrap();
+    let epoch = f.store.epochs().unwrap().policy;
+    f.store
+        .set_offline(
+            &f.caller,
+            OfflineRequest {
+                offline: true,
+                expected_policy_epoch: epoch,
+            },
+        )
+        .unwrap();
+    // The lost response is recovered with the original epoch and with the current one.
+    let stale = f.store.assert_relation(&f.caller, request.clone()).unwrap();
+    let mut current = request.clone();
+    current.expected_policy_epoch = f.store.epochs().unwrap().policy;
+    let fresh = f.store.assert_relation(&f.caller, current).unwrap();
+    assert_eq!(stale.assertion_id, first.assertion_id);
+    assert_eq!(fresh.assertion_version, first.assertion_version);
+    // A new request with the stale epoch is still refused.
+    let mut other = f.request("other");
+    other.expected_policy_epoch = epoch;
+    assert_eq!(
+        f.store.assert_relation(&f.caller, other).unwrap_err().code,
+        "POLICY_CHANGED"
+    );
+}
+#[test]
+fn source_retry_replays_although_the_extraction_differs() {
+    let mut f = Fixture::new();
+    f.admit(true);
+    let first = f.batch("1", 0, false, f.data());
+    let request_key = first.request_key.clone();
+    let capture = first.capture.clone();
+    let committed = f.store.publish_source(&f.caller, first).unwrap();
+    // A retried semantic job may extract differently from the same capture.
+    let mut retry = f.batch("1", 0, false, ExtractedData::default());
+    retry.request_key = request_key;
+    retry.capture = capture;
+    let replayed = f.store.publish_source(&f.caller, retry).unwrap();
+    assert_eq!(replayed.generation, committed.generation);
+    assert_eq!(replayed.published.len(), committed.published.len());
+}
+#[test]
+fn principal_preflight_refuses_before_any_secret_is_issued() {
+    use crate::runtime::auth::PrincipalRequest;
+    let f = Fixture::new();
+    let epoch = f.store.epochs().unwrap().policy;
+    let request = |actor: &str, permission: &str, epoch: u64| PrincipalRequest {
+        actor: actor.into(),
+        read_scopes: ["local".into()].into(),
+        write_scopes: Default::default(),
+        permissions: [permission.into()].into(),
+        expected_policy_epoch: epoch,
+    };
+    let code = |r: PrincipalRequest| f.store.check_new_principal(&f.caller, &r).unwrap_err().code;
+    assert_eq!(code(request("reader", "root", epoch)), "INVALID_INPUT");
+    assert_eq!(code(request("owner", "read", epoch)), "VERSION_CONFLICT");
+    assert_eq!(code(request("reader", "read", epoch + 1)), "POLICY_CHANGED");
+    f.store
+        .check_new_principal(&f.caller, &request("reader", "read", epoch))
+        .unwrap();
+}
+struct OversizedInputModel;
+impl LocalLlm for OversizedInputModel {
+    fn available(&self) -> bool {
+        true
+    }
+    fn generate(&self, _purpose: ModelUse, _input: &Value) -> Result<Value> {
+        Err(crate::error::Error::new(
+            "LIMIT_EXCEEDED",
+            "Model input exceeds context byte limit",
+        ))
+    }
+}
+#[test]
+fn model_input_over_budget_degrades_instead_of_failing() {
+    let mut f = Fixture::new();
+    f.store
+        .assert_relation(&f.caller, f.request("manual"))
+        .unwrap();
+    let request: AskRequest =
+        serde_json::from_value(json!({"question":"What does Project A depend on in production?"}))
+            .unwrap();
+    let entities = f.store.visible_entities(&f.caller).unwrap();
+    let types = f.store.list_types(&f.caller).unwrap();
+    let goal = answer::understand(&request, &entities, &types, &OversizedInputModel).unwrap();
+    assert_eq!(goal, f.goal());
+    let context = f.store.query_goal(&f.caller, goal).unwrap();
+    let response = answer::formulate(&context, &OversizedInputModel).unwrap();
+    assert!(matches!(response.status, AnswerStatus::ModelUnavailable));
+    assert!(response
+        .degraded_components
+        .contains(&"model_input_exceeds_budget".to_string()));
+}

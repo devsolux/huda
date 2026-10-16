@@ -3,7 +3,7 @@ use super::model::*;
 use super::registry::{load_type, normalize_relation};
 use crate::acquisition::admission::*;
 use crate::error::{require, Error, Result};
-use crate::storage::{audit, tick, Store};
+use crate::storage::{audit, recheck, tick, Store};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::collections::BTreeSet;
 
@@ -40,12 +40,25 @@ impl Store {
         )?;
         text(&request.idempotency_key, 128)?;
         let key = format!("assert:{}", request.idempotency_key);
-        let hash = stable_id("request", &request)?;
-        let tx = self.begin(caller, request.expected_policy_epoch)?;
-        if let Some(previous) = replay::<Published>(&tx, caller, &key, &hash)? {
+        // The policy epoch pins when a write may happen, not what was asked: a committed request
+        // is answered from its record even after the epoch moved on. Earlier builds hashed it.
+        let hash = stable_id(
+            "request",
+            &(
+                &request.relation,
+                &request.scope,
+                &request.idempotency_key,
+                &request.evidence,
+                &request.epistemic_kind,
+            ),
+        )?;
+        let legacy_hash = stable_id("request", &request)?;
+        let tx = self.begin_unpinned(caller)?;
+        if let Some(previous) = replay::<Published>(&tx, caller, &key, &[&hash, &legacy_hash])? {
             tx.commit()?;
             return Ok(previous);
         }
+        recheck(&tx, caller, request.expected_policy_epoch)?;
         let (relation, relation_id) =
             normalize_relation(&tx, caller, &request.relation, &request.scope)?;
         validate_evidence(&tx, caller, &request.scope, &request.evidence)?;
@@ -191,7 +204,21 @@ impl Store {
             "LIMIT_EXCEEDED",
             "Too many proposals",
         )?;
+        // Only request inputs identify a retry: a model can extract different data from the same
+        // capture. Earlier builds hashed the extracted data instead of the revision and generation.
         let request_hash = stable_id(
+            "import",
+            &(
+                &batch.source_key,
+                &batch.scope_key,
+                batch.complete,
+                &batch.capture.sha256,
+                &batch.capture.revision,
+                batch.expected_generation,
+                &batch.extractor_digest,
+            ),
+        )?;
+        let legacy_hash = stable_id(
             "import",
             &(
                 &batch.source_key,
@@ -203,9 +230,12 @@ impl Store {
             ),
         )?;
         let tx = self.begin(caller, batch.policy_epoch)?;
-        if let Some(result) =
-            replay::<ImportResult>(&tx, caller, &batch.request_key, &request_hash)?
-        {
+        if let Some(result) = replay::<ImportResult>(
+            &tx,
+            caller,
+            &batch.request_key,
+            &[&request_hash, &legacy_hash],
+        )? {
             tx.commit()?;
             return Ok(result);
         }
@@ -720,12 +750,12 @@ fn replay<T: serde::de::DeserializeOwned>(
     conn: &Connection,
     caller: &Caller,
     key: &str,
-    hash: &str,
+    hashes: &[&str],
 ) -> Result<Option<T>> {
     let prior:Option<(String,String)>=conn.query_row("SELECT request_hash,response_json FROM write_requests WHERE actor=?1 AND request_key=?2",params![caller.actor,key],|r|Ok((r.get(0)?,r.get(1)?))).optional()?;
     if let Some((old_hash, body)) = prior {
         require(
-            old_hash == hash,
+            hashes.contains(&old_hash.as_str()),
             "VERSION_CONFLICT",
             "Idempotency key was already used for a different request",
         )?;

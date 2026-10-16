@@ -31,12 +31,19 @@ impl Budget {
     }
     pub fn check(&self) -> Result<()> {
         require(
-            self.requests < 12 && self.bytes < 8 * 1024 * 1024 && now_ms() < self.deadline_ms,
+            self.requests < MAX_REQUESTS
+                && self.bytes < 8 * 1024 * 1024
+                && now_ms() < self.deadline_ms,
             "BUDGET_EXHAUSTED",
             "Expansion exhausted its request, byte or time budget",
         )
     }
+    /// Whether `requests` more reads still fit the request budget.
+    pub fn has_room(&self, requests: u32) -> bool {
+        self.check().is_ok() && self.requests + requests <= MAX_REQUESTS
+    }
 }
+const MAX_REQUESTS: u32 = 12;
 impl Default for Budget {
     fn default() -> Self {
         Self::new()
@@ -75,10 +82,27 @@ impl Wikimedia {
             "POLICY_DENIED",
             "Host is outside the fixed Wikimedia allowlist",
         )?;
-        let mut rate = self
-            .rate
-            .lock()
-            .map_err(|_| Error::new("INTERNAL_ERROR", "Provider limiter unavailable"))?;
+        // Requests stay serial across jobs, but a job waiting for the limiter remains
+        // cancellable and bounded by its own budget instead of blocking in `lock`.
+        let mut rate = loop {
+            match self.rate.try_lock() {
+                Ok(rate) => break rate,
+                Err(std::sync::TryLockError::WouldBlock) => {
+                    checkpoint()?;
+                    budget.check()?;
+                    std::thread::sleep(Duration::from_millis(50));
+                }
+                Err(std::sync::TryLockError::Poisoned(_)) => {
+                    return Err(Error::new("INTERNAL_ERROR", "Provider limiter unavailable"))
+                }
+            }
+        };
+        let remaining = Duration::from_millis(budget.deadline_ms.saturating_sub(now_ms()));
+        require(
+            rate.next.saturating_duration_since(Instant::now()) < remaining,
+            "RATE_LIMITED",
+            "Provider backoff outlasts this expansion",
+        )?;
         while Instant::now() < rate.next {
             checkpoint()?;
             budget.check()?;
@@ -167,8 +191,25 @@ impl Wikimedia {
             "LIMIT_EXCEEDED",
             "Provider response is too large",
         )?;
+        // reqwest's blocking timeout bounds each read, not the body: a slow sender is cut off
+        // at the request deadline between reads.
+        let deadline = Instant::now() + timeout;
         let mut bytes = Vec::new();
-        response.take(1024 * 1024 + 1).read_to_end(&mut bytes)?;
+        let mut body = response.take(1024 * 1024 + 1);
+        let mut chunk = [0u8; 16 * 1024];
+        loop {
+            require(
+                Instant::now() < deadline,
+                "DEADLINE_EXCEEDED",
+                "Provider response exceeded its deadline",
+            )?;
+            checkpoint()?;
+            let read = body.read(&mut chunk)?;
+            if read == 0 {
+                break;
+            }
+            bytes.extend_from_slice(&chunk[..read]);
+        }
         require(
             bytes.len() <= 1024 * 1024,
             "LIMIT_EXCEEDED",
@@ -498,6 +539,52 @@ fn public_address(ip: IpAddr) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn a_term_starts_only_when_its_worst_case_fits() {
+        let mut budget = Budget::new();
+        budget.requests = 10;
+        assert!(budget.has_room(2));
+        assert!(!budget.has_room(3));
+        budget.requests = MAX_REQUESTS;
+        assert!(!budget.has_room(0));
+    }
+    #[test]
+    fn backoff_beyond_the_budget_stops_at_once_without_egress() {
+        let wikimedia = Wikimedia {
+            rate: Mutex::new(RateState {
+                next: Instant::now() + Duration::from_secs(86_400),
+            }),
+        };
+        let policy = ProviderPolicy {
+            provider_id: "wikidata".into(),
+            scope: "local".into(),
+            allowed_actors: ["owner".into()].into(),
+            languages: ["en".into()].into(),
+            approved_public_terms: ["Photosynthesis".into()].into(),
+            may_fetch: true,
+            auto_register_provider_types: false,
+            auto_admit_structured: false,
+            auto_admit_semantic: false,
+            semantic_types: Default::default(),
+            user_agent: format!("Huda/{} (ops@example.invalid)", crate::VERSION),
+            ttl_seconds: 3600,
+        };
+        let mut budget = Budget::new();
+        let started = Instant::now();
+        let error = wikimedia
+            .read(
+                "www.wikidata.org",
+                &["w", "api.php"],
+                &[],
+                &policy,
+                &mut budget,
+                &|| Ok(()),
+            )
+            .unwrap_err();
+        assert_eq!(error.code, "RATE_LIMITED");
+        assert!(started.elapsed() < Duration::from_secs(1));
+        assert_eq!(budget.requests, 0);
+    }
     #[test]
     fn identifiers_are_not_urls() {
         assert!(external_id("P31", b'P'));

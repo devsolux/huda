@@ -16,6 +16,41 @@ pub struct PrincipalRequest {
     pub permissions: BTreeSet<String>,
     pub expected_policy_epoch: u64,
 }
+impl PrincipalRequest {
+    pub fn validate(&self) -> Result<()> {
+        identifier(&self.actor)?;
+        require(
+            !self.read_scopes.is_empty()
+                && self.read_scopes.len() <= 32
+                && self.write_scopes.is_subset(&self.read_scopes),
+            "INVALID_INPUT",
+            "Invalid scoped capability",
+        )?;
+        for scope in &self.read_scopes {
+            identifier(scope)?;
+        }
+        for permission in &self.permissions {
+            require(
+                matches!(
+                    permission.as_str(),
+                    "read"
+                        | "write"
+                        | "ingest"
+                        | "registry"
+                        | "policy"
+                        | "admin"
+                        | "jobs"
+                        | "expand"
+                        | "bridge"
+                        | "review"
+                ),
+                "INVALID_INPUT",
+                "Unknown permission",
+            )?;
+        }
+        Ok(())
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct RevokeRequest {
@@ -92,6 +127,21 @@ impl Store {
         tx.commit()?;
         Ok(())
     }
+    /// Read-only preflight for `add_principal`, run before any OS secret-store write so that a
+    /// refused request leaves no orphan credential behind.
+    pub fn check_new_principal(&self, caller: &Caller, request: &PrincipalRequest) -> Result<()> {
+        caller.require("admin")?;
+        request.validate()?;
+        crate::storage::recheck(&self.conn, caller, request.expected_policy_epoch)?;
+        require(
+            !self
+                .conn
+                .prepare("SELECT 1 FROM principals WHERE actor=?1")?
+                .exists([&request.actor])?,
+            "VERSION_CONFLICT",
+            "Actor already exists; credentials are not overwritten",
+        )
+    }
     pub fn add_principal(
         &mut self,
         caller: &Caller,
@@ -99,36 +149,7 @@ impl Store {
         token: &str,
     ) -> Result<()> {
         caller.require("admin")?;
-        identifier(&request.actor)?;
-        require(
-            !request.read_scopes.is_empty()
-                && request.read_scopes.len() <= 32
-                && request.write_scopes.is_subset(&request.read_scopes),
-            "INVALID_INPUT",
-            "Invalid scoped capability",
-        )?;
-        for scope in &request.read_scopes {
-            identifier(scope)?;
-        }
-        for permission in &request.permissions {
-            require(
-                matches!(
-                    permission.as_str(),
-                    "read"
-                        | "write"
-                        | "ingest"
-                        | "registry"
-                        | "policy"
-                        | "admin"
-                        | "jobs"
-                        | "expand"
-                        | "bridge"
-                        | "review"
-                ),
-                "INVALID_INPUT",
-                "Unknown permission",
-            )?;
-        }
+        request.validate()?;
         let tx = self.begin(caller, request.expected_policy_epoch)?;
         require(
             !tx.prepare("SELECT 1 FROM principals WHERE actor=?1")?
@@ -200,22 +221,15 @@ impl OsSecrets {
             ))
         }
     }
+    /// Issues a fresh credential for an actor the database does not know yet. An entry left at
+    /// this profile path (a deleted profile, an interrupted init) is replaced, never adopted: it
+    /// may have leaked. Callers hold the Core lease (`init`) or the store lock (`add_principal`),
+    /// so no concurrent issuer can race the replacement.
     pub fn create(profile: &super::Profile, actor: &str) -> Result<String> {
         let token = random_id("cap")?;
         #[cfg(feature = "os-secrets")]
         {
             let entry = Self::entry(profile, actor)?;
-            // Never overwrite an existing credential on a retry or database conflict.
-            match entry.get_password() {
-                Ok(existing) => return Ok(existing),
-                Err(keyring::v1::Error::NoEntry) => {}
-                Err(_) => {
-                    return Err(Error::new(
-                        "AUTH_REQUIRED",
-                        "OS secret store is locked or unavailable",
-                    ))
-                }
-            }
             entry.set_password(&token).map_err(|_| {
                 Error::new(
                     "AUTH_REQUIRED",

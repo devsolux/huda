@@ -301,6 +301,7 @@ Actions are pinned to release commits and updated manually. See
 | [Gate matrix](docs/verification/gates.md) | Release gates and their recorded evidence |
 | [Evaluations](docs/evaluations.md) | Evaluation contract for native and semantic gates |
 | [Dependency versions](docs/dependency-versions.md) | Pinned crates, actions and protocol versions |
+| [Open decisions](docs/open-decisions.md) | Confirmed findings that wait for a maintainer decision |
 
 ## Security
 

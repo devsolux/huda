@@ -84,7 +84,8 @@ pub fn understand(
                     "Query understanding did not produce a valid GoalSpec",
                 )
             })?,
-            Err(error) if error.code == "MODEL_UNAVAILABLE" => {
+            // A registry grown past the model's input budget leaves the bounded parser usable.
+            Err(error) if matches!(error.code.as_str(), "MODEL_UNAVAILABLE" | "LIMIT_EXCEEDED") => {
                 deterministic_goal(request, entities)?
             }
             Err(error) => return Err(error),
@@ -278,6 +279,14 @@ pub fn formulate(context: &RelationContext, model: &dyn LocalLlm) -> Result<AskR
             response
                 .degraded_components
                 .push("local_model_unavailable".into());
+            return Ok(response);
+        }
+        // The context fits Query Core's budget, but with its markers not the model's input.
+        Err(error) if error.code == "LIMIT_EXCEEDED" => {
+            response.status = AnswerStatus::ModelUnavailable;
+            response
+                .degraded_components
+                .push("model_input_exceeds_budget".into());
             return Ok(response);
         }
         Err(error) => return Err(error),
