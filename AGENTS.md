@@ -7,3 +7,5 @@ Use English for code/docs and the smallest coherent change. Follow the actual ty
 Treat inputs, captures and model output as untrusted. Do not relax authorization, evidence optionality, source scope/CAS, immutable history or disabled persisted inference to pass tests. Do not run real provider/model/Bridge/network/migration/destructive tests without explicit consent and disposable fixtures. Never modify a user database to make a test pass.
 
 Qualification commands are in README. Never invent lockfile, native, LLM or provider success. Review the committed `Cargo.lock` before locked checks and report exact failures/skips. Never call a build a completed G0–G8 release without actual gate evidence.
+
+Git: work only on `main`. Never create, switch to or push another branch, worktree or pull-request branch; commit directly to `main` and push only `origin main`, and only when asked. Never force-push, rebase, amend or reset published commits, or delete branches, tags, releases or release assets, without explicit consent. Keep unrelated uncommitted changes out of commits and never discard them.
