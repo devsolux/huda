@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icons/huda-128.png" alt="Huda application icon" width="96" height="96">
+  <img src="assets/icons/huda-256.png" alt="Huda application icon" width="128" height="128">
 </p>
 
 <h1 align="center">Huda</h1>

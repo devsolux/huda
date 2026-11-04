@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- New application icon: a flat H whose amber crossbar is the relation between two entities. Icons
+  from 128px up follow the macOS grid with a transparent surround, and icons up to 64px fill the
+  canvas so that the mark stays legible in the tray, title bar and taskbar.
+
 ## 1.2.0 — 2026-10-16
 
 ### Changed
