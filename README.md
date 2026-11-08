@@ -17,6 +17,12 @@
   <a href="https://github.com/devsolux/huda/releases"><img src="https://img.shields.io/github/v/release/devsolux/huda" alt="Latest release"></a>
 </p>
 
+<p align="center">
+  <img src="docs/ss-dark.png" alt="The Huda desktop in its dark appearance. Relation Space shows a graph of nine entities and eight relations, each relation a node joined to its parties, with a negated, a planned and a stale relation drawn differently, and an inspector beside the canvas." width="900">
+  <br>
+  <sub>Relation Space as a graph, in the dark appearance, with sample data.</sub>
+</p>
+
 ---
 
 ## Overview
@@ -58,9 +64,13 @@ external services unless you explicitly configure and authorize it.
 - **AI client connections** — one list of AI clients with each one's real state, and connect,
   repair and disconnect that show the change first. See [AI clients](#ai-clients-mcp).
 - **Native desktop** — an egui application with a sidebar, light and dark appearances that follow
-  the system, relations drawn as relations, keyboard and screen-reader support, a tray menu,
-  opt-in launch at login and
+  the system, keyboard and screen-reader support, a tray menu, opt-in launch at login and
   single-instance activation.
+- **Graph view** — relations as a list, a graph or exact JSON. In the graph every relation is a
+  node joined to each party by a line named for its role, so relations with more than two parties
+  draw truthfully, and negations, plans and proposals differ in shape and word. The same data
+  always gets the same picture, and expanding an entity grows the graph without moving what you
+  have already seen. See [desktop design](docs/desktop-design.md#graph).
 - **Optional code adapter** — Tree-sitter syntax parsing behind the `code-adapter` feature (see
   [NOTICE](NOTICE.md)).
 
@@ -138,6 +148,10 @@ huda status       # start the Core on demand and report its state
 huda-desktop      # open the native desktop
 huda mcp stdio    # serve MCP over stdio
 ```
+
+In the desktop, **Explore Relations** shows what the profile holds. Choose **Graph** to see it
+as a graph: select a node to inspect it, drag to move it, and double-click an entity, or choose
+**Expand**, to add its relations.
 
 The desktop can also initialize a profile with **Initialize profile**. Credentials live only in
 an unlocked OS secret store; there is no plaintext fallback.
