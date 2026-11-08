@@ -57,7 +57,7 @@ fn a_person_only_ever_sees_the_name_huda() {
 }
 #[test]
 fn protocol_and_product_versions_are_distinct() {
-    assert_eq!(huda::VERSION, "1.2.0");
+    assert_eq!(huda::VERSION, "1.3.0");
     assert_eq!(huda::MCP_VERSION, "2026-07-28");
     assert_eq!(contracts::openapi()["openapi"], "3.1.2");
 }

@@ -49,7 +49,7 @@ javascript, go, python and css 0.25.0, c 0.24.2, php 0.25.1, bash 0.25.1, swift 
 markdown 0.5.3, dart-orchard 0.7.0, typescript 0.23.2, rust 0.24.2, java 0.23.5, cpp 0.23.4,
 html 0.23.2, c-sharp 0.23.5, kotlin-ng 1.1.0, ruby 0.23.1 and json 0.24.8. `libc` and optional
 `anyhow` retain compatible ranges which the real lock must resolve. The package/MCP/OpenAPI/schema version contracts are
-not dependency-update knobs; product version is 1.2.0, MCP 2026-07-28 and OpenAPI 3.1.2.
+not dependency-update knobs; product version is 1.3.0, MCP 2026-07-28 and OpenAPI 3.1.2.
 
 ## GitHub actions: current release commits
 

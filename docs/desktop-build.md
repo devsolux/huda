@@ -1,4 +1,4 @@
-# Native desktop build and packaging — Huda 1.2.0
+# Native desktop build and packaging — Huda 1.3.0
 
 ## Prerequisites and reproducibility
 
@@ -66,7 +66,7 @@ The `.deb` places both real binaries in `/usr/lib/huda`, with `/usr/bin` symlink
 
 Build/packaging output is labelled `unqualified` and contains lock/provenance metadata. File hashes detect corruption, not safety, licensing or reproducibility on their own. Artifacts are uploaded only after their native build/test job passes; no GitHub Release is created or published automatically. Once every gate and native job passes, the `sign` job (the only job with `id-token: write`, and without a code checkout) verifies each target's `SHA256SUMS`, requires it to list exactly the downloaded packages, and signs every package plus one combined `SHA256SUMS` keylessly with Sigstore cosign: the job's GitHub OIDC token is exchanged for a short-lived Fulcio certificate naming this workflow, ref and commit, and each signature is recorded in the public Rekor transparency log. It then verifies every bundle against that identity. Dispatch runs sign too, so a dispatch on `main` exercises the signing path; its certificates name `refs/heads/main`, not a release tag. For a release a maintainer publishes, the final `release-assets` job (the only job with `contents: write`, and without a code checkout) re-checks the checksums and attaches the packages, the combined `SHA256SUMS` and one `<file>.sigstore.json` bundle per file. It fails rather than replace an existing asset, so delete stale assets explicitly before re-running a release build. Require **every** workflow job and the plan's native/semantic/security gates before release.
 
-Verify a downloaded release asset with cosign 3.x, pinning the identity to the release tag. Set `TAG` to the release tag (for example `v1.2.0`) and `FILE` to the downloaded package:
+Verify a downloaded release asset with cosign 3.x, pinning the identity to the release tag. Set `TAG` to the release tag (for example `v1.3.0`) and `FILE` to the downloaded package:
 
 ```bash
 cosign verify-blob \

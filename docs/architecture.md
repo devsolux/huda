@@ -1,4 +1,4 @@
-# Architecture — 1.2.0
+# Architecture — 1.3.0
 
 ## Authority and responsibility
 
