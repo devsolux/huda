@@ -492,6 +492,38 @@ mod serve_tests {
     }
 
     #[test]
+    fn a_client_never_sees_the_socket_before_it_is_private() {
+        use std::os::unix::fs::{FileTypeExt, PermissionsExt};
+        let temporary = tempfile::tempdir().unwrap();
+        let profile = Profile::new(temporary.path().join("profile")).unwrap();
+        let done = Arc::new(AtomicBool::new(false));
+        let watcher = {
+            let (socket, done) = (profile.socket(), done.clone());
+            // What a client checks before it connects, as often as it can.
+            std::thread::spawn(move || {
+                let mut unsafe_seen = 0;
+                while !done.load(Ordering::Acquire) {
+                    if let Ok(meta) = std::fs::symlink_metadata(&socket) {
+                        if meta.file_type().is_socket() && meta.permissions().mode() & 0o077 != 0 {
+                            unsafe_seen += 1;
+                        }
+                    }
+                }
+                unsafe_seen
+            })
+        };
+        for _ in 0..300 {
+            drop(Listener::bind(&profile).unwrap());
+        }
+        done.store(true, Ordering::Release);
+        assert_eq!(
+            watcher.join().unwrap(),
+            0,
+            "the socket was visible before it was private"
+        );
+    }
+
+    #[test]
     fn core_serves_authenticated_clients_and_rejects_bad_tokens_and_frames() {
         let temporary = tempfile::tempdir().unwrap();
         let profile = Profile::new(temporary.path().join("profile")).unwrap();

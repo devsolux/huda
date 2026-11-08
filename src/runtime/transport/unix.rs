@@ -102,18 +102,16 @@ impl Listener {
             "INVALID_INPUT",
             "Profile path is too long for private Unix IPC",
         )?;
-        // The calling App already holds the profile's writer lease.
-        if let Ok(meta) = std::fs::symlink_metadata(&path) {
-            // SAFETY: geteuid has no preconditions.
-            require(
-                meta.file_type().is_socket() && meta.uid() == unsafe { libc::geteuid() },
-                "PERMISSION_DENIED",
-                "Refusing to replace an unsafe socket",
-            )?;
-            std::fs::remove_file(&path)?;
-        }
-        let listener = UnixListener::bind(&path)?;
-        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600))?;
+        // The calling App already holds the profile's writer lease, so no other Core binds here.
+        // A socket is created with the mode the umask allows. It is bound under a staging name,
+        // made owner-only, and only then renamed to the name clients connect to, so a client
+        // never meets it before it is private; it would refuse it as unsafe.
+        let staging = path.with_file_name("core.tmp");
+        remove_own_socket(&path)?;
+        remove_own_socket(&staging)?;
+        let listener = UnixListener::bind(&staging)?;
+        std::fs::set_permissions(&staging, std::fs::Permissions::from_mode(0o600))?;
+        std::fs::rename(&staging, &path)?;
         listener.set_nonblocking(true)?;
         Ok(Self { listener, path })
     }
@@ -129,6 +127,19 @@ impl Drop for Listener {
     fn drop(&mut self) {
         let _ = std::fs::remove_file(&self.path);
     }
+}
+/// Removes a socket this user left behind, and refuses anything else at that name.
+fn remove_own_socket(path: &std::path::Path) -> Result<()> {
+    if let Ok(meta) = std::fs::symlink_metadata(path) {
+        // SAFETY: geteuid has no preconditions.
+        require(
+            meta.file_type().is_socket() && meta.uid() == unsafe { libc::geteuid() },
+            "PERMISSION_DENIED",
+            "Refusing to replace an unsafe socket",
+        )?;
+        std::fs::remove_file(path)?;
+    }
+    Ok(())
 }
 fn peer_is_current_user(stream: &UnixStream) -> Result<()> {
     use std::os::fd::AsRawFd;

@@ -77,6 +77,8 @@
 - The desktop sends no request before setup, offers Initialize Profile in every area that talks to
   the Core, and shows the helper's own reason when setup fails instead of sending you to a
   terminal.
+- The Core's socket appears only once it is private to its owner. A client that started a Core
+  could find it a moment earlier, refuse it as unsafe and fail with "Unsafe IPC socket".
 
 ### Security
 
