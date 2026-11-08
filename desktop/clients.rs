@@ -177,7 +177,18 @@ struct Outcome {
 }
 
 fn refreshed(profile: &Profile, message: String, failed: bool) -> Outcome {
-    match Server::of_this_install(profile) {
+    outcome(profile, Server::of_this_install(profile), message, failed)
+}
+
+/// What a refresh shows. An install that cannot be found, such as one whose helper is missing
+/// beside the desktop, is a failure with its reason, and no rows.
+fn outcome(
+    profile: &Profile,
+    found: huda::error::Result<Server>,
+    message: String,
+    failed: bool,
+) -> Outcome {
+    match found {
         Ok(server) => Outcome {
             rows: clients::status(&server, profile),
             server: Some(server),
@@ -669,12 +680,22 @@ mod tests {
 
     #[test]
     fn a_failed_check_is_marked_as_failed() {
-        // A test binary has no helper beside it, so this is the path of a broken install.
+        // Whether a test binary has a helper beside it depends on how Cargo lays out its output
+        // on each system, so the broken install is given rather than looked for.
         let folder = tempfile::tempdir().unwrap();
         let profile = Profile::new(folder.path().join("profile")).unwrap();
-        let outcome = refreshed(&profile, String::new(), false);
+        let missing = huda::error::Error::new(
+            "CORE_UNAVAILABLE",
+            "The packaged huda helper is missing beside the desktop executable",
+        );
+        let outcome = outcome(&profile, Err(missing), String::new(), false);
         assert!(outcome.failed);
-        assert!(!outcome.message.is_empty());
+        assert!(outcome.rows.is_empty() && outcome.server.is_none());
+        assert!(
+            outcome.message.contains("helper is missing"),
+            "{}",
+            outcome.message
+        );
     }
 
     #[test]
