@@ -441,6 +441,8 @@ pub(crate) mod memory {
     pub(crate) fn break_with(profile: &Profile, actor: &str, fault: Option<Fault>) {
         slot(profile, actor, |slot| slot.fault = fault);
     }
+    /// Read only by the Unix-only IPC tests.
+    #[cfg_attr(not(unix), allow(dead_code))]
     pub(crate) fn reads(profile: &Profile, actor: &str) -> usize {
         slot(profile, actor, |slot| slot.reads)
     }

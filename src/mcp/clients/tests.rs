@@ -4,6 +4,8 @@ use super::*;
 use std::fs;
 
 struct Scratch {
+    /// Keeps the folder alive for every test; only the Unix-only `own_command` tests read it.
+    #[cfg_attr(not(unix), allow(dead_code))]
     home: tempfile::TempDir,
     folders: Folders,
     server: Server,

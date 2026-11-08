@@ -2,8 +2,8 @@
 //! each appearance. Appearance follows the system, so there is no setting for it. Colors come
 //! from the icon: the deep blue field for actions and the amber crossbar for relations.
 use eframe::egui::{
-    self, epaint::text::VariationCoords, Color32, CornerRadius, FontData, FontDefinitions,
-    FontFamily, FontId, FontTweak, Stroke, TextStyle, Theme, ThemePreference, Visuals,
+    self, Color32, CornerRadius, FontData, FontDefinitions, FontFamily, FontId, Stroke, TextStyle,
+    Theme, ThemePreference, Visuals,
 };
 use std::sync::Arc;
 
@@ -127,10 +127,11 @@ struct Faces {
     mono: Option<FontData>,
 }
 
+#[cfg(target_os = "macos")]
 fn weighted(bytes: &'static [u8], weight: f32) -> FontData {
-    FontData::from_static(bytes).tweak(FontTweak {
+    FontData::from_static(bytes).tweak(egui::FontTweak {
         // SF defaults to its display cut; 17 is the text cut this app's sizes need.
-        coords: VariationCoords::new([(b"wght", weight), (b"opsz", 17.0)]),
+        coords: egui::epaint::text::VariationCoords::new([(b"wght", weight), (b"opsz", 17.0)]),
         ..Default::default()
     })
 }
