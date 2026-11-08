@@ -58,7 +58,7 @@ impl Desktop {
         instance: huda::runtime::profile::Lease,
     ) -> Self {
         Self {
-            client: Client { profile, actor: "owner".into(), start_on_demand: true },
+            client: Client::new(profile, "owner", true),
             tab: Tab::Space, operation: "explore_relations".into(), draft: "{}".into(),
             question: String::new(), language: "en".into(), expansion: "off".into(),
             output: format!("{} {} — desktop source candidate.\nUse Initialize profile once, then inspect the relation space.\nNo source scans, model downloads, or provider requests occur on launch.", huda::APP_NAME, huda::VERSION),

@@ -140,6 +140,12 @@ huda mcp stdio    # serve MCP over stdio
 The desktop can also initialize a profile with **Initialize profile**. Credentials live only in
 an unlocked OS secret store; there is no plaintext fallback.
 
+If the secret store loses a credential (a reset keychain, or a moved profile folder, since
+credentials are filed under the profile's path), `huda credentials restore` or the desktop's
+**Restore Access** issues new ones where needed and keeps every credential that still works.
+`huda credentials rotate <actor>` replaces one that may have leaked. Both work while no Core
+serves the profile. See `docs/operations.md`.
+
 Requests start one Core on demand. The Core never scans, downloads or fetches anything on its
 own, and it exits after 300 idle seconds. `huda core --idle-seconds 0` keeps it in the
 foreground.

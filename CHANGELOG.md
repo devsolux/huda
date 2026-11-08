@@ -10,6 +10,13 @@
   backup and is read back. An entry holds no secret, and no MCP tool or REST route reaches this.
 - `huda mcp stdio --client <id>` records, in a private profile file, when that client last called
   a tool and when Huda last refused its handshake, so a row can say why a configured client fails.
+- `huda credentials restore` and the desktop's **Restore Access** give an initialized profile
+  working credentials again after the OS secret store lost one (a reset keychain, a moved profile
+  folder) or one stopped matching. Every credential is read first, so a locked store changes
+  nothing, and credentials that still work are kept. `huda credentials rotate <actor>` replaces
+  one that may have leaked. Both run under the Core lease like `huda init`, never as a Core
+  operation; they keep scopes and permissions, never re-enable a revoked principal, and are
+  audited.
 
 ### Known limitations
 
@@ -27,6 +34,21 @@
   filed under its path; nothing is moved.
 - `./dev.sh run` starts the debug desktop from a development `Huda.app`, so macOS shows it as
   Huda with `com.devsolux.huda` instead of `huda-desktop` with no identifier.
+- A client reads its credential from the OS secret store once and keeps it in memory, instead of
+  on every request, so the desktop and MCP servers no longer risk a system prompt per request.
+  When the Core refuses a remembered credential, the client reads it again and retries once, so a
+  restore or rotation needs no restart.
+- When the Core cannot save a new principal's credential, the error is `SECRET_STORE_UNAVAILABLE`
+  (HTTP 503) instead of `AUTH_REQUIRED` (401), which told an authenticated admin to sign in again.
+  Reading a credential still fails as `AUTH_REQUIRED`.
+
+### Fixes
+
+- Unit tests use an in-memory stand-in for the OS secret store, so no test can read or change the
+  keychain of the person running it.
+- A profile that was never set up no longer reports "Unlock the OS secret store". A missing
+  credential, a locked or refusing secret store and a store failure now each say what to do, under
+  the same `AUTH_REQUIRED` code.
 
 ### Security
 

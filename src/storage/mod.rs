@@ -215,12 +215,22 @@ pub(crate) fn audit(
     kind: &str,
     target: &str,
 ) -> Result<()> {
+    audit_as(conn, tick, &caller.actor, kind, target)
+}
+/// An audit event for an actor that is not an authenticated caller, such as local recovery.
+pub(crate) fn audit_as(
+    conn: &Connection,
+    tick: u64,
+    actor: &str,
+    kind: &str,
+    target: &str,
+) -> Result<()> {
     conn.execute(
         "INSERT INTO write_events(event_id,tx_tick,actor,kind,target_id) VALUES(?1,?2,?3,?4,?5)",
         rusqlite::params![
-            crate::relation::stable_id("op", &(tick, &caller.actor, kind, target))?,
+            crate::relation::stable_id("op", &(tick, actor, kind, target))?,
             tick,
-            caller.actor,
+            actor,
             kind,
             target
         ],

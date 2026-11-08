@@ -8,7 +8,7 @@ use serde_json::{json, Value};
 use std::io::BufReader;
 use std::sync::{
     atomic::{AtomicBool, AtomicUsize, Ordering},
-    Arc,
+    Arc, Mutex, MutexGuard, PoisonError,
 };
 use std::time::{Duration, Instant};
 struct DeadlineReader<'a> {
@@ -50,13 +50,53 @@ struct Response {
     result: Option<Value>,
     error: Option<Error>,
 }
+/// Whether the OS secret store holds a client's credential.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Credential {
+    Stored,
+    Missing,
+}
+/// The profile fingerprint and actor a remembered credential belongs to, and the credential.
+type Remembered = Option<((String, String), String)>;
+
 #[derive(Clone)]
 pub struct Client {
     pub profile: Profile,
     pub actor: String,
     pub start_on_demand: bool,
+    /// Read once and kept for this client and its clones, so a long-lived client (the desktop, an
+    /// MCP server) asks the OS secret store once, not on every request: each read may show a
+    /// system prompt. Keyed by profile and actor, so it never answers for another.
+    remembered: Arc<Mutex<Remembered>>,
 }
 impl Client {
+    pub fn new(profile: Profile, actor: impl Into<String>, start_on_demand: bool) -> Self {
+        Self {
+            profile,
+            actor: actor.into(),
+            start_on_demand,
+            remembered: Arc::default(),
+        }
+    }
+    /// Reads this client's credential without sending anything, and keeps it for the requests
+    /// that follow. A missing credential and a store that refuses access need different next
+    /// steps, so a caller can tell them apart before it asks the Core.
+    pub fn credential(&self) -> Result<Credential> {
+        identifier(&self.actor)?;
+        let key = self.key();
+        let mut slot = self.slot();
+        if !slot.as_ref().is_some_and(|(held, _)| *held == key) {
+            *slot = OsSecrets::read(&self.profile, &self.actor)?.map(|token| (key, token));
+        }
+        Ok(match *slot {
+            Some(_) => Credential::Stored,
+            None => Credential::Missing,
+        })
+    }
+    /// Drops the remembered credential, so the next request reads the OS secret store again.
+    pub fn forget_credential(&self) {
+        *self.slot() = None;
+    }
     pub fn invoke(&self, operation: &str, input: Value) -> Result<Value> {
         self.invoke_cancelled(operation, input, Arc::new(AtomicBool::new(false)))
     }
@@ -69,27 +109,72 @@ impl Client {
         identifier(&self.actor)?;
         check_cancelled(&cancelled)?;
         // Do not spawn a Core as a side effect of a missing/unavailable credential.
-        let token = OsSecrets::get(&self.profile, &self.actor)?;
+        let (token, remembered) = self.token()?;
         check_cancelled(&cancelled)?;
-        let mut stream = self.connect(&cancelled)?;
-        stream.verify_peer()?;
-        check_cancelled(&cancelled)?;
-        let correlation_id = random_id("request")?;
-        let envelope = Envelope {
+        let mut request = serde_json::to_value(Envelope {
             ipc_version: crate::IPC_VERSION,
             client_version: crate::VERSION.into(),
-            correlation_id: correlation_id.clone(),
-            deadline_ms: now_ms() + 120_000,
+            correlation_id: String::new(),
+            deadline_ms: 0,
             token,
             operation: operation.into(),
             input,
-        };
+        })?;
+        let mut result = self.send(&mut request, &cancelled);
+        // The Core checks a credential before it runs anything, so a request it refused ran
+        // nothing. A remembered credential may have been replaced since it was read (restored or
+        // rotated), so it is read again, and the request is sent once more only if it changed.
+        if remembered && matches!(&result, Err(error) if error.code == "AUTH_REQUIRED") {
+            self.forget_credential();
+            let (fresh, _) = self.token()?;
+            if request["token"] != fresh.as_str() {
+                request["token"] = Value::String(fresh);
+                result = self.send(&mut request, &cancelled);
+            }
+        }
+        match result {
+            Err(error) if error.code == "AUTH_REQUIRED" => Err(Error::new(
+                "AUTH_REQUIRED",
+                &format!("This profile does not accept the {} credential in the OS secret store. If its access was revoked, ask the profile owner; otherwise restore access with huda credentials restore, or with Restore Access in the desktop", self.actor),
+            )),
+            other => other,
+        }
+    }
+    /// The credential to send, and whether it was remembered from an earlier read.
+    fn token(&self) -> Result<(String, bool)> {
+        let key = self.key();
+        let mut slot = self.slot();
+        if let Some((held, token)) = slot.as_ref() {
+            if *held == key {
+                return Ok((token.clone(), true));
+            }
+        }
+        let token = OsSecrets::get(&self.profile, &self.actor)?;
+        *slot = Some((key, token.clone()));
+        Ok((token, false))
+    }
+    fn key(&self) -> (String, String) {
+        (self.profile.fingerprint(), self.actor.clone())
+    }
+    fn slot(&self) -> MutexGuard<'_, Remembered> {
+        self.remembered
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+    }
+    /// One exchange with the Core, under a new correlation ID and deadline.
+    fn send(&self, request: &mut Value, cancelled: &Arc<AtomicBool>) -> Result<Value> {
+        let mut stream = self.connect(cancelled)?;
+        stream.verify_peer()?;
+        check_cancelled(cancelled)?;
+        let correlation_id = random_id("request")?;
+        request["correlation_id"] = Value::String(correlation_id.clone());
+        request["deadline_ms"] = json!(now_ms() + 120_000);
         stream.set_read_timeout(Some(Duration::from_secs(120)))?;
         stream.set_write_timeout(Some(Duration::from_secs(3)))?;
         let monitor = stream.try_clone()?;
         let done = Arc::new(AtomicBool::new(false));
         let finished = done.clone();
-        let signal = cancelled.clone();
+        let signal = Arc::clone(cancelled);
         let watcher = std::thread::spawn(move || {
             while !finished.load(Ordering::Acquire) {
                 if signal.load(Ordering::Acquire) {
@@ -100,11 +185,7 @@ impl Client {
             }
         });
         let result = (|| {
-            framing::write_frame(
-                &mut stream,
-                &serde_json::to_value(envelope)?,
-                crate::MAX_MESSAGE_BYTES,
-            )?;
+            framing::write_frame(&mut stream, request, crate::MAX_MESSAGE_BYTES)?;
             let frame = framing::read_frame(
                 &mut BufReader::new(DeadlineReader {
                     stream: &mut stream,
@@ -365,11 +446,7 @@ mod tests {
     fn precancelled_request_never_connects_or_reads_secrets() {
         let temp = tempfile::tempdir().unwrap();
         let profile = Profile::new(temp.path().join("profile")).unwrap();
-        let client = Client {
-            profile,
-            actor: "owner".into(),
-            start_on_demand: true,
-        };
+        let client = Client::new(profile, "owner", true);
         let result = client.invoke_cancelled("status", json!({}), Arc::new(AtomicBool::new(true)));
         assert_eq!(result.unwrap_err().code, "CANCELLED");
         assert!(!client.profile.database().exists());
@@ -507,5 +584,60 @@ mod serve_tests {
         server.join().unwrap().unwrap();
         assert!(!profile.socket().exists());
         assert_eq!(Store::open(profile).unwrap().epochs().unwrap().policy, 1);
+    }
+
+    #[test]
+    fn a_client_reads_its_credential_once_and_follows_a_rotation() {
+        use crate::runtime::auth::{memory, rotate_credential, OsSecrets};
+        let temporary = tempfile::tempdir().unwrap();
+        let profile = Profile::new(temporary.path().join("profile")).unwrap();
+        let mut store = Store::open(profile.clone()).unwrap();
+        let owner = OsSecrets::create(&profile, "owner").unwrap();
+        let mcp = OsSecrets::create(&profile, "mcp").unwrap();
+        store.bootstrap_credentials(&owner, &mcp).unwrap();
+        let app = App::new(store, Arc::new(UnavailableModel));
+        let shutdown = Arc::new(AtomicBool::new(false));
+        let server = {
+            let (app, profile, shutdown) = (app.clone(), profile.clone(), shutdown.clone());
+            std::thread::spawn(move || serve(app, profile, 0, shutdown))
+        };
+        drop(connect(&profile));
+        let reads = || memory::reads(&profile, "owner");
+        let client = Client::new(profile.clone(), "owner", false);
+
+        // One read serves every request of this client and of its clones.
+        for asker in [client.clone(), client.clone(), client.clone()] {
+            asker.invoke("status", json!({})).unwrap();
+        }
+        assert_eq!(reads(), 1);
+
+        // A rotation elsewhere: the remembered credential is refused, read again, and sent once.
+        rotate_credential(&mut app.store().unwrap(), &profile, "owner").unwrap();
+        client.invoke("status", json!({})).unwrap();
+        assert_eq!(reads(), 2);
+        client.invoke("status", json!({})).unwrap();
+        assert_eq!(reads(), 2);
+
+        // A stored credential the profile does not accept is refused once, with the way out.
+        memory::put(&profile, "owner", &format!("cap:{}", "0".repeat(64)));
+        client.forget_credential();
+        let refused = client.invoke("status", json!({})).unwrap_err();
+        assert_eq!(refused.code, "AUTH_REQUIRED");
+        assert!(
+            refused.message.contains("huda credentials restore"),
+            "{}",
+            refused.message
+        );
+        assert_eq!(reads(), 3, "a credential just read is not read again");
+
+        // A cancelled request reads nothing.
+        client.forget_credential();
+        let cancelled =
+            client.invoke_cancelled("status", json!({}), Arc::new(AtomicBool::new(true)));
+        assert_eq!(cancelled.unwrap_err().code, "CANCELLED");
+        assert_eq!(reads(), 3);
+
+        shutdown.store(true, Ordering::Release);
+        server.join().unwrap().unwrap();
     }
 }

@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use huda::answer::llm::{LocalHttpModel, LocalLlm, LocalModelConfig, UnavailableModel};
 use huda::error::{require, Error, Result};
 use huda::mcp::clients;
-use huda::runtime::{auth::OsSecrets, ipc::Client, Profile};
+use huda::runtime::{auth, auth::OsSecrets, ipc::Client, Profile};
 use serde_json::{json, Value};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
@@ -48,6 +48,11 @@ enum Command {
         #[command(subcommand)]
         transport: McpCommand,
     },
+    /// Recover or replace this profile's credentials. Works while no Core serves the profile.
+    Credentials {
+        #[command(subcommand)]
+        action: CredentialsCommand,
+    },
     Status,
     Ask {
         question: String,
@@ -85,6 +90,14 @@ enum McpCommand {
         #[command(subcommand)]
         action: ClientsCommand,
     },
+}
+#[derive(Subcommand)]
+enum CredentialsCommand {
+    /// Issue a new credential for each principal whose credential is missing from the OS secret
+    /// store or no longer accepted. Credentials that still work are kept.
+    Restore,
+    /// Replace one principal's credential, for example after it may have leaked.
+    Rotate { actor: String },
 }
 #[derive(Subcommand)]
 enum ClientsCommand {
@@ -195,6 +208,31 @@ fn run_clients(action: ClientsCommand, profile: &Profile) -> Result<()> {
     };
     print(&result)
 }
+/// Local recovery under the Core lease. Someone who lost a credential cannot authenticate, so the
+/// trust is the OS account that owns the profile, as for `init`; no Core offers these operations.
+fn run_credentials(action: CredentialsCommand, profile: &Profile) -> Result<()> {
+    let mut store = huda::storage::Store::open(profile.clone()).map_err(|error| {
+        if error.code == "CORE_UNAVAILABLE" {
+            Error::new(
+                "CORE_UNAVAILABLE",
+                "A Huda Core is serving this profile, so its credentials cannot change now. A Core started on demand stops 5 minutes after its last request: close the AI clients that use Huda, wait, then try again",
+            )
+        } else {
+            error
+        }
+    })?;
+    let result = match action {
+        CredentialsCommand::Restore => {
+            let restored = auth::restore_access(&mut store, profile)?;
+            json!({"restored": restored, "credentials": "os_secret_store"})
+        }
+        CredentialsCommand::Rotate { actor } => {
+            auth::rotate_credential(&mut store, profile, &actor)?;
+            json!({"rotated": actor, "credentials": "os_secret_store"})
+        }
+    };
+    print(&result)
+}
 fn run(options: Options) -> Result<()> {
     // These operations are deterministic file/stdout work, not Core startup.
     match &options.command {
@@ -228,18 +266,14 @@ fn run(options: Options) -> Result<()> {
     } else {
         options.actor
     };
-    let client = Client {
-        profile: profile.clone(),
-        actor,
-        start_on_demand: !options.no_start,
-    };
+    let client = Client::new(profile.clone(), actor, !options.no_start);
     match options.command {
         Command::Init => {
             let mut store = huda::storage::Store::open(profile.clone())?;
             require(
                 !store.has_principals()?,
                 "VERSION_CONFLICT",
-                "Profile is already initialized; credentials were not overwritten",
+                "Profile is already initialized; credentials were not overwritten. If a credential is missing, run huda credentials restore",
             )?;
             let owner = OsSecrets::create(&profile, "owner")?;
             let mcp = OsSecrets::create(&profile, "mcp")?;
@@ -324,6 +358,7 @@ fn run(options: Options) -> Result<()> {
         Command::Mcp {
             transport: McpCommand::Clients { action },
         } => run_clients(action, &profile),
+        Command::Credentials { action } => run_credentials(action, &profile),
         Command::Status => print(&client.invoke("status", json!({}))?),
         Command::Ask {
             question,

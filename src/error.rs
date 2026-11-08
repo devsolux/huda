@@ -60,7 +60,8 @@ impl Error {
             | "MODEL_UNAVAILABLE"
             | "OFFLINE"
             | "READ_ONLY_RECOVERY"
-            | "UNSUPPORTED_PLATFORM" => 503,
+            | "UNSUPPORTED_PLATFORM"
+            | "SECRET_STORE_UNAVAILABLE" => 503,
             _ => 500,
         }
     }

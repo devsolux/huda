@@ -302,11 +302,11 @@ mod tests {
     fn discover_and_catalog_results_carry_schema_required_fields() {
         // server/discover and tools/list never reach IPC, so an unreachable profile is fine.
         let directory = tempfile::tempdir().unwrap();
-        let client = Client {
-            profile: crate::runtime::Profile::new(directory.path().join("profile")).unwrap(),
-            actor: "mcp".into(),
-            start_on_demand: false,
-        };
+        let client = Client::new(
+            crate::runtime::Profile::new(directory.path().join("profile")).unwrap(),
+            "mcp",
+            false,
+        );
         for method in ["server/discover", "tools/list"] {
             let request =
                 json!({"jsonrpc":"2.0","id":7,"method":method,"params":{"_meta":request_meta()}});

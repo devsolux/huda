@@ -51,5 +51,6 @@ desktop needs the helper beside it and macOS and Windows file systems ignore cas
 description is `description` in `Cargo.toml`, shared by About, `--help` and Windows file details. The
 default profile is `~/.devsolux/huda` on every system. A profile at a location of an earlier
 release is used where it is and never moved, because the `huda.<fingerprint>` credential service
-is derived from its path. Package staging reads
+is derived from its path; a profile moved by hand gets its credentials back with
+`huda credentials restore`. Package staging reads
 Cargo metadata; no source database or second settings/semantic authority is introduced.
