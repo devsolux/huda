@@ -55,6 +55,8 @@ external services unless you explicitly configure and authorize it.
   work without one.
 - **Model Context Protocol** — a stdio MCP server targeting MCP `2026-07-28`, and OpenAPI `3.1.2`
   contracts generated from the handler types.
+- **AI client connections** — one list of AI clients with each one's real state, and connect,
+  repair and disconnect that show the change first. See [AI clients](#ai-clients-mcp).
 - **Native desktop** — an egui application with a tray menu, opt-in launch at login and
   single-instance activation.
 - **Optional code adapter** — Tree-sitter syntax parsing behind the `code-adapter` feature (see
@@ -73,6 +75,9 @@ evaluating it.
 - Packages are not Developer ID–signed, notarized or Authenticode-signed, so Gatekeeper and
   SmartScreen will warn on first launch.
 - MCP over HTTP, some API routes and the remote, macOS and Windows Bridge backends are incomplete.
+- Huda speaks only MCP `2026-07-28`, and Claude Code 2.1.282 still opens with `initialize`, which
+  Huda refuses, so that client cannot use Huda yet. See
+  [open decision 9](docs/open-decisions.md#9-mcp-clients-that-open-with-initialize).
 
 What remains open before a qualified release is listed in the [threat model](docs/threat-model.md)
 and in [open decisions](docs/open-decisions.md).
@@ -194,6 +199,34 @@ huda core --rest-port 8787
 ```
 
 See [operations](docs/operations.md) for credentials, backup, recovery and provider consent.
+
+### AI clients (MCP)
+
+Huda lists the AI clients you may have and shows each one's real state, on the desktop's
+**MCP Clients** tab and on the command line:
+
+```bash
+huda mcp clients list                  # every client's state; changes nothing
+huda mcp clients connect cursor        # show the change; writes nothing
+huda mcp clients connect cursor --yes  # make it, keeping a backup of the file
+huda mcp clients disconnect cursor --yes
+```
+
+An entry holds a command and arguments, never a secret: the client starts `huda mcp stdio`, which
+reads its credential from the OS secret store. Only Huda's own entry changes; comments, order and
+other servers stay as they were, and the original stays beside the file as `<file>.huda-backup`.
+Nothing runs on launch, and no MCP tool or REST route reaches this list.
+
+**`configured` means the file holds the right entry, not that the client works.** A row shows use
+only after the client has called a tool, and it says so when Huda refused the client's handshake.
+Huda speaks only MCP `2026-07-28`, so a client that opens with `initialize` fails, as
+[open decision 9](docs/open-decisions.md#9-mcp-clients-that-open-with-initialize) records.
+
+Huda changes a client by itself on macOS only; elsewhere each row gives the entry to paste. The
+paths come from vendor documentation, and only Claude Code has been exercised for real. Web apps
+such as ChatGPT chat cannot reach a server on your computer, so their rows only say why. Claude
+Desktop writes its file back while it runs, so quit it before connecting it. See
+[operations](docs/operations.md#ai-clients).
 
 ## Desktop integration
 

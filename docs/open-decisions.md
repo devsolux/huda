@@ -126,3 +126,30 @@ waits for a maintainer decision. Nothing here is a qualified result.
 - **Constraint:** both change what `explore` and goal-seed resolution see.
 - **Recommendation:** source-marked labels. Withdrawal stays non-destructive, because labels
   are hidden rather than erased.
+
+## 9. MCP clients that open with `initialize`
+
+- **Evidence:** measured on 2026-11-06 in a disposable home and profile. Claude Code 2.1.282
+  opens with `initialize` and `protocolVersion` `2025-11-25`. `huda mcp stdio` answers `-32601`,
+  and `claude mcp list` reports "Failed to connect". The server itself works: `server/discover`
+  and `tools/list` answer, with all 13 tools. Other clients are unmeasured. So `huda mcp clients`
+  can write a correct entry for a client that then fails, which is why a row says `configured`
+  and not connected, and records the refusal.
+- **Constraint:** `AGENTS.md` forbids an initialize-protocol fallback, and `src/mcp/mod.rs`
+  refuses `initialize` on purpose. Nothing was changed.
+- **Options:**
+  - Keep stateless-only. The rule stands, and one-click connection waits for each client to adopt
+    `2026-07-28`, with no date known.
+  - A narrow compatibility layer in `src/mcp/`: answer `initialize` for a fixed list of published
+    versions, ignore `notifications/initialized`, and accept `tools/list` and `tools/call` without
+    the per-request `_meta` only after that handshake. Both paths end in the same `handle` and
+    handlers, so no authority, tool or data path is added. `AGENTS.md` and the docs would have to
+    change in the same commit, and a real client must be connected before calling it compatible.
+  - A separate adapter process. Rejected: the same fallback with more moving parts.
+- **Constraint on the second option:** the `2025-11-25` schema requires `outputSchema` to have
+  `type: "object"` and `structuredContent` to be an object. Four tools do not fit
+  (`get_knowledge_providers`, `huda_status`, `list_relation_types`, `upsert_entity`), and
+  `list_relation_types` returns an array. Both are valid under `2026-07-28`, so they are not
+  defects today, but this layer must omit the schema or wrap the result for older clients.
+- **Recommendation:** the narrow layer, as one commit that also amends the rule. Without it the
+  client list works but no measured client can use Huda.

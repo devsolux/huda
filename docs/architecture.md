@@ -14,6 +14,8 @@
 
 `bridge/` captures only explicitly configured MCP reads, through the same admission/source batch. `mcp/`, `api/rest.rs` and the native desktop contain protocol/UI adaptation, not a second query, consent, answer or publication implementation.
 
+`mcp/clients/` edits the configuration files of other products on an explicit request from the CLI or desktop. It holds no graph data and is no handler, so no MCP tool or REST route reaches it. It opens no database and starts no Core; its only profile state is the small `mcp-client-<id>` activity files beside `provider-backoff`.
+
 ## Physical schema choices
 
 The plan's logical responsibilities do not require one physical table each. Typed role bindings, relation identities, assertion versions and relation historical sets are explicit tables. Entity labels/aliases are scoped in `entity_labels`. Type versions are immutable composite keys in `relation_types`. Evidence is optional, assertion-version-scoped JSON (`evidence_json`) with capture revision/hash validation; source captures live in `source_revisions`. No evidence foreign key can prevent a legitimate direct assertion. Raw unresolved relation/type outputs use `relation_proposals`, not a parallel truth store.

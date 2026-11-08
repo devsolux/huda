@@ -30,6 +30,7 @@ warnings, listed there. This is a tool finding, not a security certification.
 | blake3 / sha2 | 1.8.7 / 0.11.1 | https://docs.rs/blake3/latest/blake3/ · https://docs.rs/sha2/latest/sha2/ |
 | getrandom / clap | 0.4.3 / 4.6.7 | https://docs.rs/getrandom/latest/getrandom/ · https://docs.rs/clap/latest/clap/ |
 | schemars / httparse | 1.2.3 / 1.10.1 | https://docs.rs/schemars/latest/schemars/ · https://docs.rs/httparse/latest/httparse/ |
+| jsonc-parser / toml_edit | 0.34.0 / 0.25.17 | https://docs.rs/jsonc-parser/latest/jsonc_parser/ · https://docs.rs/toml_edit/latest/toml_edit/ |
 | Windows bindings / resources | windows-sys 0.61.2 / winresource 0.1.34 | https://docs.rs/windows-sys/latest/windows_sys/ · https://docs.rs/winresource/latest/winresource/ |
 | Test fixtures | tempfile 3.27.0 | https://docs.rs/tempfile/latest/tempfile/ |
 | Optional `code-adapter` parser | tree-sitter 0.27.1 (grammars below) | https://github.com/tree-sitter/tree-sitter/releases/tag/v0.27.1 |
@@ -177,6 +178,16 @@ after an ECH rejection), RUSTSEC-2026-0348 (Brotli certificate decompression can
 later connections to classical key exchange). `cargo update -p rustls --precise 0.23.46` moved
 only that package; the committed lock changes no other entry, and `cargo audit` then reported no
 advisories. No direct pin changed.
+
+## 2026-11-06 client configuration editors
+
+`huda mcp clients` edits other products' JSON and TOML files without disturbing comments, order
+or formatting, which neither `serde_json` nor a hand-written splice does safely. jsonc-parser
+0.34.0 is new to the lock, the current release, MIT, with its `cst` feature only and no
+dependencies or build script. toml_edit was already locked as a transitive dependency, so the
+direct pin stays at 0.25.17 rather than the newer 0.25.18, and the lock gains no second version;
+this is the one pin here that was not the current release when set. Its `display` feature adds
+only `toml_writer`, already locked. No other package changed.
 
 ## 2026-11-06 security update
 

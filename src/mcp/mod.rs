@@ -1,4 +1,6 @@
 //! Modern MCP stdio only. JSON framing adapts to authenticated IPC; it owns no database.
+pub mod clients;
+
 use crate::api::contracts;
 use crate::error::{Error, Result};
 use crate::runtime::{framing, ipc::Client};
@@ -87,6 +89,10 @@ fn validate(request: &Value) -> std::result::Result<(), Value> {
     }
     Ok(())
 }
+/// Whether `validate` answered with its refusal of `initialize` or of another protocol version.
+fn refuses_handshake(error: &Value) -> bool {
+    matches!(error["error"]["code"].as_i64(), Some(-32601 | -32022))
+}
 fn handle(request: Value, client: &Client, cancelled: Arc<AtomicBool>) -> Value {
     if let Err(error) = validate(&request) {
         return error;
@@ -146,7 +152,9 @@ fn handle(request: Value, client: &Client, cancelled: Arc<AtomicBool>) -> Value 
     json!({"jsonrpc":"2.0","id":id,"result":result})
 }
 
-pub fn stdio(client: Client) -> Result<()> {
+/// Serves one client. `observer` notes what was seen of a client that named itself; it never
+/// decides what is served, and no request content reaches it.
+pub fn stdio(client: Client, observer: Option<clients::Observer>) -> Result<()> {
     let stdin = std::io::stdin();
     let mut input = stdin.lock();
     let output = Arc::new(Mutex::new(std::io::stdout()));
@@ -186,8 +194,18 @@ pub fn stdio(client: Client) -> Result<()> {
                 continue;
             }
             if let Err(error) = validate(&request) {
+                if refuses_handshake(&error) {
+                    if let Some(observer) = &observer {
+                        observer.refused();
+                    }
+                }
                 write(&output, &error)?;
                 continue;
+            }
+            if request["method"] == "tools/call" {
+                if let Some(observer) = &observer {
+                    observer.used();
+                }
             }
             let key = request["id"].to_string();
             let flag = Arc::new(AtomicBool::new(false));
@@ -324,6 +342,20 @@ mod tests {
             assert_eq!(tool["inputSchema"]["type"], "object", "{}", tool["name"]);
         }
         assert!(!client.profile.database().exists());
+    }
+    #[test]
+    fn only_a_refused_handshake_counts_as_one() {
+        let initialize =
+            validate(&json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}));
+        assert!(refuses_handshake(&initialize.unwrap_err()));
+        let mut metadata = request_meta();
+        metadata["io.modelcontextprotocol/protocolVersion"] = "2025-11-25".into();
+        let version = validate(
+            &json!({"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"_meta":metadata}}),
+        );
+        assert!(refuses_handshake(&version.unwrap_err()));
+        let malformed = validate(&json!({"jsonrpc":"2.0","id":1,"method":"tools/list"}));
+        assert!(!refuses_handshake(&malformed.unwrap_err()));
     }
     #[test]
     fn no_silent_protocol_fallback() {

@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Added
+
+- AI client connections: `huda mcp clients list|connect|disconnect` and the desktop's MCP Clients
+  tab list 20 clients with each one's real state, and connect, repair and disconnect them. A change
+  is shown first and needs `--yes` or the tab's agreement, touches only Huda's entry, keeps a
+  backup and is read back. An entry holds no secret, and no MCP tool or REST route reaches this.
+- `huda mcp stdio --client <id>` records, in a private profile file, when that client last called
+  a tool and when Huda last refused its handshake, so a row can say why a configured client fails.
+
+### Known limitations
+
+- Huda speaks only MCP `2026-07-28`, so a client that opens with `initialize` cannot use it. Claude
+  Code 2.1.282 does. See open decision 9.
+
 ### Changed
 
 - New application icon: a flat H whose amber crossbar is the relation between two entities. Icons

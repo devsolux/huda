@@ -7,6 +7,12 @@ pub fn executable() -> Result<PathBuf> {
     sibling(&std::env::current_exe()?)
 }
 
+/// The helper as a real path, for a configuration that outlives this process. Started through a
+/// link, this process finds the helper beside the file the link points at.
+pub fn real_executable() -> Result<PathBuf> {
+    sibling(&std::env::current_exe()?.canonicalize()?)
+}
+
 fn sibling(current: &Path) -> Result<PathBuf> {
     let name = if cfg!(windows) { "huda.exe" } else { "huda" };
     let path = current.with_file_name(name);

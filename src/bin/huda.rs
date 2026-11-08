@@ -2,7 +2,8 @@
 //! All ordinary clients use private IPC rather than opening their own authority.
 use clap::{Parser, Subcommand, ValueEnum};
 use huda::answer::llm::{LocalHttpModel, LocalLlm, LocalModelConfig, UnavailableModel};
-use huda::error::{require, Result};
+use huda::error::{require, Error, Result};
+use huda::mcp::clients;
 use huda::runtime::{auth::OsSecrets, ipc::Client, Profile};
 use serde_json::{json, Value};
 use std::io::{Read, Write};
@@ -74,7 +75,33 @@ enum Command {
 }
 #[derive(Subcommand)]
 enum McpCommand {
-    Stdio,
+    Stdio {
+        /// Names the client in its configuration, so its row can show what was seen of it.
+        #[arg(long)]
+        client: Option<String>,
+    },
+    /// List AI clients and connect them. Changes only their own configuration files.
+    Clients {
+        #[command(subcommand)]
+        action: ClientsCommand,
+    },
+}
+#[derive(Subcommand)]
+enum ClientsCommand {
+    /// Show each client's real state. Reads files; changes nothing and starts nothing.
+    List,
+    /// Show what connecting a client changes; with --yes, make that change and keep a backup.
+    Connect {
+        client: String,
+        #[arg(long)]
+        yes: bool,
+    },
+    /// Show what disconnecting a client changes; with --yes, remove only Huda's entry.
+    Disconnect {
+        client: String,
+        #[arg(long)]
+        yes: bool,
+    },
 }
 #[derive(Clone, Copy, ValueEnum)]
 enum Expansion {
@@ -116,6 +143,57 @@ fn print(value: &Value) -> Result<()> {
     output.write_all(b"\n")?;
     output.flush()?;
     Ok(())
+}
+fn client_named(name: &str) -> Result<clients::ClientId> {
+    clients::ClientId::from_id(name)
+        .ok_or_else(|| Error::invalid("Unknown client; huda mcp clients list shows every client"))
+}
+/// A second step for what changes another product's file: without --yes this only shows it.
+fn confirmed(
+    action: &str,
+    preview: &clients::Preview,
+    yes: bool,
+    change: impl FnOnce() -> Result<()>,
+) -> Result<Value> {
+    if !yes || !preview.automatic {
+        let next = if preview.automatic {
+            "Nothing was changed. Run this again with --yes to make this change."
+        } else {
+            "Huda does not change this client by itself here. Change it by hand."
+        };
+        return Ok(json!({"action": action, "applied": false, "preview": preview, "next": next}));
+    }
+    change()?;
+    Ok(
+        json!({"action": action, "applied": true, "preview": preview, "note": clients::PROTOCOL_NOTE}),
+    )
+}
+/// Works on client configuration files only: this opens no database and starts no Core.
+fn run_clients(action: ClientsCommand, profile: &Profile) -> Result<()> {
+    let server = clients::Server::of_this_install(profile)?;
+    let result = match action {
+        ClientsCommand::List => json!({
+            "note": clients::PROTOCOL_NOTE,
+            "profile_initialized": profile.database().exists(),
+            "clients": clients::status(&server, profile),
+        }),
+        ClientsCommand::Connect { client, yes } => {
+            let client = client_named(&client)?;
+            confirmed("connect", &clients::preview(client, &server)?, yes, || {
+                clients::connect(client, &server)
+            })?
+        }
+        ClientsCommand::Disconnect { client, yes } => {
+            let client = client_named(&client)?;
+            confirmed(
+                "disconnect",
+                &clients::preview(client, &server)?,
+                yes,
+                || clients::disconnect(client),
+            )?
+        }
+    };
+    print(&result)
 }
 fn run(options: Options) -> Result<()> {
     // These operations are deterministic file/stdout work, not Core startup.
@@ -230,15 +308,22 @@ fn run(options: Options) -> Result<()> {
             shutdown.store(true, Ordering::Release);
             #[cfg(feature = "rest")]
             if let Some(http) = http {
-                http.join().map_err(|_| {
-                    huda::error::Error::new("WORKER_FAILED", "REST worker failed")
-                })??;
+                http.join()
+                    .map_err(|_| Error::new("WORKER_FAILED", "REST worker failed"))??;
             }
             result
         }
         Command::Mcp {
-            transport: McpCommand::Stdio,
-        } => huda::mcp::stdio(client),
+            transport: McpCommand::Stdio { client: name },
+        } => {
+            let observer = name
+                .as_deref()
+                .and_then(|name| clients::Observer::new(&profile, name));
+            huda::mcp::stdio(client, observer)
+        }
+        Command::Mcp {
+            transport: McpCommand::Clients { action },
+        } => run_clients(action, &profile),
         Command::Status => print(&client.invoke("status", json!({}))?),
         Command::Ask {
             question,

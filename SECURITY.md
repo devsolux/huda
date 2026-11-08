@@ -30,6 +30,7 @@ databases, OS secret-store entries, tokens or captured user data.
 - The sandboxed Bridge capture path
 - Admission, authorization and immutable-history invariants in the SQLite authority
 - Desktop login registration, tray behavior and native packages built by this repository
+- Changes to AI clients' configuration files by `huda mcp clients` and the desktop
 
 ## Out of scope
 

@@ -62,6 +62,18 @@ fn protocol_and_product_versions_are_distinct() {
     assert_eq!(contracts::openapi()["openapi"], "3.1.2");
 }
 #[test]
+fn no_tool_or_route_reaches_a_clients_configuration() {
+    // Client configuration decides which command runs on this computer, so it stays with the
+    // person at the CLI or desktop and never becomes something a model can call.
+    for operation in contracts::OPERATIONS {
+        assert!(
+            !operation.name.contains("client") && !operation.path.contains("client"),
+            "{}",
+            operation.name
+        );
+    }
+}
+#[test]
 fn tool_catalog_exposes_no_registry_or_policy_mutation() {
     for operation in [
         "register_relation_type",

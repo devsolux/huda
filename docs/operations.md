@@ -42,6 +42,18 @@ MCP stdio answers `server/discover` and `tools/list` with the `resultType`, `cac
 
 The desktop is an advanced native JSON-form client, not a finished consumer UX. Display, keyboard/accessibility, root consent forms, model configuration UX, automatic post-job focus-safe re-ask and real OS install/update behavior remain open.
 
+## AI clients
+
+`huda mcp clients list|connect|disconnect` and the desktop's MCP Clients tab put `huda mcp stdio` into a client's own configuration. This works on other products' files, not on the profile's data, so it is no handler: no MCP tool or REST route reaches it, and a model cannot change what a client starts. The catalog is compiled in and never fetched, because a list from elsewhere would decide which command runs on this computer. Nothing here runs on launch: the desktop reads the clients' files when the tab is first opened.
+
+`connect` and `disconnect` only show the change unless given `--yes`; the desktop asks in the tab. An entry holds a command and arguments and no secret, and names its client with `--client` and, for a profile other than the default, the profile with `--profile`. It points at this install's helper in place. A helper on a disk image or a translocated path is refused, as for a login entry: move `Huda.app` to Applications first. Moving Huda later turns the row to `needs_repair`; connecting again repairs it.
+
+A change edits only Huda's entry, so comments, order, line endings, a byte order mark and other servers' secrets stay. It follows a linked file, keeps the file's mode, gives a new file mode 0600, replaces the file in one step, reads it back, and refuses a broken, read-only or non-regular file without touching it. The first change keeps the original as `<file>.huda-backup`, and disconnecting does not restore it, which would undo later changes. Claude Code is connected through its own `claude mcp` command, because its running process rewrites its file. Claude Desktop keeps its file in memory and writes it back, so a change is refused with `CLIENT_RUNNING` while it runs; Huda never closes another product's process.
+
+Row states: `not_installed`, `available`, `configured`, `needs_repair`, `blocked`, `manual` and `hosted`. `configured` says what a file holds and nothing more. What was seen of a client is kept per client in the private profile file `mcp-client-<id>`, as two times and no request content: `used_ms` after a tool call, and `refused_ms` after a handshake Huda refused. A client that started Huda may still refuse its tools, so only a tool call counts as use. A failure to record this never affects serving. A client connected by hand is recorded the same way, because its entry names it too.
+
+Huda edits files by itself on macOS only; on Windows and Linux every row gives the entry to paste, so an unknown layout never gets a wrong write. The catalog's paths come from vendor documentation, and the VS Code path only partly. Only Claude Code's add, repair and remove have been run against the real client, and none of this is qualified. Whether each client but Claude Code speaks MCP `2026-07-28` is unmeasured. The measured failure of Claude Code is [open decision 9](open-decisions.md#9-mcp-clients-that-open-with-initialize).
+
 ## Login launch and tray
 
 See `desktop-build.md` for exact native build commands. Launch at login is a checkbox/menu
