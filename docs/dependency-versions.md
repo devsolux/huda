@@ -11,8 +11,9 @@ desktop and integration tests) and release-built on native `aarch64-apple-darwin
 exact pin below was the current stable release on crates.io at resolution time. This is not a
 license audit or a four-platform compile; `cargo audit` reported no advisories against the
 resolved lock (RustSec database of 2026-10-13), and again after the
-[2026-10-16 security update](#2026-10-16-security-update); this is a tool finding, not a
-security certification.
+[2026-10-16 security update](#2026-10-16-security-update). After the
+[2026-11-06 security update](#2026-11-06-security-update) it reports no vulnerabilities and six
+warnings, listed there. This is a tool finding, not a security certification.
 
 ## Required desktop and shared stack
 
@@ -176,3 +177,29 @@ after an ECH rejection), RUSTSEC-2026-0348 (Brotli certificate decompression can
 later connections to classical key exchange). `cargo update -p rustls --precise 0.23.46` moved
 only that package; the committed lock changes no other entry, and `cargo audit` then reported no
 advisories. No direct pin changed.
+
+## 2026-11-06 security update
+
+`cargo audit` against the RustSec database of 2026-11-06 reported three advisories in transitive
+packages, all already in the lock at the previous commit. The lock moves only these three; no
+direct pin changed.
+
+| Advisory | Package | Reached through | Fix |
+|---|---|---|---|
+| RUSTSEC-2026-0382, distrusted intermediates may be accepted | rustls-webpki 0.103.15 → 0.103.16 | reqwest, on provider access | Refuses eight named emSign intermediates anywhere in a chain |
+| RUSTSEC-2026-0383, trust in distrusted emSign intermediates | webpki-root-certs 1.0.9 → 1.0.11 | rustls-platform-verifier | Removes three emSign roots |
+| RUSTSEC-2026-0385, non-constant-time masks and `u128` comparisons | ctutils 0.4.3 → 0.4.8 | digest, under sha2 and hmac | Hardens mask generation; the `u128` part applies to 32-bit targets only, and Huda ships none |
+
+The published archives were read as source diffs before adoption, and their SHA-256 sums match
+the lock. None adds a dependency, a build script or `unsafe`, and ctutils still has no file,
+network or process access. ctutils 0.4.4 was the first fixed release. 0.4.8 was taken for its
+further hardening of 32-bit targets, and also brings a `primitives` module that Huda does not
+call; it was four days old, adopted on that reading rather than after a waiting period.
+
+`cargo update` also moved tempfile's `getrandom` range from 0.4.3 to 0.3.4, unrelated to these
+fixes. That one line was set back, and `--locked` accepts the result.
+
+Six warnings remain and are not vulnerability findings: zbus_names, zvariant and zvariant_derive
+are unmaintained (RUSTSEC-2026-0371, -0370, -0372); tokio 1.53.2 is marked unsound, because
+`AsyncFd::new` and related constructors violate I/O safety (RUSTSEC-2026-0386); async-executor
+1.14.0 and clipboard-win 5.4.1 are yanked. All were left as they are.

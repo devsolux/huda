@@ -8,6 +8,12 @@
   from 128px up follow the macOS grid with a transparent surround, and icons up to 64px fill the
   canvas so that the mark stays legible in the tray, title bar and taskbar.
 
+### Security
+
+- Dependency update for three advisories: rustls-webpki 0.103.16 (RUSTSEC-2026-0382) and
+  webpki-root-certs 1.0.11 (RUSTSEC-2026-0383) stop trusting distrusted emSign certificates, and
+  ctutils 0.4.8 (RUSTSEC-2026-0385) hardens its constant-time masks.
+
 ## 1.2.0 — 2026-10-16
 
 ### Changed
