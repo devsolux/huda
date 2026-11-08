@@ -57,7 +57,9 @@ external services unless you explicitly configure and authorize it.
   contracts generated from the handler types.
 - **AI client connections** — one list of AI clients with each one's real state, and connect,
   repair and disconnect that show the change first. See [AI clients](#ai-clients-mcp).
-- **Native desktop** — an egui application with a tray menu, opt-in launch at login and
+- **Native desktop** — an egui application with a sidebar, light and dark appearances that follow
+  the system, relations drawn as relations, keyboard and screen-reader support, a tray menu,
+  opt-in launch at login and
   single-instance activation.
 - **Optional code adapter** — Tree-sitter syntax parsing behind the `code-adapter` feature (see
   [NOTICE](NOTICE.md)).
@@ -343,6 +345,7 @@ Actions are pinned to release commits and updated manually. See
 | [Operations](docs/operations.md) | Profiles, credentials, Core lifetime, backup and recovery |
 | [API contracts](docs/api-contracts.md) | Handler, REST and MCP operation contracts |
 | [Build and packaging](docs/desktop-build.md) | Per-platform build, packaging and signing boundaries |
+| [Desktop design](docs/desktop-design.md) | The desktop's design contract, tokens and deliberate gaps |
 | [Threat model](docs/threat-model.md) | Protected authority, controls and open security obligations |
 | [Evaluations](docs/evaluations.md) | Evaluation contract for native and semantic gates |
 | [Dependency versions](docs/dependency-versions.md) | Pinned crates, actions and protocol versions |

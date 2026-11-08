@@ -22,7 +22,7 @@ warnings, listed there. This is a tool finding, not a security certification.
 | Rust | 1.99.0 | https://doc.rust-lang.org/std/ |
 | auto-launch | 0.6.0 | https://docs.rs/auto-launch/latest/auto_launch/ |
 | tray-icon | 0.26.1 | https://docs.rs/tray-icon/latest/tray_icon/ |
-| eframe/egui | 0.36.2 | https://docs.rs/eframe/0.36.2/eframe/trait.App.html |
+| eframe/egui | 0.36.2, with the `accesskit` feature | https://docs.rs/eframe/0.36.2/eframe/trait.App.html |
 | reqwest | 0.13.5 | https://docs.rs/reqwest/latest/reqwest/ |
 | keyring | 4.2.0, `v1` facade | https://docs.rs/keyring/latest/keyring/v1/ |
 | rusqlite | 0.40.2 | https://docs.rs/rusqlite/latest/rusqlite/ |
@@ -214,3 +214,14 @@ Six warnings remain and are not vulnerability findings: zbus_names, zvariant and
 are unmaintained (RUSTSEC-2026-0371, -0370, -0372); tokio 1.53.2 is marked unsound, because
 `AsyncFd::new` and related constructors violate I/O safety (RUSTSEC-2026-0386); async-executor
 1.14.0 and clipboard-win 5.4.1 are yanked. All were left as they are.
+
+## 2026-11-06 accessibility bridge
+
+eframe's `accesskit` feature gives the desktop a screen-reader bridge. No pin changed: it adds
+`accesskit_winit` 0.32.2 under the existing eframe, which is the only existing package whose
+dependencies moved, and nothing was removed. The lock gains 27 packages at the versions eframe
+0.36.2 requires, and each platform compiles only its own: `accesskit_macos`, `accesskit_windows`
+with the `windows` 0.62 family, or `accesskit_unix` with `atspi`, `zbus_xml`, `zbus-lockstep` and
+`phf`. `accesskit_consumer` appears at 0.35, 0.36 and 0.38 because those adapters pin different
+lines. The bridge talks only to the local accessibility service, never to the network.
+

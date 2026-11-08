@@ -8,6 +8,7 @@ use tray_icon::{Icon, TrayIcon, TrayIconBuilder, TrayIconEvent};
 pub enum Action {
     Show,
     Ask,
+    Settings,
     Startup,
     Quit,
 }
@@ -42,7 +43,7 @@ impl Tray {
             .with_id(huda::APP_ID)
             .with_menu(Box::new(menu))
             .with_icon(icon)
-            .with_tooltip("Huda — local relation space")
+            .with_tooltip(huda::APP_NAME)
             .build()
             .map_err(|_| {
                 Error::new(
@@ -71,6 +72,7 @@ impl Tray {
             let action = match event.id.0.as_str() {
                 "show" => Action::Show,
                 "ask" => Action::Ask,
+                "settings" => Action::Settings,
                 "startup" => Action::Startup,
                 "quit" => Action::Quit,
                 _ => return,
@@ -96,6 +98,63 @@ impl Drop for Tray {
     fn drop(&mut self) {
         TrayIconEvent::set_event_handler(None::<fn(TrayIconEvent)>);
         MenuEvent::set_event_handler(None::<fn(MenuEvent)>);
+    }
+}
+
+/// The macOS menu bar. Without one of its own, an app's menu is named after its executable file,
+/// which would read "Quit huda-desktop". The About panel says what Huda is. Other systems have no
+/// application menu bar, so there is nothing to build there.
+pub struct AppMenu {
+    #[cfg(target_os = "macos")]
+    _menu: Menu,
+}
+impl AppMenu {
+    /// Call only from App::logic, once the native event loop is running.
+    pub fn create() -> Result<Option<Self>> {
+        #[cfg(target_os = "macos")]
+        {
+            use tray_icon::menu::{accelerator::Accelerator, AboutMetadata, Submenu};
+            let failed = |_| Error::new("MENU_UNAVAILABLE", "Cannot create the application menu");
+            let about = AboutMetadata {
+                name: Some(huda::APP_NAME.to_owned()),
+                version: Some(huda::VERSION.to_owned()),
+                short_version: Some(huda::VERSION.to_owned()),
+                copyright: Some(huda::COPYRIGHT.to_owned()),
+                credits: Some(huda::DESCRIPTION.to_owned()),
+                ..Default::default()
+            };
+            let settings = MenuItem::with_id(
+                "settings",
+                "Settings…",
+                true,
+                "CmdOrCtrl+Comma".parse::<Accelerator>().ok(),
+            );
+            let application = Submenu::with_items(
+                huda::APP_NAME,
+                true,
+                &[
+                    &PredefinedMenuItem::about(Some("About Huda"), Some(about)),
+                    &PredefinedMenuItem::separator(),
+                    &settings,
+                    &PredefinedMenuItem::separator(),
+                    &PredefinedMenuItem::services(None),
+                    &PredefinedMenuItem::separator(),
+                    &PredefinedMenuItem::hide(Some("Hide Huda")),
+                    &PredefinedMenuItem::hide_others(None),
+                    &PredefinedMenuItem::show_all(None),
+                    &PredefinedMenuItem::separator(),
+                    &PredefinedMenuItem::quit(Some("Quit Huda")),
+                ],
+            )
+            .map_err(failed)?;
+            let menu = Menu::with_items(&[&application]).map_err(failed)?;
+            menu.init_for_nsapp();
+            Ok(Some(Self { _menu: menu }))
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            Ok(None)
+        }
     }
 }
 

@@ -10,6 +10,14 @@
   backup and is read back. An entry holds no secret, and no MCP tool or REST route reaches this.
 - `huda mcp stdio --client <id>` records, in a private profile file, when that client last called
   a tool and when Huda last refused its handshake, so a row can say why a configured client fails.
+- A redesigned desktop, following the macOS guidelines: a sidebar instead of tabs, the system font
+  at the macOS type scale, light and dark appearances that follow the system, grouped sections,
+  sheets for changes, and a Settings area for what was on every screen. Relations are drawn with
+  the crossbar of the icon, and exact JSON stays one click away. See `docs/desktop-design.md`.
+- Screen-reader and keyboard support on the desktop: every control is named, rows are read as
+  they are seen, areas have headings, sheets are modal dialogs that open with focus on Cancel,
+  results announce themselves, and a ring shows keyboard focus. Tests read the real accessibility
+  tree. It has not yet been heard with a real screen reader.
 - `huda credentials restore` and the desktop's **Restore Access** give an initialized profile
   working credentials again after the OS secret store lost one (a reset keychain, a moved profile
   folder) or one stopped matching. Every credential is read first, so a locked store changes
@@ -20,6 +28,8 @@
 
 ### Known limitations
 
+- The desktop's menu bar has only Huda's application menu, and there is no vibrancy. See
+  `docs/desktop-design.md`.
 - Huda speaks only MCP `2026-07-28`, so a client that opens with `initialize` cannot use it. Claude
   Code 2.1.282 does. See open decision 9.
 
@@ -34,6 +44,11 @@
   filed under its path; nothing is moved.
 - `./dev.sh run` starts the debug desktop from a development `Huda.app`, so macOS shows it as
   Huda with `com.devsolux.huda` instead of `huda-desktop` with no identifier.
+- Every name a person sees is Huda. The macOS menu bar has Huda's own application menu (About
+  Huda, Settings…, Hide Huda, Quit Huda) instead of one named after the `huda-desktop` file; the
+  tray tooltip and the Windows file description say Huda. Settings has an About section with a
+  short description, version, identifier, license and copyright, which the macOS About panel and
+  `--help` share through `description` in `Cargo.toml`.
 - A client reads its credential from the OS secret store once and keeps it in memory, instead of
   on every request, so the desktop and MCP servers no longer risk a system prompt per request.
   When the Core refuses a remembered credential, the client reads it again and retries once, so a
@@ -44,11 +59,18 @@
 
 ### Fixes
 
+- A lost credential is no longer a dead end. The desktop offered Initialize Profile, which an
+  initialized profile refuses; it now offers Restore Access, and a locked secret store shows its
+  own reason instead of either. A missing credential, and one the profile no longer accepts, name
+  `huda credentials restore`, and a session with no secret store names the stores Huda can use.
 - Unit tests use an in-memory stand-in for the OS secret store, so no test can read or change the
   keychain of the person running it.
 - A profile that was never set up no longer reports "Unlock the OS secret store". A missing
   credential, a locked or refusing secret store and a store failure now each say what to do, under
   the same `AUTH_REQUIRED` code.
+- The desktop sends no request before setup, offers Initialize Profile in every area that talks to
+  the Core, and shows the helper's own reason when setup fails instead of sending you to a
+  terminal.
 
 ### Security
 

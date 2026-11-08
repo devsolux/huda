@@ -48,7 +48,7 @@ Native IPC and REST use bounded JSON messages (1 MiB); internal capture batches 
 
 MCP stdio answers `server/discover` and `tools/list` with the `resultType`, `cacheScope` (`private`) and `ttlMs` (`0`) fields the 2026-07-28 schema requires; these are protocol metadata, not caching or consent decisions. REST: enable only `huda core --rest-port PORT` with the `rest` feature. Exact `Host: 127.0.0.1:PORT`, Bearer auth, no browser Origin/Cookie, no chunked uploads/pipelining, 8 KiB/32-header limit, 1 MiB JSON, three-second aggregate request-read bounds and bounded concurrent clients. POST requires JSON; GET/DELETE use documented query parameters. MCP HTTP/SSE is not advertised. The runtime OpenAPI source is `api/contracts.rs` deriving schemas from handler DTOs; `huda contracts` exports the same document without starting Core.
 
-The desktop is an advanced native JSON-form client, not a finished consumer UX. Display, keyboard/accessibility, root consent forms, model configuration UX, automatic post-job focus-safe re-ask and real OS install/update behavior remain open.
+The desktop reads relations and answers directly and keeps exact JSON one click away; its write forms are still advanced JSON forms, so it is not a finished consumer UX. Its layout and tokens are in [desktop design](desktop-design.md). Display, keyboard/accessibility, root consent forms, model configuration UX, automatic post-job focus-safe re-ask and real OS install/update behavior remain open.
 
 ## AI clients
 
