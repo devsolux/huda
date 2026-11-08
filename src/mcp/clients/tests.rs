@@ -296,9 +296,16 @@ fn a_path_that_goes_away_is_refused_for_an_entry() {
             "{program}"
         );
     }
-    assert!(server("/Applications/Huda.app/Contents/MacOS/huda", None)
-        .require_lasting()
-        .is_ok());
+    // A lasting install on this system; a Windows path is absolute only with its drive.
+    let installed = if cfg!(windows) {
+        r"C:\Users\me\AppData\Local\Programs\Huda\huda.exe"
+    } else {
+        "/Applications/Huda.app/Contents/MacOS/huda"
+    };
+    assert!(
+        server(installed, None).require_lasting().is_ok(),
+        "{installed}"
+    );
 }
 
 #[test]
