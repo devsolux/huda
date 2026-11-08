@@ -191,6 +191,33 @@ class PackageLayoutTests(unittest.TestCase):
         self.assertTrue((app / "Contents/MacOS/huda").is_file())
         self.assertTrue((app / "Contents/Resources/huda.icns").is_file())
         self.assertNotIn("LSUIElement", info)  # ordinary recoverable desktop, not hidden-only agent
+        self.assertEqual(info["NSHumanReadableCopyright"], "Copyright (c) 2026 DevSolux")
+
+    def test_every_copy_of_the_copyright_names_the_holder_in_license(self):
+        line = package.copyright_line(ROOT)
+        self.assertIn(f'COPYRIGHT: &str = "{line}"', (ROOT / "src/lib.rs").read_text(encoding="utf-8"))
+        self.assertIn(f'"LegalCopyright", "{line}"', (ROOT / "build.rs").read_text(encoding="utf-8"))
+
+    def test_development_bundle_has_the_product_identity_and_replaces_only_itself(self):
+        target = "aarch64-apple-darwin"
+        debug = self.root / "target" / target / "debug"
+        debug.mkdir(parents=True)
+        for name in ("huda", "huda-desktop"):
+            (debug / name).write_bytes(binary_fixture(target))
+        sibling = debug / "keep-me"
+        sibling.write_text("other build output", encoding="utf-8")
+        first = package.dev_app(target, self.root, sign=False)
+        (first / "Contents/stale").write_text("from an earlier run", encoding="utf-8")
+        app = package.dev_app(target, self.root, sign=False)
+        self.assertEqual(app, debug / "Huda.app")
+        with (app / "Contents/Info.plist").open("rb") as stream:
+            info = plistlib.load(stream)
+        self.assertEqual((info["CFBundleName"], info["CFBundleIdentifier"]), ("Huda", "com.devsolux.huda"))
+        self.assertTrue((app / "Contents/MacOS/huda").is_file())
+        self.assertFalse((app / "Contents/stale").exists())
+        self.assertTrue(sibling.is_file())
+        self.assertFalse(any(path.name.startswith(".huda-dev-") for path in debug.iterdir()))
+        self.assertFalse((self.root / "dist").exists())
 
     def test_intel_bundle_uses_intel_inputs(self):
         target = "x86_64-apple-darwin"

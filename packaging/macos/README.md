@@ -7,4 +7,6 @@ ICNS, ad-hoc signs and verifies local-test packages, and creates/verifies a DMG.
 
 Default packages are **not Developer ID signed or notarized**. Move the bundle outside the
 DMG/App Translocation before enabling login launch. Deleting Huda.app never authorizes deleting
-`~/Library/Application Support/Huda`. Native Keychain/tray/LaunchAgent/install tests remain open.
+the profile in `~/.devsolux/huda`. `./dev.sh run` starts the debug build from a development
+`target/aarch64-apple-darwin/debug/Huda.app`, so it carries the product's name and identifier as
+the packaged app does. Native Keychain/tray/LaunchAgent/install tests remain open.

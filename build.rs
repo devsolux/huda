@@ -6,8 +6,11 @@ fn main() {
     {
         let mut resource = winresource::WindowsResource::new();
         resource.set_icon("assets/icons/huda.ico");
+        // Task Manager and the Start menu show FileDescription as the app's name.
         resource.set("ProductName", "Huda");
-        resource.set("FileDescription", "Huda — local relation space");
+        resource.set("FileDescription", "Huda");
+        resource.set("Comments", env!("CARGO_PKG_DESCRIPTION"));
+        resource.set("LegalCopyright", "Copyright (c) 2026 DevSolux");
         resource.set("CompanyName", "DevSolux");
         resource.set("ProductVersion", env!("CARGO_PKG_VERSION"));
         resource.set("FileVersion", env!("CARGO_PKG_VERSION"));

@@ -42,6 +42,12 @@ native desktop; its requests still reach the same on-demand Core. Closing/quit n
 Core serving another client. Native transport IO is under `runtime/transport/`; framing,
 scoped authentication, deadlines and dispatch remain shared in `runtime/ipc.rs`.
 
-Product identity is Huda / `com.devsolux.huda`. Existing profile directories and the
-`huda.<fingerprint>` credential service remain intentionally stable. Package staging reads
+Product identity is Huda / `com.devsolux.huda`, on every system and in development runs. Every
+name a person sees says Huda: the macOS app menu is built by the desktop, because the default one is
+named after the executable file. `huda` and `huda-desktop` stay distinct file names, because the
+desktop needs the helper beside it and macOS and Windows file systems ignore case. The one-sentence
+description is `description` in `Cargo.toml`, shared by About, `--help` and Windows file details. The
+default profile is `~/.devsolux/huda` on every system. A profile at a location of an earlier
+release is used where it is and never moved, because the `huda.<fingerprint>` credential service
+is derived from its path. Package staging reads
 Cargo metadata; no source database or second settings/semantic authority is introduced.

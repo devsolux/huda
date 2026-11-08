@@ -17,7 +17,7 @@ Usage: ./dev.sh {doctor|lock|fmt|check|test|build|run|bundle|dmg|all|help}
   check    Check formatting and compile/lint all features, with --locked.
   test     Run default, headless and desktop/REST/optional-adapter Rust tests.
   build    Build release huda + huda-desktop for aarch64-apple-darwin.
-  run      Run the desktop in debug mode; no provider or login opt-in implied.
+  run      Run the desktop in debug mode, as Huda.app; no provider or login opt-in implied.
   bundle   Build and package an ad-hoc-signed Huda.app for local testing.
   dmg      Build Huda.app + DMG for local testing, not notarized distribution.
   all      Check + test + build + app/DMG packaging.
@@ -95,8 +95,11 @@ case "$COMMAND" in
   test) test_project;;
   build) build;;
   # The desktop starts its sibling huda helper; build both so the helper exists and is current.
+  # A bare executable is named after its file on macOS and has no identifier, so the debug build
+  # runs from a development Huda.app with the same name and identifier as the packaged app.
   run) cargo build --locked --target "$TARGET" --features "$FEATURES" --bins
-    cargo run --locked --target "$TARGET" --features "$FEATURES" --bin huda-desktop;;
+    app="$(python3 scripts/package_desktop.py --target "$TARGET" --format dev-app)"
+    exec "$app/Contents/MacOS/huda-desktop";;
   bundle) build; python3 scripts/package_desktop.py --target "$TARGET" --format app;;
   dmg) build; python3 scripts/package_desktop.py --target "$TARGET" --format all;;
   all) check; test_project; build; python3 scripts/package_desktop.py --target "$TARGET" --format all;;

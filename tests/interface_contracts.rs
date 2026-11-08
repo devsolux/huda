@@ -47,6 +47,15 @@ fn relation_tools_and_routes_share_an_operation() {
     assert_eq!(expand.path, "/api/v1/knowledge/expand");
 }
 #[test]
+fn a_person_only_ever_sees_the_name_huda() {
+    assert_eq!(huda::APP_NAME, "Huda");
+    assert_eq!(huda::APP_ID, "com.devsolux.huda");
+    assert!(!huda::DESCRIPTION.is_empty());
+    // The name is shown beside the description, so the description does not repeat it.
+    assert!(!huda::DESCRIPTION.to_lowercase().contains("huda"));
+    assert!(!huda::DESCRIPTION.contains("desktop"));
+}
+#[test]
 fn protocol_and_product_versions_are_distinct() {
     assert_eq!(huda::VERSION, "1.2.0");
     assert_eq!(huda::MCP_VERSION, "2026-07-28");

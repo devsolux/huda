@@ -65,7 +65,8 @@ macOS: install Huda.app outside a DMG/App Translocation before enabling login la
 silently writing to the wrong directory. Spaces are safely quoted as one Exec argument;
 unsupported escape/field-code characters are rejected. Windows: registration is HKCU only.
 Disabling/removing an entry does not delete relation data. Windows uninstallation removes only
-this installation's own matching login entry and installed files, not `%LOCALAPPDATA%\Huda`.
+this installation's own matching login entry and installed files, never the profile in
+`%USERPROFILE%\.devsolux\huda`.
 
 No real autostart entry, keychain credential or installer has been exercised in qualification
 yet. Test these user-visible operations on each native target before distribution.

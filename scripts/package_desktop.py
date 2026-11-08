@@ -97,6 +97,14 @@ def legal_and_build_info(destination: Path, target: str, root: Path = ROOT) -> N
     (destination / "build-info.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
+def copyright_line(root: Path = ROOT) -> str:
+    """The holder exactly as LICENSE names it, for the About panel and Finder."""
+    for line in (root / "LICENSE").read_text(encoding="utf-8").splitlines():
+        if line.startswith("Copyright"):
+            return line.strip()
+    raise ValueError("LICENSE names no copyright holder")
+
+
 def stage_mac(stage: Path, binaries: Path, target: str, root: Path = ROOT) -> Path:
     info = metadata(root)
     app = stage / f"{info['name']}.app"
@@ -111,8 +119,33 @@ def stage_mac(stage: Path, binaries: Path, target: str, root: Path = ROOT) -> Pa
              "CFBundleIconFile": "huda.icns", "CFBundlePackageType": "APPL",
              "CFBundleShortVersionString": info["version"], "CFBundleVersion": info["version"],
              "LSMinimumSystemVersion": "13.0", "NSHighResolutionCapable": True,
+             "NSHumanReadableCopyright": copyright_line(root),
              "LSApplicationCategoryType": "public.app-category.productivity"}
     (contents / "Info.plist").write_bytes(plistlib.dumps(plist, sort_keys=True))
+    return app
+
+
+def sign_mac(app: Path) -> None:
+    # Ad-hoc signatures permit local testing; they are NOT Developer ID/notarization.
+    for name in ("huda", "huda-desktop"):
+        run("codesign", "--force", "--sign", "-", app / "Contents/MacOS" / name)
+    run("codesign", "--force", "--sign", "-", app)
+    run("codesign", "--verify", "--deep", "--strict", app)
+
+
+def dev_app(target: str, root: Path = ROOT, sign: bool = True) -> Path:
+    """The debug build as Huda.app. Started from a bare file, a desktop is named after that file
+    and has no identifier on macOS; inside the bundle it is Huda with the product's identifier, as
+    the packaged app is. Only the previous development bundle is replaced; dist/ is never touched."""
+    binaries = root / "target" / target / "debug"
+    app = binaries / "Huda.app"
+    with tempfile.TemporaryDirectory(prefix=".huda-dev-", dir=binaries) as temporary:
+        staged = stage_mac(Path(temporary), binaries, target, root)
+        if sign:
+            sign_mac(staged)
+        if app.exists():
+            shutil.rmtree(app)
+        staged.rename(app)
     return app
 
 
@@ -167,9 +200,15 @@ def windows_zip(app: Path, output: Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target", choices=TARGETS, required=True)
-    parser.add_argument("--format", choices=("all", "app", "dmg", "deb", "zip", "installer"), default="all")
+    parser.add_argument("--format", choices=("all", "app", "dmg", "deb", "zip", "installer", "dev-app"),
+                        default="all")
     args = parser.parse_args()
     native_host(args.target)
+    if args.format == "dev-app":
+        if platform.system() != "Darwin":
+            raise ValueError("A development bundle exists only for macOS")
+        print(dev_app(args.target))
+        return 0
     info = metadata()
     allowed = {"Darwin": {"all", "app", "dmg"}, "Linux": {"all", "deb"},
                "Windows": {"all", "zip", "installer"}}[platform.system()]
@@ -188,11 +227,7 @@ def main() -> int:
         stage = Path(temporary)
         if platform.system() == "Darwin":
             app = stage_mac(stage, binaries, args.target)
-            # Ad-hoc signatures permit local testing; they are NOT Developer ID/notarization.
-            for name in ("huda", "huda-desktop"):
-                run("codesign", "--force", "--sign", "-", app / "Contents/MacOS" / name)
-            run("codesign", "--force", "--sign", "-", app)
-            run("codesign", "--verify", "--deep", "--strict", app)
+            sign_mac(app)
             if args.format in {"all", "dmg"}:
                 image_source = stage / "image"
                 image_source.mkdir()

@@ -16,7 +16,7 @@ use std::sync::{
 #[command(
     name = "huda",
     version,
-    about = "Local, relation-first knowledge space"
+    about = huda::DESCRIPTION
 )]
 struct Options {
     #[arg(long, global = true)]

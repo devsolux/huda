@@ -7,6 +7,12 @@
 - New application icon: a flat H whose amber crossbar is the relation between two entities. Icons
   from 128px up follow the macOS grid with a transparent surround, and icons up to 64px fill the
   canvas so that the mark stays legible in the tray, title bar and taskbar.
+- The default profile is `~/.devsolux/huda` on every system (`%USERPROFILE%\.devsolux\huda` on
+  Windows), beside the other DevSolux products, instead of a different folder per system. A
+  profile an earlier release created keeps being used where it is, because its credentials are
+  filed under its path; nothing is moved.
+- `./dev.sh run` starts the debug desktop from a development `Huda.app`, so macOS shows it as
+  Huda with `com.devsolux.huda` instead of `huda-desktop` with no identifier.
 
 ### Security
 

@@ -4,7 +4,7 @@ version = "1.2.0"
 edition = "2021"
 rust-version = "1.99"
 license = "MIT"
-description = "Huda: a local, relation-first knowledge space"
+description = "A local, relation-first knowledge space: typed relations with immutable history, offline by default."
 default-run = "huda"
 autobins = false
 

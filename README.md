@@ -35,7 +35,7 @@ external services unless you explicitly configure and authorize it.
 | | |
 |---|---|
 | Product | Huda |
-| Executables | `huda` (CLI, Core, MCP) and `huda-desktop` (native desktop) |
+| Executables | `huda` (CLI, Core, MCP) and `huda-desktop` (native desktop). These are file names only: the app, its menus, windows, tray and installers all say **Huda** |
 | Application identifier | `com.devsolux.huda` |
 | Rust package | `huda` |
 
@@ -154,11 +154,17 @@ sample inputs.
 
 ### Profiles
 
+Every system keeps the default profile in the same place, beside the other DevSolux products:
+
 | OS | Default profile directory |
 |---|---|
-| macOS | `~/Library/Application Support/Huda` |
-| Windows | `%LOCALAPPDATA%\Huda` |
-| Linux | `${XDG_DATA_HOME:-~/.local/share}/huda` |
+| macOS and Linux | `~/.devsolux/huda` |
+| Windows | `%USERPROFILE%\.devsolux\huda` |
+
+Both folders are created private to the user. A profile that an earlier release created at
+`~/Library/Application Support/Huda`, `%LOCALAPPDATA%\Huda` or `~/.local/share/huda` keeps being
+used where it is, until `~/.devsolux/huda` exists. It is never moved, because its credentials are
+filed under its path.
 
 Each profile's credentials are stored as `huda.<profile-fingerprint>` entries in the OS secret
 store.

@@ -63,25 +63,11 @@ impl Profile {
     pub fn default_location() -> Result<Self> {
         Self::new(Self::default_path()?)
     }
+    /// The profile used without `--profile`: `~/.devsolux/huda` on every system, beside the other
+    /// DevSolux products. A profile at a location of an earlier release keeps being used.
     pub fn default_path() -> Result<PathBuf> {
-        #[cfg(target_os = "macos")]
-        {
-            Ok(home()?.join("Library/Application Support/Huda"))
-        }
-        #[cfg(windows)]
-        {
-            std::env::var_os("LOCALAPPDATA")
-                .map(|p| PathBuf::from(p).join("Huda"))
-                .ok_or_else(|| Error::invalid("LOCALAPPDATA is unavailable"))
-        }
-        #[cfg(not(any(target_os = "macos", windows)))]
-        {
-            Ok(std::env::var_os("XDG_DATA_HOME")
-                .map(PathBuf::from)
-                .filter(|p| p.is_absolute())
-                .unwrap_or(home()?.join(".local/share"))
-                .join("huda"))
-        }
+        let home = home()?;
+        Ok(resolve_default(&home, &legacy_paths(&home)))
     }
     pub fn directory(&self) -> &Path {
         &self.directory
@@ -284,14 +270,135 @@ fn lease_error(held: bool, code: &str, message: &str) -> Error {
         )
     }
 }
-#[cfg(not(windows))]
+/// The current user's home folder: `HOME` on Unix and the user profile folder on Windows.
 fn home() -> Result<PathBuf> {
-    std::env::var_os("HOME")
-        .map(PathBuf::from)
-        .ok_or_else(|| Error::invalid("HOME is unavailable"))
+    std::env::home_dir()
+        .filter(|home| home.is_absolute())
+        .ok_or_else(|| Error::invalid("The home folder is unavailable"))
+}
+/// Where the profile lives, below the home folder.
+const DEFAULT_FOLDER: [&str; 2] = [".devsolux", "huda"];
+/// Where releases before 1.3 kept the profile, one place per system.
+fn legacy_paths(home: &Path) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    if cfg!(target_os = "macos") {
+        paths.push(home.join("Library/Application Support/Huda"));
+    } else if cfg!(windows) {
+        if let Some(local) = std::env::var_os("LOCALAPPDATA").map(PathBuf::from) {
+            paths.push(local.join("Huda"));
+        }
+    } else {
+        if let Some(data) = std::env::var_os("XDG_DATA_HOME")
+            .map(PathBuf::from)
+            .filter(|data| data.is_absolute())
+        {
+            paths.push(data.join("huda"));
+        }
+        paths.push(home.join(".local/share/huda"));
+    }
+    paths
+}
+/// The new location, unless only an earlier one holds a profile. That profile is used where it is
+/// and never moved: its credentials are filed under its path, so a move would lose them, and a
+/// user's profile is never changed implicitly. A folder without a database is no profile.
+fn resolve_default(home: &Path, legacy: &[PathBuf]) -> PathBuf {
+    let current = DEFAULT_FOLDER
+        .iter()
+        .fold(home.to_path_buf(), |path, part| path.join(part));
+    if current.exists() {
+        return current;
+    }
+    legacy
+        .iter()
+        .find(|path| path.join("huda.db").is_file())
+        .cloned()
+        .unwrap_or(current)
 }
 /// An OS-held exclusive lock on a managed profile file; released when dropped or on exit.
 #[derive(Debug)]
 pub struct Lease {
     _file: File,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn profile_at(path: &Path) {
+        fs::create_dir_all(path).unwrap();
+        fs::write(path.join("huda.db"), b"").unwrap();
+    }
+
+    #[test]
+    fn a_new_user_gets_the_same_folder_on_every_system() {
+        let home = tempfile::tempdir().unwrap();
+        let legacy = [home.path().join("Library/Application Support/Huda")];
+        assert_eq!(
+            resolve_default(home.path(), &legacy),
+            home.path().join(".devsolux").join("huda")
+        );
+    }
+
+    #[test]
+    fn an_earlier_profile_stays_where_its_credentials_are_filed() {
+        let home = tempfile::tempdir().unwrap();
+        let legacy = home.path().join("Library/Application Support/Huda");
+        profile_at(&legacy);
+        assert_eq!(
+            resolve_default(home.path(), std::slice::from_ref(&legacy)),
+            legacy
+        );
+    }
+
+    #[test]
+    fn a_leftover_folder_without_a_database_is_no_profile() {
+        let home = tempfile::tempdir().unwrap();
+        let legacy = home.path().join("Library/Application Support/Huda");
+        fs::create_dir_all(&legacy).unwrap();
+        fs::write(legacy.join("desktop.lock"), b"").unwrap();
+        assert_eq!(
+            resolve_default(home.path(), &[legacy]),
+            home.path().join(".devsolux/huda")
+        );
+    }
+
+    #[test]
+    fn once_the_new_folder_exists_it_wins() {
+        let home = tempfile::tempdir().unwrap();
+        let legacy = home.path().join("Library/Application Support/Huda");
+        profile_at(&legacy);
+        fs::create_dir_all(home.path().join(".devsolux/huda")).unwrap();
+        assert_eq!(
+            resolve_default(home.path(), &[legacy]),
+            home.path().join(".devsolux/huda")
+        );
+    }
+
+    #[test]
+    fn the_first_earlier_location_with_a_profile_is_used() {
+        let home = tempfile::tempdir().unwrap();
+        let xdg = home.path().join("data/huda");
+        let local = home.path().join(".local/share/huda");
+        profile_at(&local);
+        assert_eq!(
+            resolve_default(home.path(), &[xdg.clone(), local.clone()]),
+            local
+        );
+        profile_at(&xdg);
+        assert_eq!(resolve_default(home.path(), &[xdg.clone(), local]), xdg);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn the_new_folder_and_its_parent_are_private() {
+        use std::os::unix::fs::PermissionsExt;
+        let home = tempfile::tempdir().unwrap();
+        let path = resolve_default(home.path(), &[]);
+        let profile = Profile::new(&path).unwrap();
+        assert!(profile.directory().ends_with(".devsolux/huda"));
+        for folder in [path.clone(), path.parent().unwrap().to_path_buf()] {
+            let mode = fs::metadata(&folder).unwrap().permissions().mode() & 0o777;
+            assert_eq!(mode, 0o700, "{}", folder.display());
+        }
+    }
 }
