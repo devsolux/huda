@@ -519,9 +519,13 @@ pub fn focus_ring(context: &egui::Context) {
         return;
     };
     let palette = theme::palette(context);
+    // A control on a panned or zoomed canvas is drawn moved; the ring goes where it is seen.
+    let rect = context
+        .layer_transform_to_global(response.layer_id)
+        .map_or(response.rect, |to_global| to_global * response.rect);
     let layer = egui::LayerId::new(egui::Order::Tooltip, egui::Id::new("focus-ring"));
     context.layer_painter(layer).rect_stroke(
-        response.rect.expand(1.5),
+        rect.expand(1.5),
         CORNER + 1,
         Stroke::new(2.0, palette.accent_text),
         egui::StrokeKind::Outside,

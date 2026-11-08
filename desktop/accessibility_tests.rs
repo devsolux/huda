@@ -306,6 +306,39 @@ fn a_negation_is_heard_before_the_parties_it_changes() {
 }
 
 #[test]
+fn the_graph_is_named_controls_in_the_order_of_the_model() {
+    let mut app = App::new();
+    app.desktop.results.set(Ok(crate::graph::fixture()));
+    app.desktop.results.view = results::View::Graph;
+    let tree = app.area(Tab::Space);
+    for node in tree.iter().filter(|node| operable(node.role)) {
+        assert!(!node.name.trim().is_empty(), "an unnamed control: {node:?}");
+    }
+    let negation = position(
+        &tree,
+        "Not, Depends on: Supplier C as dependency, Library B as dependent. Active",
+    );
+    let first = position(
+        &tree,
+        "Depends on: Library B as dependency, Project A as dependent. Active",
+    );
+    let a = position(&tree, "Project A, Project, 2 relations in this graph");
+    assert!(
+        first < a && a < negation,
+        "relations meet their parties in model order"
+    );
+    assert_eq!(tree[a].role, Role::Button);
+    assert_eq!(
+        tree[a].toggled,
+        Some(Toggled::False),
+        "a node says whether it is selected"
+    );
+    for name in ["List", "Graph", "JSON", "Fit", "Rearrange"] {
+        position(&tree, name);
+    }
+}
+
+#[test]
 fn settings_say_what_huda_is_under_its_one_name() {
     let mut app = App::new();
     let tree = app.area(Tab::Settings);

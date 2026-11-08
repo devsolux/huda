@@ -1,6 +1,7 @@
 //! What the Core answered. A relation reads as what it is, two or more parties joined by the
 //! crossbar of the icon. Anything else is an outline, and the exact JSON is always one click
 //! away, because this is also a tool for inspecting precisely what was returned.
+use crate::graph::{self, Graph};
 use crate::theme;
 use crate::widgets::{self, Tone};
 use eframe::egui::{self, vec2, CornerRadius, Frame, Margin, RichText, Sense, Stroke, Ui};
@@ -14,27 +15,30 @@ const MAX_TEXT: usize = 400;
 
 /// One side of a relation.
 #[derive(Debug, PartialEq, Eq)]
-struct Party {
-    role: String,
-    name: String,
+pub(crate) struct Party {
+    pub role: String,
+    pub name: String,
+    /// The entity this party is; a literal has none.
+    pub entity: Option<String>,
 }
 
 /// A relation as a person reads it.
 #[derive(Debug, PartialEq, Eq)]
-struct RelationRow {
-    title: String,
-    key: String,
-    parties: Vec<Party>,
-    negated: bool,
+pub(crate) struct RelationRow {
+    pub id: String,
+    pub title: String,
+    pub key: String,
+    pub parties: Vec<Party>,
+    pub negated: bool,
     /// The modality, unless it is plainly asserted.
-    modality: Option<String>,
-    status: String,
-    tone: Tone,
-    assertions: usize,
-    stale: bool,
+    pub modality: Option<String>,
+    pub status: String,
+    pub tone: Tone,
+    pub assertions: usize,
+    pub stale: bool,
 }
 
-fn sentence(text: &str) -> String {
+pub(crate) fn sentence(text: &str) -> String {
     let words = text.replace('_', " ").to_lowercase();
     let mut letters = words.chars();
     letters.next().map_or_else(String::new, |first| {
@@ -48,7 +52,7 @@ fn type_title(relation_type: &str) -> String {
     sentence(name.split('@').next().unwrap_or(name))
 }
 
-fn bounded(text: &str) -> String {
+pub(crate) fn bounded(text: &str) -> String {
     if text.chars().count() <= MAX_TEXT {
         text.to_owned()
     } else {
@@ -59,7 +63,7 @@ fn bounded(text: &str) -> String {
 }
 
 /// An entity reads as its first label, then its key: an identifier means nothing to a person.
-fn entity_name(entities: &[Value], id: &str) -> String {
+pub(crate) fn entity_name(entities: &[Value], id: &str) -> String {
     let entity = entities.iter().find(|entity| entity["entity_id"] == id);
     entity
         .and_then(|entity| entity["labels"].get(0)?.as_str())
@@ -86,6 +90,7 @@ fn party(entities: &[Value], role: &str, value: &Value) -> Party {
     Party {
         role: sentence(role),
         name: bounded(&name),
+        entity: value["entity_id"].as_str().map(str::to_owned),
     }
 }
 
@@ -110,7 +115,7 @@ fn publication(assertions: &[Value]) -> (String, Tone) {
 
 /// The relations of an answer that has any. An answer of another shape has none, and is shown as
 /// an outline rather than guessed at.
-fn relation_rows(value: &Value) -> Option<Vec<RelationRow>> {
+pub(crate) fn relation_rows(value: &Value) -> Option<Vec<RelationRow>> {
     let relations = value.get("relations")?.as_array()?;
     let empty = Vec::new();
     let entities = value["entities"].as_array().unwrap_or(&empty);
@@ -128,6 +133,7 @@ fn relation_rows(value: &Value) -> Option<Vec<RelationRow>> {
         let assertions = view["assertions"].as_array().unwrap_or(&empty);
         let (status, tone) = publication(assertions);
         RelationRow {
+            id: view["relation_id"].as_str().unwrap_or("").to_owned(),
             title: type_title(&key),
             key,
             parties,
@@ -147,7 +153,7 @@ fn relation_rows(value: &Value) -> Option<Vec<RelationRow>> {
     Some(rows.collect())
 }
 
-fn plural(count: usize, one: &str) -> String {
+pub(crate) fn plural(count: usize, one: &str) -> String {
     if count == 1 {
         format!("1 {one}")
     } else {
@@ -213,7 +219,7 @@ fn crossbar(ui: &mut Ui, negated: bool) {
 
 /// What a relation is called aloud. The crossbar shows a negation at a glance, and a screen reader
 /// reads a row in order, so the words that change its meaning come before its parties.
-fn spoken_title(row: &RelationRow) -> String {
+pub(crate) fn spoken_title(row: &RelationRow) -> String {
     let mut words = Vec::new();
     if row.negated {
         words.push("Not".to_owned());
@@ -223,7 +229,7 @@ fn spoken_title(row: &RelationRow) -> String {
     words.join(", ")
 }
 
-fn relation_ui(ui: &mut Ui, row: &RelationRow) {
+pub(crate) fn relation_ui(ui: &mut Ui, row: &RelationRow) {
     let palette = theme::palette(ui.ctx());
     widgets::row_with_trailing(
         ui,
@@ -304,14 +310,62 @@ fn outline(ui: &mut Ui, key: &str, value: &Value, depth: usize) {
         });
 }
 
-/// The Core's latest answer.
+/// How an answer is shown. The choice stays for the answers that follow.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum View {
+    Readable,
+    Graph,
+    Json,
+}
+
+/// A request the graph makes: the relations of one entity, read at the snapshot already shown,
+/// so every part of a grown graph says the same moment.
+#[derive(Debug, PartialEq, Eq)]
+pub struct Expand {
+    pub entity_id: String,
+    pub as_of: Option<u64>,
+}
+
+impl Expand {
+    pub fn request(&self) -> Value {
+        let mut input = serde_json::json!({"entity_id": self.entity_id, "limit": 100});
+        if let Some(tick) = self.as_of {
+            input["tx_as_of"] = tick.into();
+        }
+        input
+    }
+}
+
+/// Adds an expansion's entities and relations to an answer, each once, in the order first seen.
+fn combine(base: &mut Value, extra: &Value) {
+    for (field, id) in [("entities", "entity_id"), ("relations", "relation_id")] {
+        let Some(items) = base[field].as_array_mut() else {
+            continue;
+        };
+        for item in extra[field].as_array().into_iter().flatten() {
+            if !items.iter().any(|known| known[id] == item[id]) {
+                items.push(item.clone());
+            }
+        }
+    }
+    if extra["truncated"] == true {
+        base["truncated"] = true.into();
+    }
+}
+
+/// The Core's latest answer, with any expansions combined into it.
 pub struct Results {
     value: Option<Value>,
     json: String,
     error: Option<String>,
     message: String,
     caution: bool,
-    show_json: bool,
+    pub view: View,
+    graph: Graph,
+    /// How many answers `value` combines.
+    answers: usize,
+    /// A relation the list scrolls to once, chosen in the graph.
+    scroll_to: Option<String>,
 }
 
 impl Results {
@@ -322,7 +376,10 @@ impl Results {
             error: None,
             message,
             caution: false,
-            show_json: false,
+            view: View::Readable,
+            graph: Graph::default(),
+            answers: 0,
+            scroll_to: None,
         }
     }
 
@@ -352,10 +409,10 @@ impl Results {
         self.caution = false;
         match result {
             Ok(value) => {
-                self.json = serde_json::to_string_pretty(&value)
-                    .unwrap_or_else(|_| "Response could not be displayed".into());
-                self.value = Some(value);
-                self.error = None;
+                self.graph.show(&value);
+                self.answers = 1;
+                self.scroll_to = None;
+                self.keep(value);
             }
             Err(error) => {
                 self.value = None;
@@ -365,7 +422,40 @@ impl Results {
         }
     }
 
-    fn relations_ui(ui: &mut Ui, value: &Value, rows: &[RelationRow]) {
+    /// An expansion's answer, added to the answer on screen. A failed expansion says why and
+    /// keeps what was there.
+    pub fn merge(&mut self, result: Result<Value, Error>) {
+        self.message.clear();
+        self.caution = false;
+        match (self.value.take(), result) {
+            (Some(mut base), Ok(extra)) => {
+                combine(&mut base, &extra);
+                self.graph.update(&base);
+                self.answers += 1;
+                self.keep(base);
+            }
+            (None, result) => self.set(result),
+            (Some(base), Err(error)) => {
+                self.value = Some(base);
+                self.error = Some(format!("{}: {}", error.code, error.message));
+            }
+        }
+    }
+
+    fn keep(&mut self, value: Value) {
+        self.json = serde_json::to_string_pretty(&value)
+            .unwrap_or_else(|_| "Response could not be displayed".into());
+        self.value = Some(value);
+        self.error = None;
+    }
+
+    fn relations_ui(
+        ui: &mut Ui,
+        value: &Value,
+        rows: &[RelationRow],
+        selected: Option<&str>,
+        scroll_to: &mut Option<String>,
+    ) {
         if rows.is_empty() {
             widgets::section(ui, None, |section| {
                 section.row(|ui| {
@@ -380,7 +470,23 @@ impl Results {
         }
         widgets::section(ui, Some(&plural(rows.len(), "relation")), |section| {
             for row in rows.iter().take(MAX_ROWS) {
-                section.row(|ui| relation_ui(ui, row));
+                section.row(|ui| {
+                    relation_ui(ui, row);
+                    let rect = ui.min_rect().expand(4.0);
+                    if selected == Some(row.id.as_str()) {
+                        let palette = theme::palette(ui.ctx());
+                        ui.painter().rect_stroke(
+                            rect,
+                            CornerRadius::same(theme::CORNER),
+                            Stroke::new(2.0, palette.accent_text),
+                            egui::StrokeKind::Inside,
+                        );
+                    }
+                    if scroll_to.as_deref() == Some(row.id.as_str()) {
+                        ui.scroll_to_rect(rect, Some(egui::Align::Center));
+                        *scroll_to = None;
+                    }
+                });
             }
         });
         if rows.len() > MAX_ROWS {
@@ -408,7 +514,8 @@ impl Results {
         }
     }
 
-    pub fn ui(&mut self, ui: &mut Ui) {
+    /// Draws the answer. Answers an expansion the graph asks for, which only the app can send.
+    pub fn ui(&mut self, ui: &mut Ui) -> Option<Expand> {
         if let Some(error) = &self.error {
             widgets::notice(ui, Tone::Problem, error);
         }
@@ -420,21 +527,55 @@ impl Results {
             };
             widgets::notice(ui, tone, &self.message);
         }
-        let Some(value) = &self.value else { return };
+        let Some(value) = &self.value else {
+            return None;
+        };
+        let rows = relation_rows(value);
+        // The graph is offered for relations only; for other answers a choice of it reads them.
+        let view = match self.view {
+            View::Graph if rows.is_none() => View::Readable,
+            view => view,
+        };
         ui.horizontal(|ui| {
-            ui.selectable_value(&mut self.show_json, false, "Readable");
-            ui.selectable_value(&mut self.show_json, true, "JSON");
+            let readable = if rows.is_some() { "List" } else { "Readable" };
+            ui.selectable_value(&mut self.view, View::Readable, readable);
+            if rows.is_some() {
+                ui.selectable_value(&mut self.view, View::Graph, "Graph");
+            }
+            ui.selectable_value(&mut self.view, View::Json, "JSON");
             if ui.button("Copy JSON").clicked() {
                 ui.ctx().copy_text(self.json.clone());
             }
         });
         ui.add_space(4.0);
+        if view == View::Graph {
+            let as_of = value["snapshot_tick"].as_u64();
+            return match self.graph.ui(ui)? {
+                graph::Action::Expand(entity_id) => Some(Expand { entity_id, as_of }),
+                graph::Action::ShowInList(relation) => {
+                    self.view = View::Readable;
+                    self.scroll_to = Some(relation);
+                    None
+                }
+            };
+        }
+        let selected = self.graph.selected_relation().map(str::to_owned);
+        if view == View::Json && self.answers > 1 {
+            let tick = value["snapshot_tick"]
+                .as_u64()
+                .map_or_else(String::new, |tick| format!(", all read at snapshot {tick}"));
+            widgets::notice(
+                ui,
+                Tone::Quiet,
+                &format!("Combined from {} answers{tick}.", self.answers),
+            );
+        }
         egui::ScrollArea::both()
             .id_salt("result")
             .auto_shrink([false, false])
             .show(ui, |ui| {
                 widgets::leave_room_for_scrollbar(ui);
-                if self.show_json {
+                if view == View::Json {
                     let mut json = self.json.as_str();
                     let text = ui.add(
                         egui::TextEdit::multiline(&mut json)
@@ -442,13 +583,14 @@ impl Results {
                             .desired_width(f32::INFINITY),
                     );
                     widgets::labelled(&text, "Result as JSON");
-                } else if let Some(rows) = relation_rows(value) {
-                    Self::relations_ui(ui, value, &rows);
+                } else if let Some(rows) = &rows {
+                    Self::relations_ui(ui, value, rows, selected.as_deref(), &mut self.scroll_to);
                 } else {
                     Self::answer_ui(ui, value);
                     outline(ui, "Result", value, 0);
                 }
             });
+        None
     }
 }
 
@@ -617,6 +759,143 @@ mod tests {
     }
 
     #[test]
+    fn an_expansion_adds_what_is_new_and_keeps_its_snapshot() {
+        let mut results = Results::new(String::new());
+        let base = crate::graph::fixture();
+        results.set(Ok(base.clone()));
+        let mut extra = json!({
+            "entities": [base["entities"][0].clone(),
+                         {"entity_id": "entity:d", "kind": "person", "labels": ["D"]}],
+            "relations": [base["relations"][0].clone()],
+            "truncated": true,
+            "snapshot_tick": 7,
+        });
+        extra["relations"][0]["relation_id"] = "relation:new".into();
+        results.merge(Ok(extra));
+        let value = results.value.as_ref().unwrap();
+        assert_eq!(value["entities"].as_array().unwrap().len(), 5);
+        assert_eq!(value["relations"].as_array().unwrap().len(), 4);
+        assert_eq!(
+            (value["truncated"].clone(), results.answers),
+            (json!(true), 2)
+        );
+        results.merge(Err(Error::new("CORE_UNAVAILABLE", "Stopped")));
+        assert!(
+            results.value.is_some(),
+            "a failed expansion keeps the graph"
+        );
+        assert!(results.error.as_deref().unwrap().contains("Stopped"));
+        let expand = Expand {
+            entity_id: "entity:a".into(),
+            as_of: Some(7),
+        };
+        assert_eq!(
+            expand.request(),
+            json!({"entity_id": "entity:a", "limit": 100, "tx_as_of": 7})
+        );
+    }
+
+    /// One frame, with these input events; answers what the results asked for and what a screen
+    /// reader was told.
+    fn frame(
+        context: &egui::Context,
+        results: &mut Results,
+        events: Vec<egui::Event>,
+    ) -> (Option<Expand>, Option<egui::accesskit::TreeUpdate>) {
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                vec2(1000.0, 800.0),
+            )),
+            events,
+            ..Default::default()
+        };
+        let mut asked = None;
+        let mut output = context.run_ui(input, |ui| asked = results.ui(ui));
+        output.textures_delta.clear();
+        (asked, output.platform_output.accesskit_update)
+    }
+    fn centre_of(update: &egui::accesskit::TreeUpdate, name: &str) -> egui::Pos2 {
+        let bounds = update
+            .nodes
+            .iter()
+            .find(|(_, node)| node.label() == Some(name))
+            .and_then(|(_, node)| node.bounds())
+            .unwrap_or_else(|| panic!("nothing called {name:?}"));
+        egui::Pos2::new(
+            ((bounds.x0 + bounds.x1) / 2.0) as f32,
+            ((bounds.y0 + bounds.y1) / 2.0) as f32,
+        )
+    }
+    fn click(
+        context: &egui::Context,
+        results: &mut Results,
+        at: egui::Pos2,
+    ) -> (Option<Expand>, Option<egui::accesskit::TreeUpdate>) {
+        let button = |pressed| egui::Event::PointerButton {
+            pos: at,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        };
+        frame(
+            context,
+            results,
+            vec![egui::Event::PointerMoved(at), button(true)],
+        );
+        frame(context, results, vec![button(false)])
+    }
+
+    #[test]
+    fn a_node_is_found_where_it_is_drawn_and_its_entity_can_be_expanded() {
+        let context = egui::Context::default();
+        crate::theme::apply(&context);
+        context.enable_accesskit();
+        let mut results = Results::new(String::new());
+        results.set(Ok(crate::graph::fixture()));
+        results.view = View::Graph;
+        let mut tree = None;
+        for _ in 0..4 {
+            tree = frame(&context, &mut results, Vec::new()).1.or(tree);
+        }
+        let entity = "Project A, Project, 2 relations in this graph";
+        let at = centre_of(&tree.unwrap(), entity);
+        // A click selects the node it lands on, so the box a screen reader is given is the one
+        // on screen, and it does not pin the node.
+        let (asked, tree) = click(&context, &mut results, at);
+        assert_eq!(asked, None);
+        assert_eq!(results.graph.selection(), Some("entity:a"));
+        assert!(
+            !results.graph.is_pinned("entity:a"),
+            "a click is not a drag"
+        );
+        let tree = tree
+            .or_else(|| frame(&context, &mut results, Vec::new()).1)
+            .unwrap();
+        let expand = centre_of(&tree, "Expand");
+        let (asked, _) = click(&context, &mut results, expand);
+        assert_eq!(
+            asked,
+            Some(Expand {
+                entity_id: "entity:a".into(),
+                as_of: Some(7)
+            })
+        );
+        frame(
+            &context,
+            &mut results,
+            vec![egui::Event::Key {
+                key: egui::Key::Escape,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: egui::Modifiers::NONE,
+            }],
+        );
+        assert_eq!(results.graph.selection(), None);
+    }
+
+    #[test]
     fn every_view_draws_without_a_window() {
         let context = egui::Context::default();
         crate::theme::apply(&context);
@@ -626,11 +905,16 @@ mod tests {
             json!({"answer": "Text", "status": "answered", "nested": {"a": [1, 2]}}),
             json!([1, {"deep": true}]),
         ] {
-            let mut results = Results::new(String::new());
-            results.set(Ok(value));
-            let mut output = context.run_ui(egui::RawInput::default(), |ui| results.ui(ui));
-            output.textures_delta.clear();
-            assert!(!output.shapes.is_empty());
+            for view in [View::Readable, View::Graph, View::Json] {
+                let mut results = Results::new(String::new());
+                results.set(Ok(value.clone()));
+                results.view = view;
+                let mut output = context.run_ui(egui::RawInput::default(), |ui| {
+                    results.ui(ui);
+                });
+                output.textures_delta.clear();
+                assert!(!output.shapes.is_empty());
+            }
         }
     }
 }

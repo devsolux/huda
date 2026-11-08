@@ -48,6 +48,40 @@ font needs a dependency this app does not otherwise have.
 Status is a glyph and a word as well as a color (`accessibility.md`). Only an observed tool call
 earns a client the good tone.
 
+## Graph
+
+A relation answer can be read as a **List**, a **Graph** or **JSON**, and the choice stays for the
+answers that follow. The graph is a second view of the same relations, never the only one: the
+list holds them exactly, and **Show in List** goes to the selected relation there.
+
+- **A relation is a node.** A relation joins any number of parties under named roles, so it is
+  drawn as a small pill with the crossbar, joined to each party by a line. An entity appears once;
+  a literal belongs to the one relation that holds it, so a shared value never looks like a link.
+- **Meaning is in shape and word, not only color.** A negation has a broken crossbar, dashed lines
+  and "Not" first in its label. A relation that is not plainly asserted has a dashed outline and
+  says "Planned"; a proposed one says "Proposed" and is edged in the attention color; a stale one
+  fades and says "Stale".
+- **The same graph gets the same picture.** Nodes start where a hash of their ID puts them, never
+  where a random draw does. Forces act on the gap between the edges of two nodes, so a line shows
+  about the same length whatever the names at its ends. Most of a new graph is arranged before it
+  is first drawn.
+- **A graph grows in place.** Double-click an entity, or select it and choose **Expand**, to add
+  its relations, read at the snapshot already shown. Only the new nodes and their neighbours move;
+  everything already seen stays where it was. A dragged node stays where it is put until
+  **Rearrange**.
+- **Focus and context.** Selecting a node brings its relations and their parties forward, steps
+  the rest back, and names the roles on its lines where the line is long enough to hold the name.
+  The inspector beside the canvas shows the selection, or under it in a window narrower than
+  760 pt.
+- **Bounds.** Up to 300 nodes are drawn; the rest is counted and stays in the list. **Fit** shows
+  the whole graph, never above 100%, and the canvas zooms from 25% to 200%.
+
+Every node is a control: Tab reaches each one in the order of the model, arrow keys move focus to
+the nearest node in that direction, Return selects, and Escape clears the selection. A reader
+hears an entity as "Project A, Project, 2 relations in this graph" and a relation with every party
+and its role, negation first. The box a reader is given is the one on screen, whatever the pan and
+zoom, and so is the focus ring.
+
 ## Keyboard
 
 Command with 1 to 8 selects an area in sidebar order, Command-Comma opens Settings, and Escape
@@ -90,6 +124,8 @@ Each of these departs from a guideline, and is recorded rather than hidden.
 | No vibrancy | `materials.md` | The sidebar is opaque. A real material needs AppKit, and the guidelines prefer none to an imitation |
 | The system accent color is not followed | `sidebars.md › Best practices` | eframe does not expose it. Huda's blue is used instead |
 | Reduce Motion and Increase Contrast are not read | `accessibility.md` | eframe does not expose them. Motion is limited to 0.1 s, and surfaces are opaque |
+| Graph lines may cross | Judgment | The force layout does not minimise crossings. Selecting a node brings its own lines forward; a layered layout for hierarchies such as "depends on" would be a second arrangement |
+| Graph keyboard moves by position | `accessibility.md` | Arrow keys follow egui's spatial focus, not the lines of the graph. Each node's name says what it joins, and the list reads in order |
 | Role order is alphabetical | Judgment | Roles are unordered in the data, so "Dependency, Dependent" can read backwards. Each role is labelled, so it is never wrong. A reading order would belong in the relation type registry |
 
 ## Verification
@@ -99,3 +135,8 @@ desktop source on macOS arm64, with an injected-input driver that saves the app'
 The packaged binary was not driven, because macOS denied that session Accessibility and screen
 capture. Relations were drawn from sample data that round-trips through the real view types, never
 from a live Core answer, and no screen reader has been run.
+
+The graph was drawn the same way, from sample data through the real view, in light and dark and
+with a selection, by rasterizing the app's own tessellated output without a window. Its tests
+click nodes through the tree a reader is given, so a box in the wrong place fails them. It has not
+been driven against a live Core or with a trackpad.

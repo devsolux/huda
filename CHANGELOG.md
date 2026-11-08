@@ -18,6 +18,12 @@
   they are seen, areas have headings, sheets are modal dialogs that open with focus on Cancel,
   results announce themselves, and a ring shows keyboard focus. Tests read the real accessibility
   tree. It has not yet been heard with a real screen reader.
+- A **Graph** view of relations in the desktop, beside the list and the JSON. Each relation is a
+  node joined to every party by a line named for its role, so relations with more than two parties
+  draw truthfully. Negations, plans, proposals and stale relations differ in shape and word. The
+  same graph always gets the same picture; double-click or **Expand** adds an entity's relations
+  at the snapshot shown, and only the new part moves. Nodes are named controls for keyboard and
+  screen readers. No new dependency: it is drawn with egui's own canvas.
 - `huda credentials restore` and the desktop's **Restore Access** give an initialized profile
   working credentials again after the OS secret store lost one (a reset keychain, a moved profile
   folder) or one stopped matching. Every credential is read first, so a locked store changes

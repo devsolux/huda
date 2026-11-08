@@ -1,6 +1,7 @@
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 //! Native client: no SQLite connection, publication policy, model, or provider logic in the UI.
 mod clients;
+mod graph;
 mod results;
 mod shell;
 mod startup;
@@ -111,6 +112,8 @@ struct Desktop {
     confirm_mutation: bool,
     /// The setup step the helper is running; requests, unlike setup, can be cancelled.
     pending_setup: Option<Setup>,
+    /// The pending request adds an entity's relations to the answer on screen.
+    pending_expansion: bool,
     /// A request found this profile's credential missing from the OS secret store, or no longer
     /// accepted, so the profile needs Restore Access rather than a reason with no way forward.
     needs_restore: bool,
@@ -143,7 +146,7 @@ impl Desktop {
             tab: Tab::Space, operation: "explore_relations".into(), draft: "{}".into(),
             question: String::new(), language: "en".into(), expansion: "off".into(),
             results: results::Results::new(format!("{} {} is a desktop source candidate. No source scans, model downloads or provider requests occur on launch.", huda::APP_NAME, huda::VERSION)),
-            pending: None, cancellation: Arc::new(AtomicBool::new(false)), confirm_mutation: false, pending_setup: None,
+            pending: None, cancellation: Arc::new(AtomicBool::new(false)), confirm_mutation: false, pending_setup: None, pending_expansion: false,
             needs_restore: false, tray: None, _app_menu: None, shell_started: false, background_requested: background,
             keep_running: background, quitting: false, startup_state: None,
             startup_pending: None, shell_status: "Login registration has not been checked".into(),
@@ -176,6 +179,7 @@ impl Desktop {
             return;
         }
         self.pending_setup = None;
+        self.pending_expansion = false;
         let (sender, receiver) = mpsc::sync_channel(1);
         let client = self.client.clone();
         let operation = operation.to_owned();
@@ -208,7 +212,16 @@ impl Desktop {
     }
 }
 impl Desktop {
+    /// Adds an entity's relations to the graph on screen.
+    fn expand(&mut self, expand: &results::Expand) {
+        if self.pending.is_some() {
+            return;
+        }
+        self.submit("explore_relations", expand.request());
+        self.pending_expansion = self.pending.is_some();
+    }
     fn answered(&mut self, answer: Answer) {
+        let expansion = std::mem::take(&mut self.pending_expansion);
         match (self.pending_setup.take(), answer) {
             (Some(_), Answer::Done(Ok(_))) => {
                 self.needs_restore = false;
@@ -232,7 +245,11 @@ impl Desktop {
             }
             (None, Answer::Done(result)) => {
                 self.needs_restore = false;
-                self.results.set(result);
+                if expansion {
+                    self.results.merge(result);
+                } else {
+                    self.results.set(result);
+                }
             }
         }
     }
@@ -631,7 +648,9 @@ impl Desktop {
         // These two ask the Core nothing, so they have no answer to show.
         if !matches!(self.tab, Tab::Clients | Tab::Settings) {
             ui.add_space(4.0);
-            self.results.ui(ui);
+            if let Some(expand) = self.results.ui(ui) {
+                self.expand(&expand);
+            }
         }
     }
     fn setup_ui(&mut self, ui: &mut egui::Ui) {
