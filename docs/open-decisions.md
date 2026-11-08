@@ -20,8 +20,8 @@ waits for a maintainer decision. Nothing here is a qualified result.
   - Leave schema 1 unchanged and accept the cost until a measured large-graph gate demands it.
 - **Constraint:** existing profiles must never be modified implicitly, and migration tests
   run only on disposable fixtures.
-- **Recommendation:** the migration, together with the planned large-graph performance gate
-  (G2), so the gain is measured rather than assumed.
+- **Recommendation:** the migration, together with the planned large-graph performance gate,
+  so the gain is measured rather than assumed.
 
 ## 2. Code-symbol identity in the optional code adapter
 
@@ -56,7 +56,7 @@ waits for a maintainer decision. Nothing here is a qualified result.
     repair".
   - Keep the existence check and document the repair step.
 - **Constraint:** the comparison must be qualified natively on all three systems.
-- **Recommendation:** the comparison, qualified with the remaining native login gates (G8).
+- **Recommendation:** the comparison, qualified with the remaining native login tests.
 
 ## 4. Windows named-pipe squatting
 
@@ -72,7 +72,7 @@ waits for a maintainer decision. Nothing here is a qualified result.
 - **Constraint:** this changes the Windows transport and needs native Windows race and DACL
   testing.
 - **Recommendation:** the nonce file, implemented together with the outstanding native Windows
-  pipe qualification (G1).
+  pipe qualification.
 
 ## 5. Capture storage growth
 

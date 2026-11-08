@@ -8,6 +8,6 @@ macOS produces an ad-hoc local-test app/DMG, Windows an unsigned per-user Setup 
 ZIP, Linux a candidate Ubuntu 24.04 DEB. These are build recipes; **no binaries are included in
 the source tree**.
 
-Neither signing/notarization nor G0–G8 completion is inferred from packaging. Native tests and
+Neither signing/notarization nor release qualification is inferred from packaging. Native tests and
 real install/upgrade/uninstall qualification remain mandatory. No release is created or
 published automatically; CI only attaches these test packages to a release a maintainer published.

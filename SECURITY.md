@@ -1,7 +1,7 @@
 # Security policy
 
 Huda is a **source candidate**, not a security-qualified release. Read the
-[threat model](docs/threat-model.md) and [gate matrix](docs/verification/gates.md) for the
+[threat model](docs/threat-model.md) and [open decisions](docs/open-decisions.md) for the
 controls that exist in source and the qualification work that remains open.
 
 ## Supported versions

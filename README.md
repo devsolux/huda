@@ -74,7 +74,8 @@ evaluating it.
   SmartScreen will warn on first launch.
 - MCP over HTTP, some API routes and the remote, macOS and Windows Bridge backends are incomplete.
 
-The [gate matrix](docs/verification/gates.md) tracks every release gate and the evidence behind it.
+What remains open before a qualified release is listed in the [threat model](docs/threat-model.md)
+and in [open decisions](docs/open-decisions.md).
 
 ## Supported platforms
 
@@ -295,10 +296,9 @@ Actions are pinned to release commits and updated manually. See
 | [Architecture](docs/architecture.md) | Authority, schema choices, source lifecycle and deliberate limits |
 | [Relation model](docs/relation-model.md) | Entity and relation identity, roles, qualifiers and canonicalization |
 | [Operations](docs/operations.md) | Profiles, credentials, Core lifetime, backup and recovery |
-| [API contracts](docs/api/README.md) | Handler, REST and MCP operation contracts |
+| [API contracts](docs/api-contracts.md) | Handler, REST and MCP operation contracts |
 | [Build and packaging](docs/desktop-build.md) | Per-platform build, packaging and signing boundaries |
 | [Threat model](docs/threat-model.md) | Protected authority, controls and open security obligations |
-| [Gate matrix](docs/verification/gates.md) | Release gates and their recorded evidence |
 | [Evaluations](docs/evaluations.md) | Evaluation contract for native and semantic gates |
 | [Dependency versions](docs/dependency-versions.md) | Pinned crates, actions and protocol versions |
 | [Open decisions](docs/open-decisions.md) | Confirmed findings that wait for a maintainer decision |

@@ -155,7 +155,7 @@ Release-note findings and the changes they required:
   19-language corpus produced byte-identical symbols, relations and parse-error status for
   every language except Dart, whose only differences are the improvements above.
 - **schemars 1.2.3** puts an internally tagged enum's tag first in its schema. The regenerated
-  `huda contracts` output is byte-identical to `docs/verification/openapi-snapshot.json`.
+  `huda contracts` output was byte-identical to the OpenAPI snapshot recorded at the time.
 - **winresource 0.1.32–0.1.34** (Windows-only build dependency) speeds up Windows SDK
   discovery, adds per-binary `compile_for` and fixes host-GNU/target-MSVC builds. `compile()`
   still passes the compiled `.res` to every binary through `rustc-link-arg`, under a new file

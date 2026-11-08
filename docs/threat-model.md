@@ -18,7 +18,7 @@ The answer validator validates IDs and required structure, not natural-language 
 
 Coarse transaction timestamps/counters remain visible; strict timing/side-channel noninterference has not been proven. Scope metadata/types and exports/backups require privacy review. SQLite/backups are not automatically encrypted. Automatic erasure/restore is intentionally unavailable until coherent retention and recovery are qualified.
 
-See the gate matrix. Do not infer security completion from the SQL tests.
+Do not infer security completion from the SQL tests.
 
 ## Desktop and packaging update controls
 

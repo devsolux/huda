@@ -5,10 +5,10 @@ Single source: `src/api/contracts.rs` and the actual Rust handler DTOs. `OPERATI
 After compiling and testing, run:
 
 ```sh
-huda contracts --output docs/api/openapi.yaml
+huda contracts --output openapi.json
 ```
 
-The exporter writes JSON, which is valid YAML 1.2, and declares OpenAPI **3.1.2**. It refuses to overwrite an existing file. `GET /openapi.json` from an explicitly enabled authenticated Core serves the same object. Do not hand-maintain a second schema. A compiler-generated snapshot of the current release is kept in `docs/verification/openapi-snapshot.json` (28 paths, 95 component schemas). It is evidence, not a second maintained contract: regenerate it from `huda contracts` after any DTO or version change.
+The exporter writes JSON, which is valid YAML 1.2, and declares OpenAPI **3.1.2**. It refuses to overwrite an existing file. `GET /openapi.json` from an explicitly enabled authenticated Core serves the same object. Do not hand-maintain a second schema. No copy is kept in the repository: generate it with `huda contracts` whenever it is needed, so it always matches the handler types.
 
 The current catalog and routes are the implemented surface. The complete normative REST surface is not yet closed: dedicated registry/identity proposal review, aggregated coverage and some lifecycle/UI routes remain incomplete. Ordinary unsupported outputs are retained as relation/type proposals rather than acquiring ontology authority. Optional MCP-over-HTTP headers/SSE and remote Bridge authentication are not implemented/advertised.
 

@@ -1,1 +1,0 @@
-BLOCKED: cargo is not installed; command was not executed.
