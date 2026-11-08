@@ -79,6 +79,9 @@
   terminal.
 - The Core's socket appears only once it is private to its owner. A client that started a Core
   could find it a moment earlier, refuse it as unsafe and fail with "Unsafe IPC socket".
+- On macOS a request no longer fails now and then with `IO_ERROR` after the Core has answered.
+  macOS refuses a socket timeout once the Core has closed the connection, and a client that read
+  the answer in more than one piece took that refusal for a failure.
 
 ### Security
 

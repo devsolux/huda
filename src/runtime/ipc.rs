@@ -24,7 +24,14 @@ impl std::io::Read for DeadlineReader<'_> {
             .ok_or_else(|| {
                 std::io::Error::new(std::io::ErrorKind::TimedOut, "IPC frame deadline exceeded")
             })?;
-        self.stream.set_read_timeout(Some(remaining))?;
+        match self.stream.set_read_timeout(Some(remaining)) {
+            Ok(()) => {}
+            // macOS refuses a new timeout once the peer has closed the connection, which the Core
+            // does as soon as it has answered. Such a read cannot block: it returns what is left
+            // of the answer and then the end of it, so it goes ahead without the new timeout.
+            Err(error) if error.kind() == std::io::ErrorKind::InvalidInput => {}
+            Err(error) => return Err(error),
+        }
         std::io::Read::read(self.stream, bytes)
     }
 }
@@ -489,6 +496,49 @@ mod serve_tests {
                 Err(error) => panic!("Core socket did not become ready: {error}"),
             }
         }
+    }
+
+    #[test]
+    fn an_answer_is_read_whole_after_the_core_has_closed_the_connection() {
+        let temporary = tempfile::tempdir().unwrap();
+        let profile = Profile::new(temporary.path().join("profile")).unwrap();
+        let mut store = Store::open(profile.clone()).unwrap();
+        let owner = "o".repeat(64);
+        store
+            .bootstrap_credentials(&owner, &"m".repeat(64))
+            .unwrap();
+        let app = App::new(store, Arc::new(UnavailableModel));
+        let shutdown = Arc::new(AtomicBool::new(false));
+        let server = {
+            let (profile, shutdown) = (profile.clone(), shutdown.clone());
+            std::thread::spawn(move || serve(app, profile, 0, shutdown))
+        };
+        let mut stream = connect(&profile);
+        framing::write_frame(
+            &mut stream,
+            &envelope(&owner, "status", json!({})),
+            crate::MAX_MESSAGE_BYTES,
+        )
+        .unwrap();
+        // The Core answers and closes; the answer is then read a byte at a time, as a slow
+        // client would, every read after the close.
+        std::thread::sleep(Duration::from_millis(300));
+        let frame = framing::read_frame(
+            &mut BufReader::with_capacity(
+                1,
+                DeadlineReader {
+                    stream: &mut stream,
+                    deadline: Instant::now() + Duration::from_secs(5),
+                },
+            ),
+            crate::MAX_MESSAGE_BYTES,
+        )
+        .unwrap()
+        .unwrap();
+        let response: Value = serde_json::from_slice(&frame).unwrap();
+        assert_eq!(response["result"]["product"], crate::APP_NAME);
+        shutdown.store(true, Ordering::Release);
+        server.join().unwrap().unwrap();
     }
 
     #[test]
