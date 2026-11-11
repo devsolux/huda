@@ -12,4 +12,4 @@ Follow [AGENTS.md](AGENTS.md); it holds the repository engineering rules.
 - Never force-push, rebase, amend or reset published commits, and never delete branches, tags,
   releases or release assets without explicit consent.
 - Keep unrelated uncommitted changes out of commits and never discard them.
-- Dispatch workflows only on `main` (`gh workflow run desktop.yml --ref main`).
+- Dispatch workflows only on `main` (`make github-workflow`, or `gh workflow run ci.yml --ref main`).

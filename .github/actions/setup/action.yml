@@ -1,0 +1,30 @@
+# One place for what every job that compiles needs: the Rust version pinned in
+# rust-toolchain.toml (no action chooses it), the Python the repository scripts run on, and
+# the system libraries the Linux desktop build links.
+name: Setup
+description: The pinned Rust toolchain, Python and the native libraries the build links.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: '3.14.8'
+
+    - name: Rust toolchain from rust-toolchain.toml
+      shell: bash
+      run: |
+        channel="$(sed -n 's/^channel[[:space:]]*=[[:space:]]*"\(.*\)"[[:space:]]*$/\1/p' rust-toolchain.toml)"
+        if [ -z "$channel" ]; then
+          echo "::error::rust-toolchain.toml names no channel."
+          exit 1
+        fi
+        rustup toolchain install "$channel" --profile minimal --component rustfmt --component clippy --no-self-update
+        rustc --version --verbose
+        cargo --version
+
+    - name: Native prerequisites (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends -y build-essential pkg-config libx11-dev libx11-xcb-dev libxcb1-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libegl1-mesa-dev libgl1-mesa-dev libssl-dev dpkg-dev desktop-file-utils

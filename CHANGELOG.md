@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- The `desktop.yml` workflow is replaced by `ci.yml` (lint and test on the four targets, started
+  by hand) and `release.yml`. A release is now made by pushing a tag `v<version>` on `main`: the
+  workflow runs CI, builds, packages and signs, and publishes the GitHub release with this
+  file's section as notes. Started by hand it is a dry run that publishes nothing. Sigstore
+  identities of later releases name `release.yml`.
+- `make check` is the list of checks for a commit and the one CI runs; `./dev.sh check` and
+  `./dev.sh test` call it with the pinned toolchain. `make github-push` runs it before it
+  commits, needs a `<type>: <what changed>` message and scans staged changes with gitleaks.
+  `make github-workflow` starts CI and `make github-allow-action` sets the repository's Actions
+  permissions.
+
 ## 1.3.0 — 2026-11-08
 
 ### Added

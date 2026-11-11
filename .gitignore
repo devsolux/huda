@@ -12,6 +12,3 @@ __pycache__/
 !.env.example
 # Cargo.lock is intentionally NOT ignored. Resolve, review and commit it before release.
 
-/.ci-lock/
-/Cargo.lock.sha256
-/dependency-resolution.json

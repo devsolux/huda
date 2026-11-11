@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-# Native Apple Silicon development. Compatible with macOS's bundled Bash 3.2.
+# Native Apple Silicon development, for a developer's machine only: no workflow or Makefile
+# target calls this file, and it refuses to run in CI. The checks themselves live in the
+# Makefile (`make lint`, `make test`), the same list CI runs; this script adds the pinned native
+# toolchain and the packaging. Compatible with macOS's bundled Bash 3.2.
+#
+# It never commits or pushes (that is `make github-push`).
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 cd "$ROOT"
@@ -9,13 +14,13 @@ COMMAND="${1:-help}"
 [ "$#" -eq 0 ] || shift
 usage() {
   cat <<'EOF'
-Huda 1.3.0 — native macOS Apple Silicon (M1/M2/M3/M4 and later)
+Huda — native macOS Apple Silicon (M1/M2/M3/M4 and later)
 Usage: ./dev.sh {doctor|lock|fmt|check|test|build|run|bundle|dmg|all|help}
-  doctor   Check native arm64 host, Xcode CLI tools, Python and pinned Rust.
+  doctor   Check native arm64 host, Xcode CLI tools, Python, make and pinned Rust.
   lock     Explicitly resolve and validate a real Cargo.lock (network required).
   fmt      Format Rust sources using the pinned toolchain (edits source).
-  check    Check formatting and compile/lint all features, with --locked.
-  test     Run default, headless and desktop/REST/optional-adapter Rust tests.
+  check    Check workflows, formatting, Clippy for all features, sources (make lint).
+  test     Run default, headless and desktop/REST/optional-adapter Rust tests (make test).
   build    Build release huda + huda-desktop for aarch64-apple-darwin.
   run      Run the desktop in debug mode, as Huda.app; no provider or login opt-in implied.
   bundle   Build and package an ad-hoc-signed Huda.app for local testing.
@@ -36,9 +41,11 @@ case "$COMMAND" in help|-h|--help) usage; exit 0;;
 command -v xcrun >/dev/null 2>&1 || fail 'Install Apple Command Line Tools explicitly before continuing.'
 xcrun --find clang >/dev/null
 xcrun --sdk macosx --show-sdk-path >/dev/null
+[ -z "${CI:-}" ] || fail 'dev.sh is for local development; CI runs cargo directly.'
 command -v python3 >/dev/null 2>&1 || fail 'Python 3.11 or newer is required.'
 python3 -c 'import sys; assert sys.version_info >= (3,11), "Python >=3.11 required"'
 command -v rustup >/dev/null 2>&1 || fail 'Install native rustup explicitly; this script never downloads a toolchain implicitly.'
+command -v make >/dev/null 2>&1 || fail 'make is required; it runs the checks (Apple Command Line Tools ship it).'
 TOOLCHAIN="$(python3 -c 'import tomllib; print(tomllib.load(open("rust-toolchain.toml","rb"))["toolchain"]["channel"])')"
 # Use an explicit installed toolchain to avoid rustup shims silently installing one.
 # grep reads to EOF here: `grep -q` after a pipe can SIGPIPE the producer under pipefail.
@@ -63,6 +70,12 @@ if [ "$COMMAND" = doctor ]; then
   rustc --version; cargo --version; python3 --version
   printf 'Native arm64 prerequisites found. Lockfile: '
   if [ -f Cargo.lock ]; then echo present; else echo 'missing (run ./dev.sh lock explicitly)'; fi
+  # Not needed to build; `make github-push` and `make github-workflow` need them.
+  for tool in gh gitleaks; do
+    command -v "$tool" >/dev/null 2>&1 || echo "Note: $tool is missing; make github-push needs it."
+  done
+  branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo 'detached HEAD')"
+  [ "$branch" = main ] || echo "Note: on '$branch'; main is the only branch (AGENTS.md)."
   exit 0
 fi
 if [ "$COMMAND" = lock ]; then
@@ -78,17 +91,10 @@ if [ "$COMMAND" = lock ]; then
 fi
 if [ "$COMMAND" = fmt ]; then cargo fmt --all; exit 0; fi
 [ -f Cargo.lock ] || fail 'Cargo.lock is absent. Run ./dev.sh lock, review it, then retry.'
-check() {
-  cargo fmt --all -- --check
-  cargo clippy --locked --target "$TARGET" --all-targets --all-features -- -D warnings
-  PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_sqlite.py
-  PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_desktop_assets.py
-}
-test_project() {
-  cargo test --locked --target "$TARGET"
-  cargo test --locked --target "$TARGET" --no-default-features
-  cargo test --locked --target "$TARGET" --all-features
-}
+# The pinned toolchain is first on PATH (above), so make's cargo is the pinned one.
+checks() { make --no-print-directory "$1" CARGO=cargo PYTHON=python3 CARGO_TARGET="$TARGET"; }
+check() { checks lint; }
+test_project() { checks test; }
 build() { cargo build --locked --release --target "$TARGET" --features "$FEATURES" --bins; }
 case "$COMMAND" in
   check) check;;

@@ -1,0 +1,106 @@
+# The full check of `main` on the four native targets. Started by hand (`make github-workflow`)
+# or called by the release workflow; it does not run on pushes or pull requests, so `make check`
+# on the developer's machine is the gate for a commit. The steps are the command list of
+# `make check`. No job here may use a stored secret, and every action is pinned to a commit
+# (`make check-workflows`).
+name: CI
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+  MACOSX_DEPLOYMENT_TARGET: "13.0"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Every runner builds for its own architecture; Rosetta or a cross build is refused.
+  checks:
+    name: checks (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            os: macos-26
+          - target: x86_64-apple-darwin
+            os: macos-26-intel
+          - target: x86_64-pc-windows-msvc
+            os: windows-2025
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+    env:
+      TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: The runner and the compiler are native
+        run: python scripts/check_native_host.py "$TARGET"
+      - name: Cargo.lock is complete
+        run: cargo fetch --locked
+      - name: fmt
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: cargo clippy --locked --target "$TARGET" --all-targets --all-features -- -D warnings
+      - name: source and offline invariants
+        run: |
+          python scripts/check_sqlite.py
+          python scripts/test_desktop_assets.py
+      - name: tests (default features)
+        run: cargo test --locked --target "$TARGET"
+      - name: tests (headless)
+        run: cargo test --locked --target "$TARGET" --no-default-features
+      - name: tests (desktop, REST, adapters and native IPC)
+        run: cargo test --locked --target "$TARGET" --all-features
+      - name: Linux desktop entry
+        if: runner.os == 'Linux'
+        run: desktop-file-validate packaging/linux/com.devsolux.huda.desktop
+      - name: A check left the tree as it was
+        run: git diff --exit-code
+
+  workflows:
+    name: workflows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: No stored secret, every action pinned
+        run: make check-workflows
+      - name: Secret files are not tracked
+        run: test -z "$(git ls-files '.env' '.env.*' '*.pem' '*.key' '*.p8' '*.p12' '*.pfx' '*.keystore' '*.jks' ':!.env.example')"
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # The image is named by its digest (v8.30.1), like an action by its commit.
+      - name: Scan the full history
+        run: >-
+          docker run --rm -v "$PWD:/repo"
+          ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+          git /repo --redact --no-banner

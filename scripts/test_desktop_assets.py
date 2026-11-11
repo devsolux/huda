@@ -90,42 +90,68 @@ class DesktopSourceTests(unittest.TestCase):
         self.assertEqual(offset, len(data))
         self.assertIn(b"ic10", types)  # 1024px/512@2x
 
-    def test_workflow_has_four_explicit_native_targets_and_sha_actions(self):
-        source = (ROOT / ".github/workflows/desktop.yml").read_text()
-        self.assertEqual(set(re.findall(r"- target: ([\w-]+)", source)), set(package.TARGETS))
-        actions = re.findall(r"uses: ([\w/-]+)@([^\s]+)", source)
-        self.assertTrue(actions)
-        for action, revision in actions:
-            # GitHub's own actions plus the Sigstore installer; nothing else.
-            self.assertRegex(action, r"^(actions/[\w-]+|sigstore/cosign-installer)$")
-            self.assertRegex(revision, r"^[0-9a-f]{40}$")
-        self.assertIn("contents: read", source)
-        self.assertNotIn("pull_request_target", source)
-        self.assertNotIn("continue-on-error", source)
-        self.assertIn("digest-mismatch: error", source)
-        self.assertIn("--locked", source)
+    def test_workflows_have_four_native_targets_and_sha_actions(self):
+        workflows = ROOT / ".github/workflows"
+        self.assertEqual(sorted(p.name for p in workflows.iterdir()), ["ci.yml", "release.yml"])
+        ci = (workflows / "ci.yml").read_text()
+        release = (workflows / "release.yml").read_text()
+        setup = (ROOT / ".github/actions/setup/action.yml").read_text()
+        for source in (ci, release):
+            self.assertEqual(set(re.findall(r"- target: ([\w-]+)", source)), set(package.TARGETS))
+            self.assertIn("\npermissions:\n  contents: read\n", source)
+            self.assertIn("workflow_dispatch", source)
+            self.assertIn("--locked", source)
+        for source in (ci, release, setup):
+            for line in re.findall(r"uses: (\S+)", source):
+                if line.startswith("./"):
+                    continue  # this repository's own setup action and CI workflow
+                action, _, revision = line.partition("@")
+                # GitHub's own actions plus the Sigstore installer; nothing else
+                # (ALLOWED_ACTIONS in the Makefile is the same list for the repository setting).
+                self.assertRegex(action, r"^(actions/[\w-]+|sigstore/cosign-installer)$")
+                self.assertRegex(revision, r"^[0-9a-f]{40}$")
+            self.assertNotIn("secrets", source)
+            self.assertNotIn("pull_request", source)
+            self.assertNotIn("continue-on-error", source)
+        # Nothing starts on a push to a branch or on a schedule; CI never gets more than read.
+        self.assertNotIn("push:", ci)
+        self.assertNotIn("id-token", ci)
+        self.assertNotIn("contents: write", ci)
+        self.assertIn("push:\n    tags: [\"v*\"]", release)
+        self.assertEqual(release.count("download-artifact@"), release.count("digest-mismatch: error"))
+
+        def job(name: str) -> str:
+            return re.split(r"\n  [\w-]+:\n", release.split(f"\n  {name}:\n", 1)[1], 1)[0]
+
+        # The release runs the whole CI on the same commit before anything is signed.
+        self.assertIn("uses: ./.github/workflows/ci.yml", job("ci"))
         # Only the keyless signing job may mint an OIDC identity token, after every gate and
         # without checking out code, and it verifies each signature against this workflow.
-        self.assertEqual(source.count("id-token: write"), 1)
-        sign = source.split("\n  sign:\n", 1)[1].split("\n  release-assets:\n", 1)[0]
+        self.assertEqual(release.count("id-token: write"), 1)
+        sign = job("sign")
         self.assertIn("id-token: write", sign)
-        self.assertIn("needs: [dependencies, formatting, native]", sign)
+        self.assertIn("needs: [preflight, ci, build]", sign)
         self.assertNotIn("actions/checkout", sign)
+        self.assertNotIn("./.github/actions", sign)
         self.assertNotIn("contents: write", sign)
         self.assertRegex(sign, r"cosign-release: v\d+\.\d+\.\d+\n")
         self.assertIn("cosign verify-blob", sign)
         self.assertIn("--certificate-identity", sign)
         self.assertIn("--certificate-oidc-issuer", sign)
-        # Only the final release-asset job may write, only for published releases, without
-        # checking out code and without replacing existing assets.
-        self.assertEqual(source.count("contents: write"), 1)
-        job = source.split("\n  release-assets:\n", 1)[1]
-        self.assertIn("contents: write", job)
-        self.assertIn("if: github.event_name == 'release'", job)
-        self.assertIn("needs: [dependencies, formatting, native, sign]", job)
-        self.assertIn(".sigstore.json", job)
-        self.assertNotIn("actions/checkout", job)
-        self.assertNotIn("--clobber", source)
+        # Only the final publish job may write, only for a pushed tag, without checking out
+        # code and without deleting or replacing a release or an asset.
+        self.assertEqual(release.count("contents: write"), 1)
+        publish = job("publish")
+        self.assertEqual(release.split("\n  publish:\n", 1)[1], publish)
+        self.assertIn("contents: write", publish)
+        self.assertIn("if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')", publish)
+        self.assertIn("needs: [preflight, ci, build, sign]", publish)
+        self.assertIn("environment: release", publish)
+        self.assertIn(".sigstore.json", publish)
+        self.assertNotIn("actions/checkout", publish)
+        self.assertNotIn("./.github/actions", publish)
+        self.assertNotIn("--clobber", release)
+        self.assertNotIn("release delete", release)
 
     def test_headless_feature_does_not_require_desktop(self):
         import tomllib

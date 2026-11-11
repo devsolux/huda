@@ -49,14 +49,14 @@ the same ownership, mode, symlink and hard-link checks as every managed file; th
 empty and carries no instruction, so a planted marker can at most raise the window. A
 malformed IPC envelope is answered with a redacted error and never dispatched.
 
-Workflow permissions are read-only and actions use immutable commit pins. The workflow does
-not run on pull requests, and no signing credentials exist. Only the keyless signing job
+Workflow permissions are read-only and actions use immutable commit pins. No workflow
+runs on pull requests or reads a stored secret, and no signing credentials exist. Only the keyless signing job
 receives `id-token: write`; it runs after every gate, checks out no code, signs only files
 listed in verified checksums and verifies each Sigstore bundle against this workflow's
 identity. A Sigstore bundle proves workflow/ref/commit provenance, not package safety. Only
-the final release-asset job receives `contents: write`; it runs after signing on a release a
-maintainer published, checks out no code, and attaches already-built packages and bundles
-without replacing assets. The
+the final publish job receives `contents: write`; it runs after signing, only for a tag
+`v<version>` pushed on `main` and behind the `release` environment, checks out no code, and
+publishes already-built packages and bundles without deleting or replacing a release. The
 read-only job token authenticates only the Inno Setup release-metadata lookup and is removed
 from the environment before that installer runs. Inno Setup is downloaded only
 inside a disposable Windows build runner and checked against its release asset digest plus

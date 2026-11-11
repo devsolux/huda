@@ -4,8 +4,8 @@
 
 ## Verification
 
-The native workflow runs only on manual dispatch and published `v*` releases, so run the
-checks locally (maintainers can dispatch the workflow on `main`) and paste the real results.
+CI runs only on manual dispatch and before a `v*` release, so run the checks locally
+(`make check`; maintainers can dispatch CI on `main`) and paste the real results.
 
 - [ ] `cargo fmt --all -- --check`
 - [ ] `cargo clippy --locked --all-targets --all-features -- -D warnings`

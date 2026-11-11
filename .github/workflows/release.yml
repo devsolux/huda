@@ -1,0 +1,284 @@
+# Release of the Huda desktop packages (docs/desktop-build.md, Signing and acceptance
+# boundaries).
+#
+# A tag `v<version>` pushed on `main` runs the full CI, builds and packages the four native
+# targets, signs every package and the combined checksum list, and publishes a GitHub release
+# with the changelog section as its notes. Started by hand (`make github-workflow
+# WORKFLOW=release.yml`) it is a dry run: the same packages and signatures, kept as workflow
+# artifacts, nothing published.
+#
+# Signing: Sigstore cosign, keyless, with the run's own identity. It needs no stored secret,
+# and no workflow in this repository may use one (`make check-workflows`). The packages carry
+# no Developer ID, notarization or Authenticode signature and stay unqualified test candidates
+# for the operating system.
+#
+# The `release` environment guards the publish job: give it required reviewers and limit it to
+# tags `v*`, so a person approves every release. Actions are pinned to a commit.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+  MACOSX_DEPLOYMENT_TARGET: "13.0"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Cheap refusals first, before a runner builds anything.
+  preflight:
+    name: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: The commit is on main
+        run: |
+          if [[ "$GITHUB_REF" != refs/tags/v* && "$GITHUB_REF" != refs/heads/main ]]; then
+            echo "::error::A release starts from a tag v<version> or, as a dry run, from main. Got $GITHUB_REF."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
+            echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not on main. Only commits on main are released."
+            exit 1
+          fi
+      - name: No stored secret, every action pinned
+        run: make check-workflows
+      # Refuses when the tag is not the version of Cargo.toml, or the changelog has no section
+      # for it. The notes are written here, so the job that publishes needs no checkout.
+      - name: The version may be released
+        id: version
+        run: |
+          version="$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["package"]["version"])')"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::The version in Cargo.toml is '$version'; a release needs MAJOR.MINOR.PATCH."
+            exit 1
+          fi
+          awk -v version="$version" '
+            /^## / { printing = ($2 == version); next }
+            printing { print }
+          ' CHANGELOG.md > notes.md
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            if [[ "$GITHUB_REF_NAME" != "v$version" ]]; then
+              echo "::error::Tag $GITHUB_REF_NAME is not the Cargo.toml version v$version."
+              exit 1
+            fi
+            if ! grep -q '[^[:space:]]' notes.md; then
+              echo "::error::CHANGELOG.md has no section '## $version' with content."
+              exit 1
+            fi
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-notes
+          path: notes.md
+          if-no-files-found: error
+          retention-days: 30
+
+  # Every check of CI on the four targets, on this exact commit, before anything is packaged.
+  ci:
+    name: ci
+    needs: preflight
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: build (${{ matrix.target }})
+    needs: preflight
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            os: macos-26
+          - target: x86_64-apple-darwin
+            os: macos-26-intel
+          - target: x86_64-pc-windows-msvc
+            os: windows-2025
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+    env:
+      TARGET: ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: The runner and the compiler are native
+        run: python scripts/check_native_host.py "$TARGET"
+      # The installer's SHA-256 and Authenticode publisher are checked before it runs; the
+      # read-only job token only authenticates the release-metadata lookup.
+      - name: Native installer compiler (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./scripts/install_inno.ps1
+      # No build cache: a release is built from Cargo.lock and nothing else.
+      - name: Build both desktop and helper
+        run: cargo build --locked --release --target "$TARGET" --features desktop,rest --bins
+      # What people will run is checked, not what the build said it did.
+      - name: Displayless helper smoke (no profile or secret-store access)
+        run: python scripts/smoke_binary.py "$TARGET"
+      - name: Native packages (unsigned or ad-hoc test candidates)
+        run: python scripts/package_desktop.py --target "$TARGET"
+      - name: The build left the tree as it was
+        run: git diff --exit-code
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Huda-${{ needs.preflight.outputs.version }}-${{ matrix.target }}-unqualified
+          path: |
+            dist/${{ matrix.target }}/*.dmg
+            dist/${{ matrix.target }}/*.deb
+            dist/${{ matrix.target }}/*.zip
+            dist/${{ matrix.target }}/*.exe
+            dist/${{ matrix.target }}/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
+
+  sign:
+    name: sign
+    # Only after CI and all four builds pass, for a dry run too, so the signing path is tried
+    # before a tag exists. Keyless: the job's GitHub OIDC token is exchanged for a short-lived
+    # Fulcio certificate bound to this workflow, ref and commit, and every signature is recorded
+    # in the public Rekor transparency log. No signing key or secret exists.
+    needs: [preflight, ci, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+    steps:
+      # No checkout: repository code never runs while this job can mint an identity token.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: Huda-${{ needs.preflight.outputs.version }}-*-unqualified
+          path: unsigned
+          digest-mismatch: error
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          # The installer verifies this release against its pinned bootstrap cosign.
+          cosign-release: v3.1.3
+      - name: Verify checksums, then sign and verify every package and SHA256SUMS
+        env:
+          CERTIFICATE_IDENTITY: ${{ github.server_url }}/${{ github.workflow_ref }}
+          CERTIFICATE_OIDC_ISSUER: https://token.actions.githubusercontent.com
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          mkdir signed
+          cd unsigned
+          sums=(*/SHA256SUMS)
+          packages=(*/*.dmg */*.deb */*.zip */*.exe)
+          if [ "${#sums[@]}" -ne 4 ] || [ "${#packages[@]}" -eq 0 ]; then
+            echo "::error::Expected the packages of four targets, found ${#sums[@]} checksum lists and ${#packages[@]} packages"
+            exit 1
+          fi
+          for file in "${sums[@]}"; do
+            (cd "$(dirname "$file")" && sha256sum --check --strict SHA256SUMS)
+          done
+          # Sign only what the checksums list: every package exactly once, nothing unlisted.
+          listed="$(awk '{print $2}' "${sums[@]}" | sort)"
+          found="$(printf '%s\n' "${packages[@]##*/}" | sort)"
+          if [ "$listed" != "$found" ] || [ -n "$(uniq -d <<<"$found")" ]; then
+            echo '::error::SHA256SUMS does not list exactly the downloaded packages'
+            exit 1
+          fi
+          cat "${sums[@]}" > ../signed/SHA256SUMS
+          cp -- "${packages[@]}" ../signed/
+          cd ../signed
+          sha256sum --check --strict SHA256SUMS
+          blobs=(SHA256SUMS "${packages[@]##*/}")
+          for blob in "${blobs[@]}"; do
+            cosign sign-blob --yes --bundle "$blob.sigstore.json" "$blob"
+          done
+          # Read back the way a person would check a download: this workflow, ref and commit.
+          for blob in "${blobs[@]}"; do
+            cosign verify-blob --bundle "$blob.sigstore.json" \
+              --certificate-identity "$CERTIFICATE_IDENTITY" \
+              --certificate-oidc-issuer "$CERTIFICATE_OIDC_ISSUER" \
+              --certificate-github-workflow-sha "$GITHUB_SHA" \
+              "$blob"
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Huda-${{ needs.preflight.outputs.version }}-unqualified-signed
+          path: signed/
+          if-no-files-found: error
+          retention-days: 30
+
+  # Only a pushed tag publishes; a run started by hand never does, whatever ref it was started
+  # on. Everything is uploaded to a draft first and published afterwards, so nobody sees half a
+  # release. An existing release, draft or published, is never deleted or replaced.
+  publish:
+    name: publish
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [preflight, ci, build, sign]
+    runs-on: ubuntu-24.04
+    environment: release
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.preflight.outputs.version }}
+    steps:
+      # No checkout: repository code never runs while this job holds the write token.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: Huda-${{ needs.preflight.outputs.version }}-unqualified-signed
+          path: release
+          digest-mismatch: error
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-notes
+          path: notes
+          digest-mismatch: error
+      - name: The release is still complete
+        working-directory: release
+        run: |
+          shopt -s nullglob
+          sha256sum --check --strict SHA256SUMS
+          packages=(*.dmg *.deb *.zip *.exe)
+          if [ "${#packages[@]}" -eq 0 ]; then
+            echo '::error::No signed native packages were downloaded'
+            exit 1
+          fi
+          for blob in SHA256SUMS "${packages[@]}"; do
+            if [ ! -s "$blob.sigstore.json" ]; then
+              echo "::error::Missing Sigstore bundle for $blob"
+              exit 1
+            fi
+          done
+          grep -q '[^[:space:]]' ../notes/notes.md
+      - name: Upload to a draft, then publish
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "::error::A release for $GITHUB_REF_NAME already exists. A published release is fixed forward with a higher version; a draft left by a failed run is removed by a person before the run is repeated."
+            exit 1
+          fi
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --draft --verify-tag --title "Huda $VERSION" --notes-file notes/notes.md
+          gh release edit "$GITHUB_REF_NAME" --draft=false --latest

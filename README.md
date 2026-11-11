@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/devsolux/huda/actions/workflows/desktop.yml"><img src="https://github.com/devsolux/huda/actions/workflows/desktop.yml/badge.svg" alt="Native desktop workflow"></a>
+  <a href="https://github.com/devsolux/huda/actions/workflows/ci.yml"><img src="https://github.com/devsolux/huda/actions/workflows/ci.yml/badge.svg" alt="CI workflow"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
   <a href="rust-toolchain.toml"><img src="https://img.shields.io/badge/rust-1.99.0-orange.svg" alt="Rust 1.99.0"></a>
   <a href="https://github.com/devsolux/huda/releases"><img src="https://img.shields.io/github/v/release/devsolux/huda" alt="Latest release"></a>
@@ -79,8 +79,8 @@ external services unless you explicitly configure and authorize it.
 Huda is a **source candidate**, not a security-qualified release. Use a disposable profile while
 evaluating it.
 
-- The [CI workflow](.github/workflows/desktop.yml) builds, lints, tests and packages all four
-  supported targets.
+- The [CI workflow](.github/workflows/ci.yml) lints and tests all four supported targets, and
+  the [release workflow](.github/workflows/release.yml) builds and packages them.
 - Native installation, login registration, tray, secret-store and upgrade testing is incomplete.
   So far, only an isolated desktop launch smoke test on Apple Silicon has been run.
 - The Windows named-pipe access controls are implemented but not yet natively qualified.
@@ -127,11 +127,12 @@ Newer releases also include a [Sigstore](https://docs.sigstore.dev/cosign/) bund
 downloaded package, then verify it with cosign 3.x:
 
 ```bash
-cosign verify-blob --bundle "$FILE.sigstore.json" --certificate-identity "https://github.com/devsolux/huda/.github/workflows/desktop.yml@refs/tags/$TAG" --certificate-oidc-issuer https://token.actions.githubusercontent.com "$FILE"
+cosign verify-blob --bundle "$FILE.sigstore.json" --certificate-identity "https://github.com/devsolux/huda/.github/workflows/release.yml@refs/tags/$TAG" --certificate-oidc-issuer https://token.actions.githubusercontent.com "$FILE"
 ```
 
-A valid bundle proves which workflow run built the file. It is not an operating-system code
-signature. Releases published before signing was introduced include only `SHA256SUMS`.
+For releases up to `v1.3.0`, the workflow file in that identity is `desktop.yml` instead of
+`release.yml`. A valid bundle proves which workflow run built the file. It is not an
+operating-system code signature. Releases published before signing was introduced include only `SHA256SUMS`.
 
 On macOS, move `Huda.app` to Applications before enabling launch at login.
 
@@ -307,7 +308,7 @@ always runs the pinned toolchain, even when another Rust comes first on `PATH`.
 ```bash
 rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
 ./dev.sh doctor   # check the host and toolchain
-./dev.sh check    # formatting, strict Clippy, source and SQLite checks
+./dev.sh check    # workflows, formatting, strict Clippy, source and SQLite checks
 ./dev.sh test     # default, headless and all-feature tests
 ./dev.sh build    # desktop and helper binaries
 ./dev.sh run      # debug desktop
@@ -316,14 +317,13 @@ rustup toolchain install 1.99.0 --profile minimal --component rustfmt --componen
 ```
 
 Packages are written to `dist/aarch64-apple-darwin/`, and existing packages are never
-overwritten.
+overwritten. `check` and `test` run `make lint` and `make test`, the list CI runs, with the
+pinned toolchain.
 
 ### Other targets
 
 ```bash
-cargo fmt --all -- --check
-cargo clippy --locked --all-targets --all-features -- -D warnings
-cargo test --locked --all-features
+make check   # workflows, fmt, Clippy, source checks, and the tests in three feature sets
 cargo build --locked --release --target x86_64-unknown-linux-gnu --features desktop,rest --bins
 python3 scripts/package_desktop.py --target x86_64-unknown-linux-gnu
 ```
@@ -336,18 +336,31 @@ The platform prerequisites are covered in [build and packaging](docs/desktop-bui
 
 ### Continuous integration
 
-[`desktop.yml`](.github/workflows/desktop.yml) runs on manual dispatch and on published releases
-whose tag is `v` followed by the `Cargo.toml` version. It does not run on pushes or pull
-requests, so run the checks above locally first. Each run:
+Nothing runs on pushes to `main` or on pull requests, so `make check` on your machine is the
+gate for a commit.
 
-1. Verifies the committed dependency lock and shares it with every job.
-2. Lints, tests, builds and packages all four targets, with formatting as a separate gate.
+[`ci.yml`](.github/workflows/ci.yml) starts by hand (`make github-workflow`). On each of the
+four targets it checks the committed `Cargo.lock`, formatting, Clippy, the source checks and
+the tests in three feature sets. It also checks that workflows use no stored secret and pin
+every action, and scans the history with gitleaks.
+
+[`release.yml`](.github/workflows/release.yml) starts when a tag `v` followed by the
+`Cargo.toml` version is pushed on `main`. Each run:
+
+1. Refuses a tag that is not on `main`, does not match the version, or has no section in
+   `CHANGELOG.md`.
+2. Runs all of CI, and builds and packages all four targets.
 3. Signs every package and the combined `SHA256SUMS` keylessly with Sigstore cosign, then
    verifies each signature.
-4. For a published release, attaches the packages, checksums and signature bundles. It never
-   replaces existing assets.
+4. Publishes a GitHub release with the packages, checksums, signature bundles and the
+   changelog section as notes, after approval in the `release` environment. It never deletes
+   or replaces a release or an asset.
 
-Actions are pinned to release commits and updated manually. See
+Started by hand (`make github-workflow WORKFLOW=release.yml`) it is a dry run: steps 1 to 3,
+with the packages kept as workflow artifacts and nothing published.
+
+`make github-allow-action` sets the repository to allow only the actions these workflows use
+and to give jobs a read-only token. Actions are pinned to release commits and updated manually. See
 [dependency versions](docs/dependency-versions.md) for the pinned versions.
 
 ## Documentation
