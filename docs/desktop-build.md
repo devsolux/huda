@@ -2,7 +2,7 @@
 
 ## Prerequisites and reproducibility
 
-Rust 1.99.0, a native C/C++ compiler, Python >=3.11, and one reviewed real Cargo.lock are required. SQLite is bundled. The desktop is egui/eframe 0.36.2 with glow, tray-icon 0.26.1 and auto-launch 0.6.0. The core/headless feature path does not require either desktop integration. Builds never download a model or register login startup.
+Rust 1.99.0, a native C/C++ compiler, Python >=3.11, and one reviewed real Cargo.lock are required. SQLite is bundled. The desktop is egui/eframe 0.37.0 with glow and the clipboard, tray-icon 0.26.1 and auto-launch 0.6.0. The core/headless feature path does not require either desktop integration. Builds never download a model or register login startup.
 
 The repository carries the `Cargo.lock` resolved by Cargo 1.99.0 on 2026-10-09 and re-resolved for the 2026-10-12 dependency upgrade; CI uses it with `--locked` and only resolves a candidate when no lock is committed. Review `cargo tree --locked`, license obligations and advisories before release (`cargo audit` found none on 2026-10-13). Native CI carries the same lock artifact to all four targets, compares its SHA-256 and refuses to replace a conflicting committed lock. No CI job independently updates dependencies.
 

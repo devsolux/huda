@@ -27,6 +27,10 @@
   clear the unsound warnings RUSTSEC-2026-0386 and -0486, and the two yanked packages are
   replaced. webpki-root-certs 1.0.12 drops seven roots Mozilla no longer trusts for TLS.
   `cargo audit` reports no vulnerabilities and three unmaintained-crate warnings.
+- eframe/egui 0.37.0. Copy and paste keep working: eframe made the clipboard an optional
+  feature, and the desktop now asks for it. A sheet is still one modal dialog for a screen
+  reader; egui 0.37 would have wrapped it in a second, unnamed one. On Linux, copy and paste
+  under Wayland can also go through the data-control protocol.
 
 ## 1.3.0 — 2026-11-08
 

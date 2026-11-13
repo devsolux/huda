@@ -5,7 +5,7 @@ use eframe::egui::{
     self,
     accesskit::{Live, Role},
     pos2, vec2, Color32, CornerRadius, Frame, Margin, Pos2, Rect, Response, RichText, Sense, Shape,
-    Stroke, Ui, Vec2, Widget, WidgetInfo, WidgetType,
+    Stroke, Ui, Vec2, Widget, WidgetInfo,
 };
 
 /// Sections end short of a scroll area's edge, where its bar appears over the content.
@@ -306,7 +306,7 @@ impl Widget for Switch<'_> {
             response.mark_changed();
         }
         let (on, label, enabled) = (*self.on, self.label, ui.is_enabled());
-        response.widget_info(|| WidgetInfo::selected(WidgetType::Checkbox, enabled, on, label));
+        response.widget_info(|| WidgetInfo::selected(Role::CheckBox, enabled, on, label));
         response.ctx.accesskit_node_builder(response.id, |node| {
             node.set_role(Role::Switch);
         });
@@ -436,14 +436,7 @@ pub fn sidebar_row(
     let height = 28.0;
     let width = ui.available_width();
     let (rect, response) = ui.allocate_exact_size(vec2(width, height), Sense::click());
-    response.widget_info(|| {
-        WidgetInfo::selected(
-            WidgetType::SelectableLabel,
-            ui.is_enabled(),
-            selected,
-            label,
-        )
-    });
+    response.widget_info(|| WidgetInfo::selected(Role::Button, ui.is_enabled(), selected, label));
     if ui.is_rect_visible(rect) {
         let fill = if selected {
             palette.selection
@@ -523,7 +516,7 @@ pub fn focus_ring(context: &egui::Context) {
     let rect = context
         .layer_transform_to_global(response.layer_id)
         .map_or(response.rect, |to_global| to_global * response.rect);
-    let layer = egui::LayerId::new(egui::Order::Tooltip, egui::Id::new("focus-ring"));
+    let layer = egui::LayerId::new(egui::Order::Tooltip, egui::Id::unique("focus-ring"));
     context.layer_painter(layer).rect_stroke(
         rect.expand(1.5),
         CORNER + 1,
@@ -541,7 +534,11 @@ pub fn sheet(context: &egui::Context, id: &str, title: &str, body: impl FnOnce(&
     } else {
         Color32::from_black_alpha(70)
     };
-    let response = egui::Modal::new(egui::Id::new(id))
+    let id = egui::Id::unique(id);
+    // egui makes a modal's area an unnamed dialog of its own. The content below is the one
+    // dialog, named and modal, so the area stays a plain container.
+    let response = egui::Modal::new(id)
+        .area(egui::Modal::default_area(id).role(Role::GenericContainer))
         .backdrop_color(backdrop)
         .frame(
             Frame::new()

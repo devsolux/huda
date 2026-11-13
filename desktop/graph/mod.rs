@@ -10,8 +10,7 @@ use crate::theme::{self, Palette};
 use crate::widgets;
 use eframe::egui::{
     self, accesskit, vec2, Color32, CornerRadius, CursorIcon, FontFamily, FontId, Galley, Key,
-    Pos2, Rect, Scene, Sense, Shape, Stroke, StrokeKind, Ui, UiBuilder, Vec2, WidgetInfo,
-    WidgetType,
+    Pos2, Rect, Role, Scene, Sense, Shape, Stroke, StrokeKind, Ui, UiBuilder, Vec2, WidgetInfo,
 };
 use layout::Layout;
 use model::{Kind, Model};
@@ -402,12 +401,11 @@ fn draw(
     let mut hovered = None;
     for (i, node) in model.nodes.iter().enumerate() {
         let rect = Rect::from_center_size(layout.position(i), looks[i].size);
-        let id = ui.id().with(("graph-node", &node.key));
+        let id = ui.scope_id().with(("graph-node", &node.key));
         let response = ui.interact(rect, id, Sense::click_and_drag());
         let is_selected = selected == Some(i);
-        response.widget_info(|| {
-            WidgetInfo::selected(WidgetType::SelectableLabel, true, is_selected, &node.spoken)
-        });
+        response
+            .widget_info(|| WidgetInfo::selected(Role::Button, true, is_selected, &node.spoken));
         // AccessKit takes the scene's own coordinates; VoiceOver needs the box on screen.
         if let Some(to_global) = to_global {
             let shown = to_global * rect;

@@ -295,7 +295,7 @@ fn outline(ui: &mut Ui, key: &str, value: &Value, depth: usize) {
         return;
     }
     egui::CollapsingHeader::new(format!("{key}  ({})", children.len()))
-        .id_salt(ui.id().with(key).with(depth))
+        .id_salt(ui.scope_id().with(key).with(depth))
         .default_open(depth < 2)
         .show(ui, |ui| {
             for (key, value) in children.iter().take(MAX_ROWS) {

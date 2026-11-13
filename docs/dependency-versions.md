@@ -25,7 +25,7 @@ there. This is a tool finding, not a security certification.
 | Rust | 1.99.0 | https://doc.rust-lang.org/std/ |
 | auto-launch | 0.6.0 | https://docs.rs/auto-launch/latest/auto_launch/ |
 | tray-icon | 0.26.1 | https://docs.rs/tray-icon/latest/tray_icon/ |
-| eframe/egui | 0.36.2, with the `accesskit` feature | https://docs.rs/eframe/0.36.2/eframe/trait.App.html |
+| eframe/egui | 0.37.0, with the `accesskit` and `clipboard` features | https://docs.rs/eframe/0.37.0/eframe/trait.App.html |
 | reqwest | 0.13.5 | https://docs.rs/reqwest/latest/reqwest/ |
 | keyring | 4.2.0, `v1` facade | https://docs.rs/keyring/latest/keyring/v1/ |
 | rusqlite | 0.42.0, bundling SQLite 3.54.1 | https://docs.rs/rusqlite/latest/rusqlite/ |
@@ -118,10 +118,11 @@ source). Huda quotes ordinary Linux and Windows paths, rejects unsafe unqualifie
 reports custom XDG config unsupported rather than registering in the wrong location. macOS
 XML/path and Windows verbatim-prefix safeguards are in the same small desktop adapter, not a
 second startup service. rusqlite 0.42, like 0.40, gates `u64` conversions behind its
-`fallible_uint` feature, keyring 4.2's `v1` feature selects the native Keychain, Windows and Secret Service
-stores, tray-icon 0.26 requires exactly the `ksni` or `libappindicator` feature on Linux, and
-eframe 0.36 drives the desktop through `App::logic`/`App::ui`; all were confirmed from the
-resolved crate sources, and the desktop compiles against them on macOS.
+`fallible_uint` feature, keyring 4.2's `v1` feature selects the native Keychain, Windows and
+Secret Service stores, tray-icon 0.26 requires exactly the `ksni` or `libappindicator` feature on
+Linux, and eframe 0.37, like 0.36, drives the desktop through `App::logic`/`App::ui` and needs
+its `clipboard` feature for copy and paste; all were confirmed from the resolved crate sources,
+and the desktop compiles against them on macOS.
 
 No new backend silently enables network access, model downloads, system startup or publishing.
 
@@ -314,3 +315,58 @@ load average near 30 from unrelated processes on a 10-core machine, the all-feat
 `rust_cfg_nested_past_the_cap_is_production_and_does_not_overflow` hit its 5-second parse
 deadline. With the same lock it then passed in about one second in seven runs, including a full
 `make check`, with tree-sitter 0.27.1 or 0.27.2 and cc 1.8.0 or 1.11.2 alike.
+
+## 2026-11-13 eframe 0.37
+
+The eframe pin moves 0.36.2 → 0.37.0, the current release. `cargo update -p eframe --precise
+0.37.0` moved 22 packages, the egui family (ecolor, emath, epaint, egui, egui-winit, egui_glow,
+egui-wgpu) and the AccessKit adapters (accesskit 0.25.2, accesskit_winit 0.34.2, macOS 0.27.2,
+Windows 0.35.2, Unix 0.24.1) among them. `accesskit_consumer` is now one version, 0.39.2, instead
+of 0.35, 0.36 and 0.38. Ten packages are new:
+
+- Linux only, for the Wayland clipboard: egui-winit 0.37's `wayland` feature now also enables
+  arboard's `wayland-data-control`, which adds **wl-clipboard-rs** 0.9.5, **os_pipe** 1.2.3,
+  **tree_magic_mini** 3.2.2 and, under it, **nom** 8.0.0, **petgraph** 0.8.3 and **fixedbitset**
+  0.5.9. None has a build script or network access, and only os_pipe's own tests start processes.
+  tree_magic_mini reads the freedesktop MIME database (`XDG_DATA_DIRS`, `/usr/share/mime`) when
+  asked to detect a type.
+- **accesskit_ios** 0.2.2 (iOS only, never compiled here), **send_wrapper** 0.6.0 (eframe),
+  **unicode-properties** 0.1.5 (epaint) and a second **foldhash**, 0.1.5, for hashbrown 0.15.
+  Licenses are MIT, Apache-2.0, Zlib or Unicode-3.0.
+
+Release-note findings and the changes they required:
+
+- **Clipboard.** eframe 0.37 made the clipboard an optional, default-on `clipboard` feature.
+  eframe 0.36 always enabled egui-winit's clipboard, but Huda builds eframe without default
+  features, so the bare version change would have dropped copy and paste: **Copy JSON**, the
+  copy action of the AI client rows and every paste into a text field. The pin now names
+  `clipboard`, and arboard links on macOS, Windows and Linux (smithay-clipboard too on Linux), as
+  before.
+- **Not adopted:** the new default `system_fonts` feature, which loads system fonts at run time
+  for characters the bundled fonts lack (colored emoji, CJK and other scripts). Huda loads its
+  own macOS system faces in `desktop/theme.rs`; text it cannot draw is unchanged from 0.36. `links`
+  stays off, as before.
+- **Renames** (the old names are deprecated, and Clippy runs with `-D warnings`): `WidgetType` is
+  `Role`, an alias of `accesskit::Role`; `Ui::id` is `Ui::scope_id`; `Id::new` is `Id::unique`,
+  which hashes the same way. `WidgetType::SelectableLabel` has no `Role` of its name, and the
+  sidebar rows and graph nodes now give `Role::Button`, the role 0.36 derived from it;
+  `WidgetType::Checkbox` is `Role::CheckBox`. The accessibility tests read the same roles.
+- **Modal dialogs.** egui 0.37 gives a `Modal`'s area the `Dialog` role of its own, unnamed and
+  not modal, so a sheet reached a screen reader as an unnamed dialog around the named, modal one
+  (`a_sheet_is_a_modal_dialog_and_focus_lands_on_cancel` failed). The sheet's area is set back to
+  a plain container, as every `Ui` was in 0.36, and the sheet is again one dialog, named, modal
+  and focused on Cancel.
+- **Panels.** The sidebar and content panels are now `Pane` nodes, which were plain containers;
+  the sidebar keeps its named `Navigation` node inside. A dump of every area's tree found no other
+  unnamed landmark. Text fields add `TextRun` children for AccessKit text editing.
+- **Style.** The new default style (roomier buttons, larger corner radii, other grays) changes only
+  values `desktop/theme.rs` sets itself: button padding, control height, corner radii and the
+  fills and text of every widget state. Huda's look does not change; this was compared in the
+  style sources, not on a screen.
+- Not reached by Huda: the screenshot command's callback, the `AsId` removal, `Panel`
+  constructors taking `impl AsIdSalt` (string ids still fit), `ComboBox` built from atoms and the
+  experimental theme plugins.
+
+`make check` passed with Rust 1.99.0 on native `aarch64-apple-darwin`: 150 default, 149 headless
+and 502 all-feature library tests, and the 60 desktop tests. The window itself was not opened,
+and nothing was heard with a real screen reader.
