@@ -31,6 +31,8 @@
   feature, and the desktop now asks for it. A sheet is still one modal dialog for a screen
   reader; egui 0.37 would have wrapped it in a second, unnamed one. On Linux, copy and paste
   under Wayland can also go through the data-control protocol.
+- Rust 1.100.0 is the pinned toolchain (was 1.99.0); it includes the 1.99.1 fix for a
+  miscompilation of FFI `bool` return values on x86-64.
 
 ## 1.3.0 — 2026-11-08
 

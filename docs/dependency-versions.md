@@ -22,7 +22,7 @@ there. This is a tool finding, not a security certification.
 
 | Component | Selected version | Primary reference |
 |---|---|---|
-| Rust | 1.99.0 | https://doc.rust-lang.org/std/ |
+| Rust | 1.100.0 | https://doc.rust-lang.org/std/ |
 | auto-launch | 0.6.0 | https://docs.rs/auto-launch/latest/auto_launch/ |
 | tray-icon | 0.26.1 | https://docs.rs/tray-icon/latest/tray_icon/ |
 | eframe/egui | 0.37.0, with the `accesskit` and `clipboard` features | https://docs.rs/eframe/0.37.0/eframe/trait.App.html |
@@ -370,3 +370,25 @@ Release-note findings and the changes they required:
 `make check` passed with Rust 1.99.0 on native `aarch64-apple-darwin`: 150 default, 149 headless
 and 502 all-feature library tests, and the 60 desktop tests. The window itself was not opened,
 and nothing was heard with a real screen reader.
+
+## 2026-11-13 Rust 1.100.0
+
+`rust-toolchain.toml` moves from 1.99.0 to 1.100.0, released on 2026-11-12. The point release
+1.99.1 fixed a miscompilation of FFI `bool` return values on x86-64, a target Huda ships for
+macOS, Linux and Windows and on which it calls SQLite, libc and Windows over FFI; 1.100.0
+includes that fix. `rust-version` stays 1.99: nothing here needs a newer compiler.
+
+Release-note findings: the never type is stable and its fallback is `!` on every edition,
+`Infallible` is an alias of `!`, closures capture variables used in `if let` more precisely, and
+the standard library moves to Unicode 18. Cargo gains `[lints.cargo]` with an unused-dependency
+lint, minimum-publish-age settings (dependency cooldowns), and a new layout for intermediate
+build files; final binaries stay where they were, and Huda's tests and packaging look only at
+those. None of it changed a line here: with 1.100.0, rustfmt reformats nothing, Clippy (0.1.100)
+and Cargo report no new warning, and `make check` passed with the same test counts on native
+`aarch64-apple-darwin`. The release build of `huda` and `huda-desktop` with the `desktop`,
+`rest` and `code-adapter` features also passed.
+
+One finding predates this change. On the development Mac the toolchain's `rust-objcopy` cannot
+load `libLLVM.dylib` (its rpath, `@loader_path/../lib`, names a folder without it), so
+`strip = true` warns and leaves release binaries unstripped. Rust 1.99.0 and 1.100.0 fail the
+same way on a one-line crate, so it is not caused by the update. CI runners were not checked.

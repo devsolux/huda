@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://github.com/devsolux/huda/actions/workflows/ci.yml"><img src="https://github.com/devsolux/huda/actions/workflows/ci.yml/badge.svg" alt="CI workflow"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
-  <a href="rust-toolchain.toml"><img src="https://img.shields.io/badge/rust-1.99.0-orange.svg" alt="Rust 1.99.0"></a>
+  <a href="rust-toolchain.toml"><img src="https://img.shields.io/badge/rust-1.100.0-orange.svg" alt="Rust 1.100.0"></a>
   <a href="https://github.com/devsolux/huda/releases"><img src="https://img.shields.io/github/v/release/devsolux/huda" alt="Latest release"></a>
 </p>
 
@@ -292,7 +292,7 @@ layer or destructive recovery path. See [architecture](docs/architecture.md) for
 
 **Requirements:**
 
-- Rust 1.99.0 with `rustfmt` and `clippy`; the version is pinned in
+- Rust 1.100.0 with `rustfmt` and `clippy`; the version is pinned in
   [`rust-toolchain.toml`](rust-toolchain.toml)
 - Python 3.11 or later
 - A native C/C++ toolchain for your platform
@@ -306,7 +306,7 @@ global tools, runs `sudo`, registers startup, deletes profiles or downloads mode
 always runs the pinned toolchain, even when another Rust comes first on `PATH`.
 
 ```bash
-rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
+rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy
 ./dev.sh doctor   # check the host and toolchain
 ./dev.sh check    # workflows, formatting, strict Clippy, source and SQLite checks
 ./dev.sh test     # default, headless and all-feature tests
