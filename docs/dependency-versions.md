@@ -12,8 +12,10 @@ exact pin below was the current stable release on crates.io at resolution time. 
 license audit or a four-platform compile; `cargo audit` reported no advisories against the
 resolved lock (RustSec database of 2026-10-13), and again after the
 [2026-10-16 security update](#2026-10-16-security-update). After the
-[2026-11-06 security update](#2026-11-06-security-update) it reports no vulnerabilities and six
-warnings, listed there. This is a tool finding, not a security certification.
+[2026-11-06 security update](#2026-11-06-security-update) it reported no vulnerabilities and six
+warnings, listed there. RUSTSEC-2026-0459, published later against the bundled SQLite, is fixed
+by the [2026-11-13 security update](#2026-11-13-security-update). This is a tool finding, not a
+security certification.
 
 ## Required desktop and shared stack
 
@@ -25,7 +27,7 @@ warnings, listed there. This is a tool finding, not a security certification.
 | eframe/egui | 0.36.2, with the `accesskit` feature | https://docs.rs/eframe/0.36.2/eframe/trait.App.html |
 | reqwest | 0.13.5 | https://docs.rs/reqwest/latest/reqwest/ |
 | keyring | 4.2.0, `v1` facade | https://docs.rs/keyring/latest/keyring/v1/ |
-| rusqlite | 0.40.2 | https://docs.rs/rusqlite/latest/rusqlite/ |
+| rusqlite | 0.42.0, bundling SQLite 3.54.1 | https://docs.rs/rusqlite/latest/rusqlite/ |
 | serde / serde_json | 1.0.229 / 1.0.154 | https://docs.rs/serde/latest/serde/ · https://docs.rs/serde_json/latest/serde_json/ |
 | blake3 / sha2 | 1.8.7 / 0.11.1 | https://docs.rs/blake3/latest/blake3/ · https://docs.rs/sha2/latest/sha2/ |
 | getrandom / clap | 0.4.3 / 4.6.7 | https://docs.rs/getrandom/latest/getrandom/ · https://docs.rs/clap/latest/clap/ |
@@ -114,8 +116,8 @@ writes `<app_path> <args>` verbatim into the Run value (confirmed by reading the
 source). Huda quotes ordinary Linux and Windows paths, rejects unsafe unqualified escaping, and
 reports custom XDG config unsupported rather than registering in the wrong location. macOS
 XML/path and Windows verbatim-prefix safeguards are in the same small desktop adapter, not a
-second startup service. rusqlite 0.40 gates `u64` conversions behind its `fallible_uint`
-feature, keyring 4.2's `v1` feature selects the native Keychain, Windows and Secret Service
+second startup service. rusqlite 0.42, like 0.40, gates `u64` conversions behind its
+`fallible_uint` feature, keyring 4.2's `v1` feature selects the native Keychain, Windows and Secret Service
 stores, tray-icon 0.26 requires exactly the `ksni` or `libappindicator` feature on Linux, and
 eframe 0.36 drives the desktop through `App::logic`/`App::ui`; all were confirmed from the
 resolved crate sources, and the desktop compiles against them on macOS.
@@ -225,3 +227,41 @@ with the `windows` 0.62 family, or `accesskit_unix` with `atspi`, `zbus_xml`, `z
 `phf`. `accesskit_consumer` appears at 0.35, 0.36 and 0.38 because those adapters pin different
 lines. The bridge talks only to the local accessibility service, never to the network.
 
+## 2026-11-13 security update
+
+`cargo audit` against the RustSec database of 2026-11-13 reported one vulnerability:
+RUSTSEC-2026-0459 (CVE-2026-119375) in the SQLite that libsqlite3-sys 0.38.2 bundles (3.53.2).
+Before SQLite 3.54.0, a database opened together with a `-wal` file of a different page size can
+return uninitialized page-cache memory to ordinary queries. The vector is local: a crafted
+database and `-wal` pair has to be opened. libsqlite3-sys 0.39.0 is the first fixed release and
+only rusqlite 0.41 and later depend on it, so the direct pin moves rusqlite 0.40.2 → 0.42.0,
+which bundles SQLite 3.54.1 through libsqlite3-sys 0.40.0. `cargo update -p rusqlite --precise
+0.42.0` moved four lock entries: rusqlite, libsqlite3-sys, and the wasm-only rsqlite-vfs 0.2.0
+and sqlite-wasm-rs 0.6.3, which no native target compiles. Nothing was added or removed.
+
+Release-note findings (0.41.0, 0.41.1 and 0.42.0):
+
+- **Breaking API changes** that Huda does not reach: `Statement::column_names`, `columns` and
+  `columns_with_metadata` return iterators, zero blobs take a `u64` length, aggregate and window
+  functions need `Send`, and `RawValue` is new. Huda's calls (`pragma_update` and
+  `pragma_query_value` on the main schema, `set_limit`, `backup::Backup::step`, transactions
+  and queries) keep their signatures, and no source line changed.
+- 0.41 checks a pragma name against `pragma_list`, but only with its `extra_check` feature,
+  which Huda does not enable; otherwise a name is checked to be an identifier, as before
+  (confirmed in the 0.42.0 source, `src/pragma.rs`).
+- The `bundled`, `backup`, `limits` and `fallible_uint` features are unchanged, and the default
+  features are still `cache` and the wasm-only `ffi-sqlite-wasm-rs`. The bundled build no longer
+  sets `SQLITE_ENABLE_MEMORY_MANAGEMENT`, which only `sqlite3_release_memory` uses; Huda never
+  calls it. The minimum SQLite is 3.45.3, below the bundled 3.54.1.
+- `Connection::backup` now takes a progress callback like `restore` (`NO_PROGRESS` for none).
+  Huda copies with `backup::Backup::new` and `step`, whose code is unchanged apart from a
+  pattern.
+- Fixes: use-after-free from safe code in `trace_v2`, `busy_handler` and `Session::apply`,
+  `Connection::serialize`, a panic in zero-argument deterministic scalar functions, and leaks on
+  error paths. Huda uses `busy_timeout`, not `busy_handler`, and none of the others.
+
+`cargo audit` then reports no vulnerabilities. With the pinned Rust 1.99.0 on native
+`aarch64-apple-darwin`, `make check` passed: formatting, Clippy with `-D warnings` for all targets
+and features, the SQL and desktop-asset scripts, and the default (150 library tests), headless
+(149) and all-feature (502 library and 60 desktop) test runs, each with the 6 interface-contract
+and 10 MCP-client integration tests.

@@ -15,6 +15,12 @@
   `make github-workflow` starts CI and `make github-allow-action` sets the repository's Actions
   permissions.
 
+### Security
+
+- The bundled SQLite moves from 3.53.2 to 3.54.1 (rusqlite 0.42.0, libsqlite3-sys 0.40.0) for
+  RUSTSEC-2026-0459 (CVE-2026-119375): before 3.54.0, a database opened with a `-wal` file of a
+  different page size could return uninitialized memory to queries.
+
 ## 1.3.0 — 2026-11-08
 
 ### Added
