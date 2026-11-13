@@ -14,8 +14,9 @@ resolved lock (RustSec database of 2026-10-13), and again after the
 [2026-10-16 security update](#2026-10-16-security-update). After the
 [2026-11-06 security update](#2026-11-06-security-update) it reported no vulnerabilities and six
 warnings, listed there. RUSTSEC-2026-0459, published later against the bundled SQLite, is fixed
-by the [2026-11-13 security update](#2026-11-13-security-update). This is a tool finding, not a
-security certification.
+by the [2026-11-13 security update](#2026-11-13-security-update). After the
+[2026-11-13 compatible updates](#2026-11-13-compatible-updates) three warnings remain, listed
+there. This is a tool finding, not a security certification.
 
 ## Required desktop and shared stack
 
@@ -32,10 +33,10 @@ security certification.
 | blake3 / sha2 | 1.8.7 / 0.11.1 | https://docs.rs/blake3/latest/blake3/ · https://docs.rs/sha2/latest/sha2/ |
 | getrandom / clap | 0.4.3 / 4.6.7 | https://docs.rs/getrandom/latest/getrandom/ · https://docs.rs/clap/latest/clap/ |
 | schemars / httparse | 1.2.3 / 1.10.1 | https://docs.rs/schemars/latest/schemars/ · https://docs.rs/httparse/latest/httparse/ |
-| jsonc-parser / toml_edit | 0.34.0 / 0.25.17 | https://docs.rs/jsonc-parser/latest/jsonc_parser/ · https://docs.rs/toml_edit/latest/toml_edit/ |
+| jsonc-parser / toml_edit | 0.34.0 / 0.25.19 | https://docs.rs/jsonc-parser/latest/jsonc_parser/ · https://docs.rs/toml_edit/latest/toml_edit/ |
 | Windows bindings / resources | windows-sys 0.61.2 / winresource 0.1.34 | https://docs.rs/windows-sys/latest/windows_sys/ · https://docs.rs/winresource/latest/winresource/ |
 | Test fixtures | tempfile 3.27.0 | https://docs.rs/tempfile/latest/tempfile/ |
-| Optional `code-adapter` parser | tree-sitter 0.27.1 (grammars below) | https://github.com/tree-sitter/tree-sitter/releases/tag/v0.27.1 |
+| Optional `code-adapter` parser | tree-sitter 0.27.2 (grammars below) | https://github.com/tree-sitter/tree-sitter/releases/tag/v0.27.2 |
 | CI Python | 3.14.8 | https://www.python.org/ |
 | Windows installer compiler | Inno Setup 7.1.0 | https://github.com/jrsoftware/issrc/releases/tag/is-7_1_0 |
 
@@ -48,7 +49,7 @@ Exact dependency pins satisfy the requested minimum auto-launch/tray versions wh
 unreviewed future breaking changes. The optional `code-adapter` grammars are **not required by
 the shipped desktop feature set**; they use compatible ranges at their current release lines:
 javascript, go, python and css 0.25.0, c 0.24.2, php 0.25.1, bash 0.25.1, swift 0.7.4,
-markdown 0.5.3, dart-orchard 0.7.0, typescript 0.23.2, rust 0.24.2, java 0.23.5, cpp 0.23.4,
+markdown 0.5.4, dart-orchard 0.7.1, typescript 0.23.2, rust 0.24.2, java 0.23.5, cpp 0.23.4,
 html 0.23.2, c-sharp 0.23.5, kotlin-ng 1.1.0, ruby 0.23.1 and json 0.24.8. `libc` and optional
 `anyhow` retain compatible ranges which the real lock must resolve. The package/MCP/OpenAPI/schema version contracts are
 not dependency-update knobs; product version is 1.3.0, MCP 2026-07-28 and OpenAPI 3.1.2.
@@ -265,3 +266,51 @@ Release-note findings (0.41.0, 0.41.1 and 0.42.0):
 and features, the SQL and desktop-asset scripts, and the default (150 library tests), headless
 (149) and all-feature (502 library and 60 desktop) test runs, each with the 6 interface-contract
 and 10 MCP-client integration tests.
+
+## 2026-11-13 compatible updates
+
+The toml_edit pin moves 0.25.17 → 0.25.19, the current release; `cargo update` moves the locked
+copy too, so the lock still holds one toml_edit. Its 0.25.18 and 0.25.19 releases only speed up
+serialization and report a deserializer `size_hint`; the `mcp_clients` tests, which edit TOML
+client files and read them back, pass. `cargo update` then moved 78 packages within their
+compatible ranges, 19 of them by a minor version, and nothing else needed setting back (tempfile
+keeps `getrandom` 0.4.3). Every other direct pin was already current; eframe 0.37 is a breaking
+release and is not part of this step.
+
+It adds three packages, none with a build script or file, network or process access, each by a
+known maintainer and MIT or Apache-2.0: **arc-swap** 1.9.5 and **crossbeam-queue** 0.3.14, which
+ksni 0.3.7 (the Linux tray) now uses, and **utf_types** 1.0.0, which utf8_iter 1.1.0 (under
+`url`/`idna`) now uses. Their own dependencies, rustversion and crossbeam-utils, were already
+locked. The `windows-sys` 0.60 family (ten packages) is removed: nothing requires it any more.
+
+Release-note findings:
+
+- **tokio** 1.53.2 → 1.54.1 (under reqwest) includes the 1.53.3 fix for RUSTSEC-2026-0386
+  (`AsyncFd::new` I/O safety) and raises its MSRV to 1.85; 1.54.1 reverts a timer change of
+  1.54.0. **rustix** 1.1.6 fixes RUSTSEC-2026-0486 (xattr reads of a zero-length buffer).
+  async-executor 1.14.1 and clipboard-win 5.4.3 replace the two yanked releases.
+- **webpki-root-certs** 1.0.12 removes seven roots that Mozilla distrusted or limited to email:
+  Buypass Class 2 and Class 3, DigiCert Trusted Root G4, QuoVadis Root CA 1 G3 and 3 G3, and
+  Certigna Root CA. **rustls-webpki** 0.103.17 and **rustls-pki-types** 1.16 add accessors only.
+  **aws-lc-sys** 0.47.0 moves to AWS-LC 5.12.0 under **aws-lc-rs** 1.19.0, which adds cipher
+  modes, a self-test API and `Clone` for key pairs.
+- **cc** 1.8.0 → 1.11.2 builds the bundled SQLite and the tree-sitter grammars. The compile
+  commands for tree-sitter's `lib.c` and the Rust grammar's `parser.c` were compared under both
+  versions and are identical on macOS; 1.11.0 passes `-march=x86-64` to GCC on x86-64 Linux,
+  which only names the baseline instruction set. 1.11.2 was published on the day of this update.
+- **tree-sitter** 0.27.2, **tree-sitter-md** 0.5.4 and **tree-sitter-dart-orchard** 0.7.1:
+  patch releases of the optional parser.
+- **icu** 2.4 (under `idna`, which maps host names in URLs) moves its data to Unicode 18 and
+  CLDR 49, so internationalized host names follow the newer mapping tables.
+- uuid 1.29 (`NonNilUuid` constructors), toml 1.2 (serializer speed; Windows resource build
+  only), arboard 3.7 (clipboard error and `text/uri-list` fixes), async-lock 3.5 and zcheapstr
+  1.2 add features and fixes. utf8_iter 1.1 moves its UTF-8 sequence types into utf_types.
+
+`cargo audit` then reports no vulnerabilities and three warnings: zbus_names, zvariant and
+zvariant_derive are unmaintained (RUSTSEC-2026-0371, -0370, -0372). They come with the Linux
+tray and accessibility bus and were left as they are. `make check` passed with Rust 1.99.0 on
+native `aarch64-apple-darwin`, with the same test counts as above. In the first runs, under a
+load average near 30 from unrelated processes on a 10-core machine, the all-feature test
+`rust_cfg_nested_past_the_cap_is_production_and_does_not_overflow` hit its 5-second parse
+deadline. With the same lock it then passed in about one second in seven runs, including a full
+`make check`, with tree-sitter 0.27.1 or 0.27.2 and cc 1.8.0 or 1.11.2 alike.

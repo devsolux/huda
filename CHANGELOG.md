@@ -21,6 +21,13 @@
   RUSTSEC-2026-0459 (CVE-2026-119375): before 3.54.0, a database opened with a `-wal` file of a
   different page size could return uninitialized memory to queries.
 
+### Dependencies
+
+- Compatible updates of 78 locked packages, and toml_edit 0.25.19. tokio 1.54.1 and rustix 1.1.6
+  clear the unsound warnings RUSTSEC-2026-0386 and -0486, and the two yanked packages are
+  replaced. webpki-root-certs 1.0.12 drops seven roots Mozilla no longer trusts for TLS.
+  `cargo audit` reports no vulnerabilities and three unmaintained-crate warnings.
+
 ## 1.3.0 — 2026-11-08
 
 ### Added
