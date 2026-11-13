@@ -121,7 +121,7 @@ class DesktopSourceTests(unittest.TestCase):
         self.assertEqual(release.count("download-artifact@"), release.count("digest-mismatch: error"))
 
         def job(name: str) -> str:
-            return re.split(r"\n  [\w-]+:\n", release.split(f"\n  {name}:\n", 1)[1], 1)[0]
+            return re.split(r"\n  [\w-]+:\n", release.split(f"\n  {name}:\n", 1)[1], maxsplit=1)[0]
 
         # The release runs the whole CI on the same commit before anything is signed.
         self.assertIn("uses: ./.github/workflows/ci.yml", job("ci"))

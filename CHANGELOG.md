@@ -33,6 +33,9 @@
   under Wayland can also go through the data-control protocol.
 - Rust 1.100.0 is the pinned toolchain (was 1.99.0); it includes the 1.99.1 fix for a
   miscompilation of FFI `bool` return values on x86-64.
+- CI and release tools: actions/setup-python v7.1.0 with Python 3.15.2, sigstore/cosign-installer
+  v4.1.3 with cosign v3.1.4, and Inno Setup 7.1.1, which fixes how 64-bit installers announce
+  checked list items to screen readers.
 
 ## 1.3.0 — 2026-11-08
 

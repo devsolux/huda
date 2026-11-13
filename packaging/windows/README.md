@@ -5,7 +5,7 @@ blanket unsupported-platform stub is removed. The workflow compiles, tests and p
 `windows-2025`; that is build evidence, not native security qualification. Native MSVC tests
 are a required workflow gate.
 
-`Huda.iss` builds a per-user, non-administrative installer using Inno Setup 7.1.0. Product
+`Huda.iss` builds a per-user, non-administrative installer using Inno Setup 7.1.1. Product
 version/identifier/staging paths are supplied by `scripts/package_desktop.py` from Cargo
 metadata. The approved icon and asInvoker/DPI/long-path manifest are embedded by build.rs.
 An additional portable ZIP keeps both executables together.

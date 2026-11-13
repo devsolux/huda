@@ -37,11 +37,12 @@ there. This is a tool finding, not a security certification.
 | Windows bindings / resources | windows-sys 0.61.2 / winresource 0.1.34 | https://docs.rs/windows-sys/latest/windows_sys/ · https://docs.rs/winresource/latest/winresource/ |
 | Test fixtures | tempfile 3.27.0 | https://docs.rs/tempfile/latest/tempfile/ |
 | Optional `code-adapter` parser | tree-sitter 0.27.2 (grammars below) | https://github.com/tree-sitter/tree-sitter/releases/tag/v0.27.2 |
-| CI Python | 3.14.8 | https://www.python.org/ |
-| Windows installer compiler | Inno Setup 7.1.0 | https://github.com/jrsoftware/issrc/releases/tag/is-7_1_0 |
+| CI Python | 3.15.2 | https://www.python.org/ |
+| Windows installer compiler | Inno Setup 7.1.1 | https://github.com/jrsoftware/issrc/releases/tag/is-7_1_1 |
 
-The source accepts Python >=3.11 for developer scripts; the CI runtime selects the verified
-stable 3.14.8 rather than a 3.15 release candidate. Linux retains Ubuntu 24.04 as an explicit
+The source accepts Python >=3.11 for developer scripts; the CI runtime selects 3.15.2, the
+current stable release (see
+[2026-11-13 CI and build tools](#2026-11-13-ci-and-build-tools)). Linux retains Ubuntu 24.04 as an explicit
 ABI baseline, not a claim it is the latest Ubuntu distribution. Runner labels are selected
 for native architecture, not merely an unqualified `-latest` string.
 
@@ -59,20 +60,21 @@ not dependency-update knobs; product version is 1.3.0, MCP 2026-07-28 and OpenAP
 | Action | Release | Exact commit |
 |---|---|---|
 | actions/checkout | v7.0.1 | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
-| actions/setup-python | v7.0.0 | `5fda3b95a4ea91299a34e894583c3862153e4b97` |
+| actions/setup-python | v7.1.0 | `6d4fd22b20465ccc0f7354476588e8df7c9ca0e0` |
 | actions/upload-artifact | v7.0.2 | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
 | actions/download-artifact | v8.0.2 | `9000827ccba6bdab643e8b6fd33ac0654aef8333` |
-| sigstore/cosign-installer | v4.1.2 | `6f9f17788090df1f26f669e9d70d6ae9567deba6` |
+| sigstore/cosign-installer | v4.1.3 | `756fe2d284c7292c4e9b62c8a28f1e5629c59532` |
 
-The installer is told to install cosign **v3.1.3** (`cosign-release`), not its v3.0.6 default.
+The installer is told to install cosign **v3.1.4** (`cosign-release`), which is also its default;
+naming it keeps the choice in this repository.
 
 Primary references:
 - https://github.com/actions/checkout/releases/tag/v7.0.1
-- https://github.com/actions/setup-python/releases/tag/v7.0.0
+- https://github.com/actions/setup-python/releases/tag/v7.1.0
 - https://github.com/actions/upload-artifact/releases/tag/v7.0.2
 - https://github.com/actions/download-artifact/releases/tag/v8.0.2
-- https://github.com/sigstore/cosign-installer/releases/tag/v4.1.2
-- https://github.com/sigstore/cosign/releases/tag/v3.1.3
+- https://github.com/sigstore/cosign-installer/releases/tag/v4.1.3
+- https://github.com/sigstore/cosign/releases/tag/v3.1.4
 - https://docs.github.com/en/actions/reference/runners/github-hosted-runners
 
 On 2026-10-16 each pin above was checked against its repository's latest GitHub release and the
@@ -392,3 +394,37 @@ One finding predates this change. On the development Mac the toolchain's `rust-o
 load `libLLVM.dylib` (its rpath, `@loader_path/../lib`, names a folder without it), so
 `strip = true` warns and leaves release binaries unstripped. Rust 1.99.0 and 1.100.0 fail the
 same way on a one-line crate, so it is not caused by the update. CI runners were not checked.
+
+## 2026-11-13 CI and build tools
+
+Each action pin was checked against its repository's latest release and the tag's commit from
+`git ls-remote`. checkout v7.0.1, upload-artifact v7.0.2 and download-artifact v8.0.2 are still
+the latest releases, and so is the gitleaks image (v8.30.1). Two actions and three tools move:
+
+- **actions/setup-python** v7.0.0 → v7.1.0 (`6d4fd22b`): optional `mirror` and `mirror-token`
+  inputs, which Huda does not set, clearer errors and updated dependencies. It still runs on
+  Node 24.
+- **sigstore/cosign-installer** v4.1.2 → v4.1.3 (`756fe2d2`), whose only change is the default
+  cosign v3.1.4; the release job names **cosign v3.1.4** (was v3.1.3). cosign 3.1.4 deprecates
+  `--use-signing-config` and fixes bundle verification and signing details; the release job uses
+  only `sign-blob --yes --bundle` and `verify-blob` with identity, issuer and workflow-SHA
+  checks, which are unchanged.
+- **Python** 3.14.8 → 3.15.2 for CI and release jobs. 3.15 was a release candidate when 3.14.8
+  was chosen; 3.15.2 is its second bug-fix release, and `actions/python-versions` has builds for
+  all four runners (macOS arm64 and x64, Windows x64, Ubuntu 24.04 x64). 3.15 makes UTF-8 mode
+  the default (PEP 686). Some script reads and subprocess outputs name no encoding; on the
+  Windows runner they are now decoded as UTF-8, which the repository files are, instead of the
+  ANSI code page, and on macOS and Linux nothing changes. `check_sqlite.py`,
+  `test_desktop_assets.py`, `check_native_host.py` and `smoke_binary.py`, and
+  `package_desktop.py --help`, ran under Python 3.15.2 and 3.14.10 with deprecation warnings as
+  errors. That found one call passing `re.split`'s `maxsplit` by position, deprecated since
+  3.13; it now names it.
+- **Inno Setup** 7.1.0 → 7.1.1 for the Windows installer. It fixes 64-bit installers announcing
+  the wrong checked state of list items to screen readers (broken since 7.0.0), restores normal
+  paths for sign tools, and adds translations. The release is immutable, and its one x64
+  installer has the SHA-256 digest that `install_inno.ps1` checks
+  (`8a5a6711c3766a6e5fb74f280ba0e3551e719ce94538d901fdbd1f8f9920b3f0`); the Authenticode
+  publisher check runs on the Windows runner only.
+
+`make check-workflows` and `test_desktop_assets.py` pass. The workflows themselves have not run
+with these pins yet.

@@ -331,7 +331,7 @@ python3 scripts/package_desktop.py --target x86_64-unknown-linux-gnu
 The platform prerequisites are covered in [build and packaging](docs/desktop-build.md):
 
 - Apple Command Line Tools on macOS
-- MSVC build tools and Inno Setup 7.1.0 on Windows
+- MSVC build tools and Inno Setup 7.1.1 on Windows
 - the system libraries on Ubuntu 24.04
 
 ### Continuous integration

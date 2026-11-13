@@ -1,8 +1,8 @@
 # CI build-tool setup only. Never invoked by Huda or dev.sh.
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-$Version = '7.1.0'
-$Tag = 'is-7_1_0'
+$Version = '7.1.1'
+$Tag = 'is-7_1_1'
 $Name = "innosetup-$Version-x64.exe"
 $Headers = @{ 'User-Agent' = 'Huda-native-build'; 'Accept' = 'application/vnd.github+json' }
 # Authenticated metadata reads avoid the shared anonymous API rate limit on hosted runners.
@@ -16,7 +16,7 @@ $Assets = @($Release.assets | Where-Object { $_.name -eq $Name })
 if ($Assets.Count -ne 1 -or $Assets[0].digest -notmatch '^sha256:[0-9a-f]{64}$') {
     throw 'The immutable installer release does not provide one SHA-256-identified asset.'
 }
-$Directory = Join-Path $env:RUNNER_TEMP 'huda-inno-7.1.0'
+$Directory = Join-Path $env:RUNNER_TEMP 'huda-inno-7.1.1'
 New-Item -ItemType Directory -Path $Directory | Out-Null
 $Installer = Join-Path $Directory $Name
 $Url = "https://github.com/jrsoftware/issrc/releases/download/$Tag/$Name"
